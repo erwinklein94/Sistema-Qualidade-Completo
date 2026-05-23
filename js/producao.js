@@ -66,9 +66,10 @@ document.addEventListener('DOMContentLoaded', () => {
   sel('fFornecedor', CFG.listas.fornecedores, 'Todos');
   sel('fProjeto', CFG.listas.projetos, 'Todos');
   sel('fBitola', CFG.listas.bitolas, 'Todas');
+  atualizarFiltroSemanaProducao();
   sel('fStatus', CFG.listas.status, 'Todos');
 
-  ['busca', 'fFornecedor', 'fProjeto', 'fBitola', 'fStatus'].forEach(id =>
+  ['busca', 'fFornecedor', 'fProjeto', 'fBitola', 'fSemana', 'fStatus'].forEach(id =>
     document.getElementById(id).addEventListener('input', render));
 
   render();
@@ -82,12 +83,14 @@ function render() {
   const ff = document.getElementById('fFornecedor').value;
   const fp = document.getElementById('fProjeto').value;
   const fb = document.getElementById('fBitola').value;
+  const fw = U.periodoDeValorSemana(document.getElementById('fSemana').value);
   const fs = document.getElementById('fStatus').value;
 
   const lista = todos.filter(r => {
     if (ff && r.fornecedor !== ff) return false;
     if (fp && r.projeto !== fp) return false;
     if (fb && U.bitolaDe(r) !== fb) return false;
+    if (fw && !dentroPeriodoData(r.dataFabricacao, fw.ini, fw.fim)) return false;
     if (fs && r.status !== fs) return false;
     if (q) {
       const blob = `${r.lote} ${r.projeto} ${r.tipo} ${U.bitolaDe(r)} ${r.serie} ${r.pedido} ${r.status}`.toLowerCase();
@@ -111,6 +114,7 @@ function render() {
     const preenchimento = calcularPreenchimentoLote(r);
     linhas += `<tr class="${preenchimento.status === 'critico' ? 'linha-alerta' : ''}">
       <td>${U.dataBR(r.dataFabricacao)}</td>
+      <td><strong>${semanaRotulo(r.dataFabricacao)}</strong></td>
       <td><strong>${U.esc(r.lote)}</strong></td>
       <td>${U.badgeProjeto(r.projeto)}</td>
       <td>${U.badgeBitola(r)}</td>
@@ -131,7 +135,7 @@ function render() {
 
   cont.innerHTML = `<div class="tabela-wrap"><table class="tabela">
     <thead><tr>
-      <th>Fabricação</th><th>Lote</th><th>Projeto</th><th>Bitola</th><th>Tipo</th>
+      <th>Fabricação</th><th>Semana</th><th>Lote</th><th>Projeto</th><th>Bitola</th><th>Tipo</th>
       <th class="right">Produção</th><th class="right">Reprov.</th><th class="right">Aprovado</th>
       <th>Série</th><th>Preenchimento</th><th>Status</th><th>Ações</th>
     </tr></thead><tbody>${linhas}</tbody></table></div>`;
@@ -267,6 +271,7 @@ function salvar() {
   const reg = { id: document.getElementById('id').value || undefined };
   CAMPOS.forEach(c => { const el = document.getElementById(c); if (el) reg[c] = el.value; });
   Store.salvar(COL, reg);
+  atualizarFiltroSemanaProducao();
   App.toast('Lançamento salvo com sucesso.');
   fecharModal();
   render();
@@ -276,6 +281,7 @@ function excluir(id) {
   const r = Store.obter(COL, id);
   if (App.confirmar(`Excluir o lançamento do lote ${r ? r.lote : ''}?`)) {
     Store.remover(COL, id);
+    atualizarFiltroSemanaProducao();
     App.toast('Registro excluído.', 'aviso');
     render();
   }
@@ -331,3 +337,26 @@ function ver(id) {
 
 function fecharVer() { document.getElementById('modalVer').classList.remove('aberto'); }
 function fecharModal() { document.getElementById('modal').classList.remove('aberto'); }
+
+
+function atualizarFiltroSemanaProducao() {
+  U.preencherFiltroSemana(
+    'fSemana',
+    Store.listar(COL).map(r => r.dataFabricacao).filter(Boolean),
+    document.getElementById('fSemana')?.value,
+    'Todas as semanas'
+  );
+}
+
+function semanaRotulo(iso) {
+  const info = U.semanaOperacionalInfo(iso);
+  return info.semana ? `${String(info.semana).padStart(2, '0')}/${info.ano}` : '—';
+}
+
+function dentroPeriodoData(iso, ini, fim) {
+  if (!ini && !fim) return true;
+  if (!iso) return false;
+  if (ini && iso < ini) return false;
+  if (fim && iso > fim) return false;
+  return true;
+}

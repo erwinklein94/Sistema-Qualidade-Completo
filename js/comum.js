@@ -9,9 +9,10 @@ const App = {
       { sec: 'Painel' },
       { k: 'dashboard', t: 'Dashboard', ic: ICN.dashboard, href: 'index.html' },
       { k: 'semanal', t: 'Indicador Semanal', ic: ICN.semanal, href: 'semanal.html' },
-      { k: 'ensaios', t: 'Ensaios de Liberação', ic: ICN.ensaios, href: 'ensaios.html' },
+      { k: 'painelSeries', t: 'Painel de séries', ic: ICN.ensaios, href: 'ensaios.html' },
       { sec: 'Lançamentos' },
       { k: 'producao', t: 'Produção', ic: ICN.producao, href: 'producao.html' },
+      { k: 'ensaiosLiberacao', t: 'Ensaios de Liberação', ic: ICN.check, href: 'ensaios-liberacao.html' },
       { k: 'reprovados', t: 'Reprovados', ic: ICN.reprova, href: 'reprovados.html' },
       { sec: 'Sistema' },
       { k: 'dados', t: 'Dados & Backup', ic: ICN.config, href: 'dados.html' },
@@ -43,11 +44,15 @@ const App = {
             ${subtitulo ? `<div class="subtitulo">${subtitulo}</div>` : ''}
           </div>
         </div>
-        <div class="topo-acoes" id="topoAcoes"></div>
+        <div class="topo-acoes">
+          <button class="btn btn-secundario btn-sm tema-toggle" id="botaoTema" type="button" onclick="App.alternarTema()" aria-pressed="false" title="Alternar tema">${ICN.tema}<span>Tema escuro</span></button>
+          <div class="topo-acoes" id="topoAcoes"></div>
+        </div>
       </header>`;
 
     document.getElementById('app').insertAdjacentHTML('afterbegin', sidebar);
     document.getElementById('conteudo').insertAdjacentHTML('afterbegin', topo);
+    this.aplicarTemaInicial();
 
     if (!this._atalhoMenuConfigurado) {
       document.addEventListener('keydown', (ev) => {
@@ -58,6 +63,72 @@ const App = {
   },
 
   acoesTopo(html) { document.getElementById('topoAcoes').innerHTML = html; },
+
+  aplicarTemaInicial() {
+    const salvo = localStorage.getItem('temaControleDormentes') || 'claro';
+    this.aplicarTema(salvo, false);
+  },
+
+  alternarTema() {
+    const atual = document.body.getAttribute('data-tema') === 'escuro' ? 'escuro' : 'claro';
+    this.aplicarTema(atual === 'escuro' ? 'claro' : 'escuro', true);
+    // Recalcula gráficos/tabelas para atualizar cores dos canvases sem exigir recarregar a página.
+    setTimeout(() => {
+      if (typeof window.render === 'function') window.render();
+      window.dispatchEvent(new CustomEvent('temaAlterado', { detail: { tema: this.temaAtual() } }));
+    }, 0);
+  },
+
+  aplicarTema(tema = 'claro', persistir = true) {
+    const escuro = tema === 'escuro';
+    document.body.setAttribute('data-tema', escuro ? 'escuro' : 'claro');
+    if (persistir) localStorage.setItem('temaControleDormentes', escuro ? 'escuro' : 'claro');
+    this.aplicarPadraoGraficos();
+
+    const btn = document.getElementById('botaoTema');
+    if (btn) {
+      btn.setAttribute('aria-pressed', escuro ? 'true' : 'false');
+      btn.innerHTML = `${escuro ? ICN.sol : ICN.lua}<span>${escuro ? 'Tema claro' : 'Tema escuro'}</span>`;
+      btn.title = escuro ? 'Alternar para tema claro' : 'Alternar para tema escuro';
+    }
+  },
+
+  temaAtual() { return document.body.getAttribute('data-tema') === 'escuro' ? 'escuro' : 'claro'; },
+
+  aplicarPadraoGraficos() {
+    if (!window.Chart) return;
+    const escuro = this.temaAtual() === 'escuro';
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.font.size = 12;
+    Chart.defaults.color = escuro ? '#d9e8f7' : '#5a6b7b';
+    Chart.defaults.borderColor = escuro ? 'rgba(255,255,255,.14)' : '#e2e8f0';
+  },
+
+  coresGrafico() {
+    const base = CFG.cores;
+    if (this.temaAtual() !== 'escuro') return base;
+    return {
+      ...base,
+      azulEscuro: '#8DC63F',
+      azulClaro: '#ffffff',
+      verde: '#8DC63F',
+      verdeClaro: '#A9E56D',
+      amarelo: '#FFD401',
+      cinza: '#b8c7d8',
+      projetos: {
+        'MALHA PAULISTA': '#8DC63F',
+        'FMT': '#ffffff',
+        'FERRO NORTE': '#A9E56D',
+        'MALHA CENTRAL': '#FFD401'
+      },
+      paleta: ['#8DC63F', '#ffffff', '#FFD401', '#00A8E9', '#A9E56D', '#ff6b6b', '#b8c7d8', '#6dd6ff']
+    };
+  },
+
+  cssVar(nome, fallback = '') {
+    const valor = getComputedStyle(document.body).getPropertyValue(nome).trim();
+    return valor || fallback;
+  },
 
   alternarMenu() {
     const sidebar = document.getElementById('sidebar');
@@ -121,33 +192,105 @@ const U = {
   esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); },
 
   // Semana operacional usada pela área: quinta-feira até quarta-feira.
+  // A numeração segue a planilha da especialista: a semana é identificada
+  // pela quinta-feira de fechamento/referência. Ex.: Semana 21/2026 =
+  // período 14/05/2026 a 20/05/2026, com referência em 21/05/2026.
   semanaDe(iso) {
     return this.semanaOperacionalInfo(iso).semana || '';
   },
 
   semanaOperacionalInfo(iso) {
-    if (!iso) return { semana: '', ano: '', ini: '', fim: '', rotulo: '' };
+    if (!iso) return { semana: '', ano: '', ini: '', fim: '', ref: '', rotulo: '' };
     const d = this._dataLocal(iso);
-    if (!d) return { semana: '', ano: '', ini: '', fim: '', rotulo: '' };
+    if (!d) return { semana: '', ano: '', ini: '', fim: '', ref: '', rotulo: '' };
     const ini = this._inicioSemanaOperacional(d);
     const fim = new Date(ini.valueOf());
     fim.setDate(ini.getDate() + 6);
-    let ano = ini.getFullYear();
-    let primeiro = this._primeiraQuintaDoAno(ano);
-    if (ini < primeiro) {
+
+    const ref = new Date(ini.valueOf());
+    ref.setDate(ini.getDate() + 7); // quinta-feira de fechamento/referência
+    let ano = ref.getFullYear();
+    let primeiraRef = this._primeiraQuintaDoAno(ano);
+    if (ref < primeiraRef) {
       ano -= 1;
-      primeiro = this._primeiraQuintaDoAno(ano);
+      primeiraRef = this._primeiraQuintaDoAno(ano);
     }
-    const semana = 1 + Math.floor((ini - primeiro) / 604800000);
+
+    const semana = 1 + Math.floor((ref - primeiraRef) / 604800000);
     const iniISO = this.isoLocal(ini);
     const fimISO = this.isoLocal(fim);
-    return { semana, ano, ini: iniISO, fim: fimISO, rotulo: `Sem. ${String(semana).padStart(2, '0')}/${ano} (${this.dataBR(iniISO)} a ${this.dataBR(fimISO)})` };
+    const refISO = this.isoLocal(ref);
+    return {
+      semana, ano, ini: iniISO, fim: fimISO, ref: refISO,
+      rotulo: `Sem. ${String(semana).padStart(2, '0')}/${ano} (${this.dataBR(iniISO)} a ${this.dataBR(fimISO)})`
+    };
   },
 
   periodoSemanaOperacional(iso) {
     const i = this.semanaOperacionalInfo(iso);
     return i.ini ? { ini: i.ini, fim: i.fim } : null;
   },
+
+  valorSemana(info) {
+    return info && info.ini && info.fim ? `${info.ini}|${info.fim}` : '';
+  },
+
+  periodoDeValorSemana(valor) {
+    const partes = String(valor || '').split('|');
+    return partes.length >= 2 && partes[0] && partes[1] ? { ini: partes[0], fim: partes[1] } : null;
+  },
+
+  semanasDeDatas(datas) {
+    const mapa = new Map();
+    (datas || []).forEach(iso => {
+      const info = this.semanaOperacionalInfo(iso);
+      if (!info.semana || !info.ini || !info.fim) return;
+      const key = `${info.ano}|${String(info.semana).padStart(2, '0')}`;
+      mapa.set(key, { ...info, key, value: this.valorSemana(info) });
+    });
+    return Array.from(mapa.values()).sort((a, b) =>
+      String(b.fim || '').localeCompare(String(a.fim || '')) ||
+      (Number(b.ano) - Number(a.ano)) ||
+      (Number(b.semana) - Number(a.semana))
+    );
+  },
+
+  opcoesSemanas(datas, selecionado = '', placeholder = 'Todas as semanas') {
+    const semanas = this.semanasDeDatas(datas);
+    let html = `<option value="">${placeholder}</option>`;
+    if (!semanas.length) return html;
+    semanas.forEach(s => {
+      html += `<option value="${this.esc(s.value)}" ${s.value === selecionado ? 'selected' : ''}>${this.esc(s.rotulo)}</option>`;
+    });
+    return html;
+  },
+
+  preencherFiltroSemana(selectId, datas, selecionado = '', placeholder = 'Todas as semanas') {
+    const el = document.getElementById(selectId);
+    if (!el) return;
+    const atual = selecionado != null ? selecionado : el.value;
+    const opcoes = this.opcoesSemanas(datas, atual, placeholder);
+    el.innerHTML = opcoes;
+    if (atual && Array.from(el.options).some(o => o.value === atual)) el.value = atual;
+  },
+
+  aplicarSemanaSelecionada(selectId, iniId, fimId) {
+    const p = this.periodoDeValorSemana(document.getElementById(selectId)?.value);
+    if (!p) return false;
+    const ini = document.getElementById(iniId);
+    const fim = document.getElementById(fimId);
+    if (ini) ini.value = p.ini;
+    if (fim) fim.value = p.fim;
+    return true;
+  },
+
+  sincronizarFiltroSemana(selectId, ini, fim) {
+    const el = document.getElementById(selectId);
+    if (!el) return;
+    const value = ini && fim ? `${ini}|${fim}` : '';
+    el.value = Array.from(el.options).some(o => o.value === value) ? value : '';
+  },
+
 
   isoLocal(d) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;

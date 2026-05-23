@@ -32,7 +32,9 @@ function importarPlanilha(input) {
   ExcelImportador.lerArquivo(arquivo)
     .then(resultado => {
       Store.substituirTudo(resultado.dados);
+      if (typeof atualizarFiltroSemanaDados === 'function') atualizarFiltroSemanaDados();
       atualizarKpis();
+      if (typeof renderResumoSemanaDados === 'function') renderResumoSemanaDados();
       App.toast(`Planilha importada: ${resultado.resumo.producao} produção, ${resultado.resumo.reprovados} reprovados e ${resultado.resumo.semanal} semanas.`);
       if (resultado.alertas.length) console.warn('Alertas da importação:', resultado.alertas);
     })

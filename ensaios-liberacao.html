@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ensaios de Liberação · Controle de Dormentes Rumo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <main class="conteudo" id="conteudo">
+      <div class="pagina">
+
+        <div class="card">
+          <div class="card-titulo">
+            <span class="acento">Registro dos ensaios executados</span>
+            <span class="card-sub">Use esta tela para comprovar a liberação efetiva da série</span>
+          </div>
+          <p class="txt-cinza" style="font-size:14px;line-height:1.7">
+            Aqui ficam os ensaios de liberação que realmente foram realizados. Para cada lançamento, informe o lote ensaiado, o resultado, qual série do projeto foi liberada quando o ensaio for aprovado e o link do relatório no SharePoint/iAuditor.
+          </p>
+        </div>
+
+        <div class="barra-filtros">
+          <div class="busca-rapida campo">
+            <label>Buscar</label>
+            <input type="text" id="busca" placeholder="Lote, série, projeto, relatório...">
+          </div>
+          <div class="campo"><label>Fornecedor</label><select id="fFornecedor"></select></div>
+          <div class="campo"><label>Projeto</label><select id="fProjeto"></select></div>
+          <div class="campo"><label>Bitola</label><select id="fBitola"></select></div>
+          <div class="campo"><label>Semana</label><select id="fSemana"></select></div>
+          <div class="campo"><label>Resultado</label><select id="fResultado"></select></div>
+        </div>
+
+        <div class="grid-kpi" id="kpis"></div>
+
+        <div class="card">
+          <div class="card-titulo">
+            <span class="acento">Ensaios registrados</span>
+            <span class="txt-mini txt-cinza" id="contador">0 registros</span>
+          </div>
+          <div id="lista"></div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-cab">
+        <h2 id="modalTitulo">Novo ensaio de liberação</h2>
+        <button class="fechar-modal" onclick="fecharModal()">⨯</button>
+      </div>
+      <div class="modal-corpo">
+        <form id="form" onsubmit="return false">
+          <input type="hidden" id="id">
+          <div class="form-grid">
+            <div class="form-secao">Identificação do ensaio</div>
+            <div class="campo"><label>Data do ensaio <span class="obrig">*</span></label><input id="dataEnsaio" type="date" required></div>
+            <div class="campo"><label>Fornecedor <span class="obrig">*</span></label><select id="fornecedor" required></select></div>
+            <div class="campo"><label>Projeto <span class="obrig">*</span></label><select id="projeto" required></select></div>
+            <div class="campo"><label>Bitola <span class="obrig">*</span></label><select id="bitola" required></select></div>
+            <div class="campo"><label>Lote ensaiado <span class="obrig">*</span></label><input id="lote" type="text" list="listaLotes" required placeholder="Digite ou escolha um lote"></div>
+            <div class="campo"><label>Quantidade ensaiada</label><input id="quantidadeEnsaiada" type="number" min="0" placeholder="ex.: 4"></div>
+
+            <div class="form-secao">Resultado e série liberada</div>
+            <div class="campo"><label>Resultado <span class="obrig">*</span></label><select id="resultado" required></select></div>
+            <div class="campo"><label>Série do projeto liberada <span class="obrig">*</span></label><input id="serieLiberada" type="text" list="listaSeries" placeholder="ex.: Série 01 - MP" required></div>
+            <div class="campo"><label>Responsável</label><input id="responsavel" type="text" placeholder="Nome de quem acompanhou/registrou"></div>
+            <div class="campo full"><label>Relatório SharePoint/iAuditor <span class="dica">(link)</span></label><input id="linkRelatorio" type="url" placeholder="https://..."></div>
+            <div class="campo full"><label>Observações</label><textarea id="observacoes" placeholder="Inclua qualquer ponto relevante do ensaio ou da liberação"></textarea></div>
+          </div>
+          <div class="form-acoes">
+            <button type="button" class="btn btn-secundario" onclick="fecharModal()">Cancelar</button>
+            <button type="button" class="btn btn-primario" onclick="salvar()">Salvar ensaio</button>
+          </div>
+        </form>
+        <datalist id="listaLotes"></datalist>
+        <datalist id="listaSeries"></datalist>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalVer">
+    <div class="modal">
+      <div class="modal-cab">
+        <h2 id="verTitulo">Detalhe do ensaio</h2>
+        <button class="fechar-modal" onclick="fecharVer()">⨯</button>
+      </div>
+      <div class="modal-corpo" id="verCorpo"></div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/comum.js"></script>
+  <script src="js/ensaios-liberacao.js"></script>
+</body>
+</html>

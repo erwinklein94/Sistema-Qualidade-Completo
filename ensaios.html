@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ensaios de Liberação · Controle de Dormentes Rumo</title>
+  <title>Painel de séries · Controle de Dormentes Rumo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
@@ -15,11 +15,11 @@
 
         <div class="card">
           <div class="card-titulo">
-            <span class="acento">Controle automático das séries</span>
+            <span class="acento">Painel automático das séries</span>
             <span class="card-sub">Regra: ensaio ao atingir 2.000 peças ou 10 lotes, separado por projeto e bitola</span>
           </div>
           <p class="txt-cinza" style="font-size:14px;line-height:1.7">
-            Esta tela cruza os lançamentos da aba <strong>Produção</strong> com as informações de <strong>Série — Ensaio de Liberação</strong>. Ela mostra quais séries já precisam de ensaio, quais estão próximas do limite e quais lotes ainda estão em andamento.
+            Esta tela cruza os lançamentos da aba <strong>Produção</strong> com os <strong>Ensaios de Liberação</strong> registrados. Ela mostra quais séries já precisam de ensaio, quais estão próximas do limite, quais lotes ainda estão em andamento e quais séries já foram liberadas por ensaio aprovado.
           </p>
         </div>
 
@@ -33,6 +33,7 @@
           <div class="campo"><label>Bitola</label><select id="fBitola"></select></div>
           <div class="campo"><label>Série</label><select id="fSerie"></select></div>
           <div class="campo"><label>Status de liberação</label><select id="fStatusSerie"></select></div>
+          <div class="campo"><label>Semana</label><select id="fSemana"></select></div>
           <div class="campo"><label>Período inicial</label><input type="date" id="fPeriodoIni"></div>
           <div class="campo"><label>Período fim</label><input type="date" id="fPeriodoFim"></div>
         </div>

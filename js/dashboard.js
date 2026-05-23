@@ -16,10 +16,21 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('fBitola').innerHTML = U.opcoes(CFG.listas.bitolas, '', 'Todas');
 
   Dashboard.periodoPadrao = periodoUltimaSemanaDisponivel();
+  atualizarFiltroSemanaDashboard(U.valorSemana(Dashboard.periodoPadrao));
   aplicarPeriodo(Dashboard.periodoPadrao);
 
-  ['fFornecedor', 'fProjeto', 'fBitola', 'fPeriodoIni', 'fPeriodoFim'].forEach(id => {
+  ['fFornecedor', 'fProjeto', 'fBitola'].forEach(id => {
     document.getElementById(id).addEventListener('change', render);
+  });
+  document.getElementById('fSemana').addEventListener('change', () => {
+    U.aplicarSemanaSelecionada('fSemana', 'fPeriodoIni', 'fPeriodoFim');
+    render();
+  });
+  ['fPeriodoIni', 'fPeriodoFim'].forEach(id => {
+    document.getElementById(id).addEventListener('change', () => {
+      sincronizarSemanaDashboard();
+      render();
+    });
   });
   document.getElementById('btnUltimaSemana').addEventListener('click', () => {
     Dashboard.periodoPadrao = periodoUltimaSemanaDisponivel();
@@ -28,11 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // estilo global Chart.js
-  if (window.Chart) {
-    Chart.defaults.font.family = "'Inter', sans-serif";
-    Chart.defaults.color = '#5a6b7b';
-    Chart.defaults.font.size = 12;
-  }
+  App.aplicarPadraoGraficos();
   render();
 });
 
@@ -103,7 +110,7 @@ function destruir() { Object.values(charts).forEach(c => c && c.destroy()); char
 
 function desenharGraficos(prod, rep, sem, filtros) {
   destruir();
-  const C = CFG.cores;
+  const C = App.coresGrafico();
 
   // 1. Produção por projeto (barras)
   const porProj = {};
@@ -129,7 +136,7 @@ function desenharGraficos(prod, rep, sem, filtros) {
   charts.mot = new Chart(document.getElementById('chartMotivos'), {
     type: 'doughnut',
     data: { labels: mLabels.length ? mLabels : ['Sem reprovas'], datasets: [{ data: mLabels.length ? Object.values(porMotivo) : [1],
-      backgroundColor: mLabels.length ? mLabels.map((_, i) => C.paleta[i % C.paleta.length]) : ['#eef0f2'], borderWidth: 2, borderColor: '#fff' }] },
+      backgroundColor: mLabels.length ? mLabels.map((_, i) => C.paleta[i % C.paleta.length]) : ['#eef0f2'], borderWidth: 2, borderColor: App.cssVar('--chart-borda', '#fff') }] },
     options: baseOpt({ legend: 'right' })
   });
 
@@ -183,7 +190,7 @@ function desenharGraficos(prod, rep, sem, filtros) {
   charts.stat = new Chart(document.getElementById('chartStatus'), {
     type: 'pie',
     data: { labels: sLabels.length ? sLabels : ['Sem lotes'], datasets: [{ data: sLabels.length ? Object.values(porStatus) : [1],
-      backgroundColor: sLabels.length ? sLabels.map((s, i) => corStatus[s] || C.paleta[i % C.paleta.length]) : ['#eef0f2'], borderWidth: 2, borderColor: '#fff' }] },
+      backgroundColor: sLabels.length ? sLabels.map((s, i) => corStatus[s] || C.paleta[i % C.paleta.length]) : ['#eef0f2'], borderWidth: 2, borderColor: App.cssVar('--chart-borda', '#fff') }] },
     options: baseOpt({ legend: 'right' })
   });
 
@@ -197,13 +204,15 @@ function desenharGraficos(prod, rep, sem, filtros) {
   charts.ens = new Chart(document.getElementById('chartEnsaios'), {
     type: 'doughnut',
     data: { labels: ['Aprovados', 'Recusados'], datasets: [{ data: [Math.max(0, aprov), Math.max(0, recus)],
-      backgroundColor: [C.verde, C.erro], borderWidth: 2, borderColor: '#fff' }] },
+      backgroundColor: [C.verde, C.erro], borderWidth: 2, borderColor: App.cssVar('--chart-borda', '#fff') }] },
     options: baseOpt({ legend: 'bottom' })
   });
 }
 
 function graficoComparativo({ canvasId, labels, produzidos, refugos, percentuais, detalhes, pluginId, tituloTooltip }) {
-  const C = CFG.cores;
+  const C = App.coresGrafico();
+  const corTexto = App.cssVar('--cinza-texto', '#5a6b7b');
+  const corGrid = App.cssVar('--cinza-borda', '#e2e8f0');
   const pct = percentuais || [];
   const rotuloPct = {
     id: pluginId,
@@ -213,7 +222,7 @@ function graficoComparativo({ canvasId, labels, produzidos, refugos, percentuais
       const ctx = chart.ctx;
       ctx.save();
       ctx.font = '700 10px Inter, sans-serif';
-      ctx.fillStyle = '#7a5c00';
+      ctx.fillStyle = App.cssVar('--amarelo-texto', '#7a5c00');
       ctx.textAlign = 'center';
       meta.data.forEach((pt, i) => {
         const v = pct[i];
@@ -238,9 +247,9 @@ function graficoComparativo({ canvasId, labels, produzidos, refugos, percentuais
       responsive: true, maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       plugins: {
-        legend: { position: 'top', labels: { usePointStyle: true, padding: 14, font: { size: 12 } } },
+        legend: { position: 'top', labels: { color: corTexto, usePointStyle: true, padding: 14, font: { size: 12 } } },
         tooltip: {
-          backgroundColor: '#003567', padding: 10, cornerRadius: 8, titleFont: { weight: '700' },
+          backgroundColor: App.cssVar('--azul-escuro', '#003567'), padding: 10, cornerRadius: 8, titleFont: { weight: '700' },
           callbacks: {
             title: items => tituloTooltip(items[0].label, detalhes?.[items[0].dataIndex]),
             label: item => {
@@ -251,11 +260,11 @@ function graficoComparativo({ canvasId, labels, produzidos, refugos, percentuais
         }
       },
       scales: {
-        x: { ticks: { maxRotation: 45, minRotation: 0 } },
-        y: { beginAtZero: true, title: { display: true, text: 'Dormentes', font: { size: 11 } } },
-        y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false },
-          title: { display: true, text: '% reprova', font: { size: 11 } },
-          ticks: { callback: v => v + '%' } }
+        x: { ticks: { color: corTexto, maxRotation: 45, minRotation: 0 }, grid: { color: corGrid } },
+        y: { beginAtZero: true, ticks: { color: corTexto }, grid: { color: corGrid }, title: { display: true, text: 'Dormentes', color: corTexto, font: { size: 11 } } },
+        y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false, color: corGrid },
+          ticks: { color: corTexto, callback: v => v + '%' },
+          title: { display: true, text: '% reprova', color: corTexto, font: { size: 11 } } }
       }
     }
   });
@@ -300,11 +309,12 @@ function agregarSemanalProjeto(prod, rep, filtros) {
 }
 
 function baseOpt({ legend }) {
+  const corTexto = App.cssVar('--cinza-texto', '#5a6b7b');
   return {
     responsive: true, maintainAspectRatio: false,
     plugins: {
-      legend: legend ? { position: legend === true ? 'top' : legend, labels: { usePointStyle: true, padding: 14, font: { size: 12 } } } : { display: false },
-      tooltip: { backgroundColor: '#003567', padding: 10, cornerRadius: 8, titleFont: { weight: '700' } }
+      legend: legend ? { position: legend === true ? 'top' : legend, labels: { color: corTexto, usePointStyle: true, padding: 14, font: { size: 12 } } } : { display: false },
+      tooltip: { backgroundColor: App.cssVar('--azul-escuro', '#003567'), padding: 10, cornerRadius: 8, titleFont: { weight: '700' } }
     },
     scales: undefined,
   };
@@ -314,6 +324,7 @@ function limparFiltrosDashboard() {
   document.getElementById('fFornecedor').value = '';
   document.getElementById('fProjeto').value = '';
   document.getElementById('fBitola').value = '';
+  document.getElementById('fSemana').value = '';
   document.getElementById('fPeriodoIni').value = '';
   document.getElementById('fPeriodoFim').value = '';
   render();
@@ -323,6 +334,24 @@ function aplicarPeriodo(p) {
   if (!p) return;
   document.getElementById('fPeriodoIni').value = p.ini || '';
   document.getElementById('fPeriodoFim').value = p.fim || '';
+  sincronizarSemanaDashboard();
+}
+
+function atualizarFiltroSemanaDashboard(selecionado) {
+  U.preencherFiltroSemana('fSemana', datasSemanaDashboard(), selecionado ?? document.getElementById('fSemana')?.value, 'Todas as semanas');
+}
+
+function sincronizarSemanaDashboard() {
+  U.sincronizarFiltroSemana('fSemana', document.getElementById('fPeriodoIni').value, document.getElementById('fPeriodoFim').value);
+}
+
+function datasSemanaDashboard() {
+  const dados = Store.tudo();
+  const datas = [];
+  (dados.producao || []).forEach(r => { if (r.dataFabricacao) datas.push(r.dataFabricacao); });
+  (dados.reprovados || []).forEach(r => { [r.dataProducao, r.periodoIni, r.periodoFim].forEach(d => { if (d) datas.push(d); }); });
+  (dados.semanal || []).forEach(r => { [r.periodoFim, r.data, r.periodoIni].forEach(d => { if (d) datas.push(d); }); });
+  return datas;
 }
 
 function periodoUltimaSemanaDisponivel() {

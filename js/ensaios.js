@@ -1,5 +1,5 @@
 /* =====================================================================
-   ENSAIOS.JS — Controle das séries de ensaio de liberação
+   ENSAIOS.JS — Painel de séries e controle dos gatilhos de liberação
    Regra trazida do painel anexado: ensaio ao atingir 2.000 peças ou 10 lotes.
    ===================================================================== */
 const LIMITE_PECAS = 2000;
@@ -10,6 +10,7 @@ let chartSeries = null;
 
 const STATUS_SERIE = [
   { valor: '', texto: 'Todos' },
+  { valor: 'liberado', texto: 'Série liberada' },
   { valor: 'obrigatorio', texto: 'Ensaio obrigatório' },
   { valor: 'proximo', texto: 'Próximo do ensaio' },
   { valor: 'andamento', texto: 'Em andamento' },
@@ -17,31 +18,54 @@ const STATUS_SERIE = [
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
-  App.montarLayout('ensaios', 'Ensaios de Liberação', 'Controle das séries, gatilhos de ensaio e lotes vinculados');
+  App.montarLayout('painelSeries', 'Painel de séries', 'Controle das séries, gatilhos de ensaio, lotes vinculados e liberações registradas');
   App.acoesTopo(`
     <button class="btn btn-secundario" onclick="location.href='producao.html'">${ICN.producao}Ver produção</button>
-    <button class="btn btn-primario" onclick="location.href='dados.html'">${ICN.upload}Importar planilha</button>
+    <button class="btn btn-secundario" onclick="location.href='dados.html'">${ICN.upload}Importar planilha</button>
+    <button class="btn btn-primario" onclick="location.href='ensaios-liberacao.html'">${ICN.add}Registrar ensaio</button>
   `);
 
   preencherFiltros();
   const p = periodoUltimaProducao();
+  atualizarFiltroSemanaEnsaios(U.valorSemana(p));
   if (p) {
     document.getElementById('fPeriodoIni').value = p.ini;
     document.getElementById('fPeriodoFim').value = p.fim;
+    sincronizarSemanaEnsaios();
   }
 
-  ['busca', 'fFornecedor', 'fProjeto', 'fBitola', 'fSerie', 'fStatusSerie', 'fPeriodoIni', 'fPeriodoFim'].forEach(id => {
+  ['busca', 'fFornecedor', 'fProjeto', 'fBitola', 'fSerie', 'fStatusSerie'].forEach(id => {
     document.getElementById(id).addEventListener('input', render);
   });
+  document.getElementById('fSemana').addEventListener('change', () => {
+    U.aplicarSemanaSelecionada('fSemana', 'fPeriodoIni', 'fPeriodoFim');
+    render();
+  });
+  ['fPeriodoIni', 'fPeriodoFim'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      sincronizarSemanaEnsaios();
+      render();
+    });
+  });
 
-  if (window.Chart) {
-    Chart.defaults.font.family = "'Inter', sans-serif";
-    Chart.defaults.color = '#5a6b7b';
-    Chart.defaults.font.size = 12;
-  }
+  App.aplicarPadraoGraficos();
 
   render();
 });
+
+
+
+function atualizarFiltroSemanaEnsaios(selecionado) {
+  U.preencherFiltroSemana('fSemana', datasSemanaEnsaios(), selecionado ?? document.getElementById('fSemana')?.value, 'Todas as semanas');
+}
+
+function sincronizarSemanaEnsaios() {
+  U.sincronizarFiltroSemana('fSemana', document.getElementById('fPeriodoIni').value, document.getElementById('fPeriodoFim').value);
+}
+
+function datasSemanaEnsaios() {
+  return Store.listar('producao').map(r => r.dataFabricacao).filter(Boolean);
+}
 
 function preencherFiltros() {
   document.getElementById('fFornecedor').innerHTML = U.opcoes(CFG.listas.fornecedores, '', 'Todos');
@@ -79,7 +103,7 @@ function render() {
   renderGrafico(series.slice(0, 15));
   renderAlertas(series);
   renderResumoStatus(dados.series);
-  renderCards(series.slice(0, 18));
+  renderCards(series);
   renderTabela(series);
   document.getElementById('contadorSeries').textContent = `${series.length} de ${dados.series.length} séries`;
 }
@@ -87,6 +111,17 @@ function render() {
 function calcularSeries(f) {
   const prodBase = Store.listar('producao');
   const repBase = Store.listar('reprovados');
+  const ensaiosBase = Store.listar('ensaiosLiberacao');
+
+  const ensaiosLibPorSerie = new Map();
+  ensaiosBase.forEach(e => {
+    const serie = normalizarSerie(e.serieLiberada, e.projeto);
+    if (!serie || serie.startsWith('Série aberta / sem série')) return;
+    const key = chaveSerieLiberada(e.fornecedor, e.projeto, e.bitola || U.bitolaDe(e), serie);
+    if (!ensaiosLibPorSerie.has(key)) ensaiosLibPorSerie.set(key, []);
+    ensaiosLibPorSerie.get(key).push(e);
+  });
+  ensaiosLibPorSerie.forEach(arr => arr.sort((a, b) => (b.dataEnsaio || '').localeCompare(a.dataEnsaio || '')));
 
   const prod = prodBase.filter(r => {
     if (f.fornecedor && r.fornecedor !== f.fornecedor) return false;
@@ -136,6 +171,7 @@ function calcularSeries(f) {
       aprovadosEnsaio: 0,
       refugos: 0,
       lotes: new Set(),
+      lotesDetalhesMap: new Map(),
       linhas: [],
       dataIni: '',
       dataFim: '',
@@ -144,7 +180,26 @@ function calcularSeries(f) {
     item.ensaiados += U.int(r.ensaiados);
     item.reprovadosEnsaio += U.int(r.reprovados);
     item.aprovadosEnsaio += U.int(r.aprovado);
-    item.lotes.add(String(r.lote || '—'));
+    const lote = String(r.lote || '—').trim() || '—';
+    item.lotes.add(lote);
+    const loteInfo = item.lotesDetalhesMap.get(lote) || {
+      lote,
+      data: '',
+      total: 0,
+      ensaiados: 0,
+      reprovados: 0,
+      registros: 0,
+      status: '',
+      tipo: '',
+    };
+    loteInfo.total += U.int(r.total);
+    loteInfo.ensaiados += U.int(r.ensaiados);
+    loteInfo.reprovados += U.int(r.reprovados);
+    loteInfo.registros += 1;
+    if (r.dataFabricacao && (!loteInfo.data || r.dataFabricacao > loteInfo.data)) loteInfo.data = r.dataFabricacao;
+    if (r.status) loteInfo.status = r.status;
+    if (r.tipo) loteInfo.tipo = r.tipo;
+    item.lotesDetalhesMap.set(lote, loteInfo);
     item.linhas.push(r);
     if (r.dataFabricacao && (!item.dataIni || r.dataFabricacao < item.dataIni)) item.dataIni = r.dataFabricacao;
     if (r.dataFabricacao && (!item.dataFim || r.dataFabricacao > item.dataFim)) item.dataFim = r.dataFabricacao;
@@ -154,6 +209,10 @@ function calcularSeries(f) {
   const series = Array.from(mapa.values()).map(item => {
     item.loteQtd = item.lotes.size;
     item.lotesLista = Array.from(item.lotes).filter(v => v !== '—').sort(ordemLote);
+    item.lotesDetalhes = Array.from(item.lotesDetalhesMap.values())
+      .filter(l => l.lote !== '—')
+      .sort((a, b) => ordemLote(a.lote, b.lote));
+    item.ultimoLote = item.lotesDetalhes.length ? item.lotesDetalhes[item.lotesDetalhes.length - 1] : null;
     item.refugos = item.lotesLista.reduce((s, lote) => {
       const key = `${item.fornecedor}|||${item.projeto}|||${lote}`;
       return s + (reprovasPorChave.get(key) || 0);
@@ -167,7 +226,15 @@ function calcularSeries(f) {
     item.saldoPecas = Math.max(0, LIMITE_PECAS - item.total);
     item.saldoLotes = Math.max(0, LIMITE_LOTES - item.loteQtd);
 
-    if (item.semSerie) {
+    const liberacoes = ensaiosLibPorSerie.get(chaveSerieLiberada(item.fornecedor, item.projeto, item.bitola, item.serie)) || [];
+    item.ensaiosRegistrados = liberacoes;
+    item.ultimoEnsaio = liberacoes[0] || null;
+    item.liberado = liberacoes.some(e => e.resultado === 'Aprovado');
+
+    if (item.liberado) {
+      item.status = 'liberado';
+      item.statusLabel = 'Série liberada';
+    } else if (item.semSerie) {
       item.status = 'semserie';
       item.statusLabel = 'Sem série definida';
     } else if (item.total >= LIMITE_PECAS || item.loteQtd >= LIMITE_LOTES) {
@@ -189,12 +256,14 @@ function calcularSeries(f) {
 function renderKpis(series) {
   const totalPecas = series.reduce((s, r) => s + r.total, 0);
   const totalLotes = series.reduce((s, r) => s + r.loteQtd, 0);
+  const liberadas = series.filter(s => s.status === 'liberado').length;
   const obrig = series.filter(s => s.status === 'obrigatorio').length;
   const prox = series.filter(s => s.status === 'proximo').length;
   const semSerie = series.filter(s => s.status === 'semserie').length;
   const ensaiados = series.reduce((s, r) => s + r.ensaiados, 0);
   document.getElementById('kpis').innerHTML = `
     <div class="kpi escuro"><div class="rotulo">Séries monitoradas</div><div class="valor">${series.length}</div><div class="extra">no filtro atual</div></div>
+    <div class="kpi verde"><div class="rotulo">Séries liberadas</div><div class="valor">${liberadas}</div><div class="extra">com ensaio aprovado registrado</div></div>
     <div class="kpi vermelho"><div class="rotulo">Ensaios obrigatórios</div><div class="valor">${obrig}</div><div class="extra">atingiram 2.000 peças ou 10 lotes</div></div>
     <div class="kpi amarelo"><div class="rotulo">Próximas do ensaio</div><div class="valor">${prox}</div><div class="extra">a partir de 1.800 peças ou 9 lotes</div></div>
     <div class="kpi"><div class="rotulo">Produção vinculada</div><div class="valor">${totalPecas.toLocaleString('pt-BR')}</div><div class="extra">${totalLotes.toLocaleString('pt-BR')} lotes nas séries</div></div>
@@ -203,6 +272,9 @@ function renderKpis(series) {
 }
 
 function renderGrafico(series) {
+  const C = App.coresGrafico();
+  const corTexto = App.cssVar('--cinza-texto', '#5a6b7b');
+  const corGrid = App.cssVar('--cinza-borda', '#e2e8f0');
   if (chartSeries) { chartSeries.destroy(); chartSeries = null; }
   const canvas = document.getElementById('chartProgressoSeries');
   if (!canvas) return;
@@ -217,8 +289,8 @@ function renderGrafico(series) {
     data: {
       labels,
       datasets: [
-        { label: '% por peças', data: series.map(s => s.pctPecas), backgroundColor: CFG.cores.azulEscuro, borderRadius: 6 },
-        { label: '% por lotes', data: series.map(s => s.pctLotes), backgroundColor: CFG.cores.amarelo, borderRadius: 6 },
+        { label: '% por peças', data: series.map(s => s.pctPecas), backgroundColor: C.azulEscuro, borderRadius: 6 },
+        { label: '% por lotes', data: series.map(s => s.pctLotes), backgroundColor: C.amarelo, borderRadius: 6 },
       ]
     },
     options: {
@@ -226,9 +298,9 @@ function renderGrafico(series) {
       maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       plugins: {
-        legend: { position: 'top', labels: { usePointStyle: true } },
+        legend: { position: 'top', labels: { color: corTexto, usePointStyle: true } },
         tooltip: {
-          backgroundColor: '#003567', padding: 10, cornerRadius: 8,
+          backgroundColor: App.cssVar('--azul-escuro', '#003567'), padding: 10, cornerRadius: 8,
           callbacks: {
             title: items => labels[items[0].dataIndex],
             label: item => {
@@ -240,8 +312,8 @@ function renderGrafico(series) {
         }
       },
       scales: {
-        x: { ticks: { maxRotation: 45, minRotation: 0 } },
-        y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' }, title: { display: true, text: 'Progresso até o gatilho' } }
+        x: { ticks: { color: corTexto, maxRotation: 45, minRotation: 0 }, grid: { color: corGrid } },
+        y: { beginAtZero: true, max: 100, ticks: { color: corTexto, callback: v => v + '%' }, grid: { color: corGrid }, title: { display: true, text: 'Progresso até o gatilho', color: corTexto } }
       }
     }
   });
@@ -262,9 +334,10 @@ function renderAlertas(series) {
 }
 
 function renderResumoStatus(series) {
-  const cont = { obrigatorio: 0, proximo: 0, andamento: 0, semserie: 0 };
+  const cont = { liberado: 0, obrigatorio: 0, proximo: 0, andamento: 0, semserie: 0 };
   series.forEach(s => { cont[s.status] = (cont[s.status] || 0) + 1; });
   const rows = [
+    ['Série liberada', cont.liberado, 'liberado'],
     ['Ensaio obrigatório', cont.obrigatorio, 'obrigatorio'],
     ['Próximo do ensaio', cont.proximo, 'proximo'],
     ['Em andamento', cont.andamento, 'andamento'],
@@ -306,11 +379,53 @@ function cardSerie(s) {
       ${barra('Quantidade', s.total, LIMITE_PECAS, s.pctPecas, s.status)}
       ${barra('Lotes', s.loteQtd, LIMITE_LOTES, s.pctLotes, s.status)}
     </div>
+    ${renderLotesSerie(s)}
+    ${renderLiberacaoSerie(s)}
     <div class="serie-rodape">
       <span>Saldo: ${s.saldoPecas.toLocaleString('pt-BR')} peças ou ${s.saldoLotes} lotes</span>
       <span>${U.dataBR(s.dataIni)} a ${U.dataBR(s.dataFim)}</span>
     </div>
   </article>`;
+}
+
+function renderLotesSerie(s) {
+  if (!s.lotesDetalhes || !s.lotesDetalhes.length) {
+    return `<div class="serie-lotes"><div class="serie-lotes-topo"><strong>Lotes da série</strong></div><p class="txt-mini txt-cinza">Nenhum lote vinculado no filtro atual.</p></div>`;
+  }
+  const ultimo = s.ultimoLote?.lote;
+  return `<div class="serie-lotes">
+    <div class="serie-lotes-topo">
+      <strong>Lotes da série</strong>
+      <span>${s.lotesDetalhes.length} lote${s.lotesDetalhes.length === 1 ? '' : 's'} · último em destaque</span>
+    </div>
+    <div class="lotes-serie-lista">${s.lotesDetalhes.map(l => {
+      const isUltimo = l.lote === ultimo;
+      const data = l.data ? U.dataBR(l.data) : 'sem data';
+      const pecas = l.total ? `${l.total.toLocaleString('pt-BR')} peças` : 'sem qtd.';
+      const status = l.status ? ` · ${U.esc(l.status)}` : '';
+      return `<span class="lote-serie-chip ${isUltimo ? 'ultimo' : ''}">
+        <strong>Lote ${U.esc(l.lote)}</strong>
+        ${isUltimo ? '<small>Último lote · provável ensaio</small>' : ''}
+        <em>${data} · ${pecas}${status}</em>
+      </span>`;
+    }).join('')}</div>
+  </div>`;
+}
+
+
+function renderLiberacaoSerie(s) {
+  if (!s.ensaiosRegistrados || !s.ensaiosRegistrados.length) return '';
+  const e = s.ultimoEnsaio;
+  const aprovado = s.liberado;
+  const link = String(e.linkRelatorio || '').trim();
+  const href = link ? (/^https?:\/\//i.test(link) ? link : `https://${link}`) : '';
+  return `<div class="serie-liberacao ${aprovado ? 'aprovada' : 'pendente'}">
+    <div>
+      <strong>${aprovado ? 'Série liberada por ensaio aprovado' : 'Ensaio registrado para a série'}</strong>
+      <span>Lote ensaiado ${U.esc(e.lote || '—')} · ${U.dataBR(e.dataEnsaio)} · ${U.esc(e.resultado || '—')}</span>
+    </div>
+    ${href ? `<a href="${U.esc(href)}" target="_blank" rel="noopener">Relatório</a>` : '<small>Sem link do relatório</small>'}
+  </div>`;
 }
 
 function barra(rotulo, atual, limite, pct, status) {
@@ -330,7 +445,7 @@ function renderTabela(series) {
     <thead><tr>
       <th>Fornecedor</th><th>Projeto / Bitola</th><th>Série</th><th>Status</th>
       <th class="right">Produção</th><th class="right">Lotes</th><th class="right">Saldo peças</th><th class="right">Saldo lotes</th>
-      <th class="right">Ensaiados</th><th class="right">Reprov. ensaio</th><th class="right">Refugos</th><th>Lotes vinculados</th>
+      <th class="right">Ensaiados</th><th class="right">Reprov. ensaio</th><th class="right">Refugos</th><th>Liberação</th><th>Lotes vinculados</th>
     </tr></thead>
     <tbody>${series.map(s => `<tr>
       <td>${U.esc(s.fornecedor)}</td>
@@ -344,9 +459,22 @@ function renderTabela(series) {
       <td class="right">${s.ensaiados.toLocaleString('pt-BR')}</td>
       <td class="right">${s.reprovadosEnsaio.toLocaleString('pt-BR')}</td>
       <td class="right">${s.refugos.toLocaleString('pt-BR')}</td>
+      <td>${resumoLiberacaoTabela(s)}</td>
       <td>${U.esc(s.lotesLista.slice(0, 8).join(', '))}${s.lotesLista.length > 8 ? '…' : ''}</td>
     </tr>`).join('')}</tbody>
   </table></div>`;
+}
+
+
+function resumoLiberacaoTabela(s) {
+  if (!s.ensaiosRegistrados || !s.ensaiosRegistrados.length) return '—';
+  const e = s.ultimoEnsaio;
+  const cls = e.resultado === 'Aprovado' ? 'badge-ok' : e.resultado === 'Reprovado' ? 'badge-reprovado' : 'badge-amarelo';
+  return `<span class="badge ${cls}">${U.esc(e.resultado || '—')}</span><div class="txt-mini txt-cinza">${U.dataBR(e.dataEnsaio)} · lote ${U.esc(e.lote || '—')}</div>`;
+}
+
+function chaveSerieLiberada(fornecedor, projeto, bitola, serie) {
+  return `${fornecedor || '—'}|||${projeto || '—'}|||${bitola || 'Sem bitola definida'}|||${normalizarSerie(serie, projeto)}`;
 }
 
 function normalizarSerie(valor, projeto) {
@@ -373,7 +501,7 @@ function grupoProjetoBitola(r) {
 }
 
 function prioridade(s) {
-  return { obrigatorio: 0, proximo: 1, semserie: 2, andamento: 3 }[s.status] ?? 9;
+  return { obrigatorio: 0, proximo: 1, semserie: 2, andamento: 3, liberado: 4 }[s.status] ?? 9;
 }
 
 function dentroPeriodo(iso, ini, fim) {

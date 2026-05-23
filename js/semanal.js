@@ -19,13 +19,24 @@ document.addEventListener('DOMContentLoaded', () => {
   sel('fBitola', CFG.listas.bitolas, 'Todas');
 
   const p = periodoUltimaSemanaDisponivel();
+  atualizarFiltroSemanaSemanal(U.valorSemana(p));
   if (p) {
     document.getElementById('fPeriodoIni').value = p.ini;
     document.getElementById('fPeriodoFim').value = p.fim;
+    sincronizarSemanaSemanal();
   }
 
-  ['fFornecedor', 'fProjeto', 'fBitola', 'fPeriodoIni', 'fPeriodoFim'].forEach(id =>
+  ['fFornecedor', 'fProjeto', 'fBitola'].forEach(id =>
     document.getElementById(id).addEventListener('input', render));
+  document.getElementById('fSemana').addEventListener('change', () => {
+    U.aplicarSemanaSelecionada('fSemana', 'fPeriodoIni', 'fPeriodoFim');
+    render();
+  });
+  ['fPeriodoIni', 'fPeriodoFim'].forEach(id =>
+    document.getElementById(id).addEventListener('input', () => {
+      sincronizarSemanaSemanal();
+      render();
+    }));
 
   document.getElementById('data').addEventListener('change', e => {
     if (!e.target.value) return;
@@ -149,6 +160,7 @@ function salvar() {
   const reg = { id: document.getElementById('id').value || undefined };
   CAMPOS.forEach(c => { const el = document.getElementById(c); if (el) reg[c] = el.value; });
   Store.salvar(COL, reg);
+  atualizarFiltroSemanaSemanal();
   App.toast('Semana salva.');
   fecharModal();
   render();
@@ -158,6 +170,7 @@ function excluir(id) {
   const r = Store.obter(COL, id);
   if (App.confirmar(`Excluir a semana ${r ? r.semana : ''} (${r ? r.fornecedor : ''})?`)) {
     Store.remover(COL, id);
+    atualizarFiltroSemanaSemanal();
     App.toast('Semana excluída.', 'aviso');
     render();
   }
@@ -200,6 +213,7 @@ function gerarDaProducao() {
   const d = Store.tudo();
   d.semanal = Object.values(mapa);
   Store.substituirTudo(d);
+  atualizarFiltroSemanaSemanal();
   App.toast(`${d.semanal.length} semanas operacionais geradas a partir da produção.`);
   render();
 
@@ -209,6 +223,23 @@ function gerarDaProducao() {
       periodoIni: info.ini, periodoFim: info.fim, produzidos: 0, previsto: 0,
       ensaiosReal: 0, ensaiosAprov: 0, ensaiosRec: 0, dormRecusados: 0 };
   }
+}
+
+
+
+function atualizarFiltroSemanaSemanal(selecionado) {
+  U.preencherFiltroSemana('fSemana', datasSemanaSemanal(), selecionado ?? document.getElementById('fSemana')?.value, 'Todas as semanas');
+}
+
+function sincronizarSemanaSemanal() {
+  U.sincronizarFiltroSemana('fSemana', document.getElementById('fPeriodoIni').value, document.getElementById('fPeriodoFim').value);
+}
+
+function datasSemanaSemanal() {
+  const datas = [];
+  Store.listar(COL).forEach(r => { [r.periodoFim, r.data, r.periodoIni].forEach(d => { if (d) datas.push(d); }); });
+  if (!datas.length) Store.listar('producao').forEach(r => { if (r.dataFabricacao) datas.push(r.dataFabricacao); });
+  return datas;
 }
 
 function periodoUltimaSemanaDisponivel() {

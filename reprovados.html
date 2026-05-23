@@ -22,7 +22,18 @@
           <div class="campo"><label>Projeto</label><select id="fProjeto"></select></div>
           <div class="campo"><label>Bitola</label><select id="fBitola"></select></div>
           <div class="campo"><label>Motivo (Indicador)</label><select id="fMotivo"></select></div>
+          <div class="campo"><label>Semana</label><select id="fSemana"></select></div>
+          <div class="campo"><label>Período inicial</label><input type="date" id="fPeriodoIni"></div>
+          <div class="campo"><label>Período fim</label><input type="date" id="fPeriodoFim"></div>
+          <button class="btn btn-secundario btn-sm" id="btnUltimaSemana" type="button">Última semana</button>
+          <button class="btn btn-secundario btn-sm" id="btnLimparPeriodo" type="button">Limpar período</button>
         </div>
+
+        <div class="aviso-info">
+          Semana operacional: quinta a quarta. Referência validada: <strong>Semana 21/2026 = 14/05/2026 a 20/05/2026</strong>.
+        </div>
+
+        <div id="parecerReprovados" class="parecer-reprovados"></div>
 
         <div class="card">
           <div class="card-titulo">

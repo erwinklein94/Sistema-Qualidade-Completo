@@ -15,6 +15,7 @@ const Store = (() => {
     producao: [],   // registros de produção
     reprovados: [], // registros de reprova
     semanal: [],    // indicador semanal consolidado
+    ensaiosLiberacao: [], // ensaios efetivamente executados para liberação de séries
   });
 
   function _ler() {
@@ -41,7 +42,7 @@ const Store = (() => {
 
   // ---- API pública ----
   return {
-    // genéricos por coleção: 'producao' | 'reprovados' | 'semanal'
+    // genéricos por coleção: 'producao' | 'reprovados' | 'semanal' | 'ensaiosLiberacao'
     listar(col) { return _ler()[col] || []; },
 
     obter(col, id) { return (_ler()[col] || []).find(r => r.id === id) || null; },
@@ -71,7 +72,7 @@ const Store = (() => {
 
     substituirTudo(obj) {
       const base = vazio();
-      ['producao', 'reprovados', 'semanal'].forEach(k => {
+      ['producao', 'reprovados', 'semanal', 'ensaiosLiberacao'].forEach(k => {
         if (Array.isArray(obj[k])) base[k] = obj[k];
       });
       _gravar(base);
@@ -137,11 +138,28 @@ const Store = (() => {
         'Ensaios Aprovados': r.ensaiosAprov, 'Ensaios Recusados': r.ensaiosRec,
         'Dorm Recusados': r.dormRecusados, Previsto: r.previsto,
       }));
+      const ensaiosRealizados = (d.ensaiosLiberacao || []).map(r => ({
+        'Data do ensaio': r.dataEnsaio,
+        Semana: r.semana,
+        'Período Início': r.periodoIni,
+        'Período Fim': r.periodoFim,
+        Fornecedor: r.fornecedor,
+        Projeto: r.projeto,
+        Bitola: r.bitola || _bitola(r),
+        'Lote ensaiado': r.lote,
+        'Série liberada': r.serieLiberada,
+        Resultado: r.resultado,
+        'Quantidade ensaiada': r.quantidadeEnsaiada,
+        Responsável: r.responsavel,
+        'Relatório SharePoint / iAuditor': r.linkRelatorio,
+        Observações: r.observacoes,
+      }));
 
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(prod), 'Produção');
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rep), 'Reprovados');
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sem), 'Indicador Semanal');
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(_ensaiosLiberacao(d.producao, d.reprovados)), 'Ensaios de Liberação');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ensaiosRealizados), 'Ensaios Realizados');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(_ensaiosLiberacao(d.producao, d.reprovados)), 'Painel de Séries');
       XLSX.writeFile(wb, `dormentes_${_dataArq()}.xlsx`);
     },
   };

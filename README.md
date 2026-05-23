@@ -11,8 +11,10 @@ Excel. Funciona 100% no navegador (não precisa de servidor) e é compatível co
 - **Dashboard** — visão geral com gráficos de produção, reprovas, ensaios e status.
 - **Indicador Semanal** — consolidação por semana e por fábrica (gerada
   automaticamente a partir dos lançamentos de produção e reprovas).
-- **Ensaios de Liberação** — controle automático das séries de ensaio, com alerta
-  para 2.000 peças ou 10 lotes, próximas do limite e sem série cadastrada.
+- **Painel de séries** — controle automático das séries, com alerta para
+  2.000 peças ou 10 lotes, próximas do limite, sem série cadastrada e séries já liberadas.
+- **Ensaios de Liberação** — lançamento dos ensaios efetivamente executados,
+  informando lote ensaiado, resultado, série liberada e link do relatório SharePoint/iAuditor.
 - **Produção** — cadastro completo de cada lote produzido (pista, pedido, projeto,
   tipo, ensaios, status etc.).
 - **Reprovados** — registro de refugos de dormentes por motivo.
@@ -94,7 +96,8 @@ os arquivos alterados.
 /
 ├── index.html         → Dashboard
 ├── semanal.html       → Indicador Semanal
-├── ensaios.html       → Ensaios de Liberação
+├── ensaios.html       → Painel de séries
+├── ensaios-liberacao.html → Ensaios de Liberação executados
 ├── producao.html      → Produção
 ├── reprovados.html    → Reprovados
 ├── dados.html         → Dados & Backup
@@ -107,7 +110,8 @@ os arquivos alterados.
     ├── producao.js    → tela de Produção
     ├── reprovados.js  → tela de Reprovados
     ├── semanal.js     → tela de Indicador Semanal
-    ├── ensaios.js     → controle automático das séries de liberação
+    ├── ensaios.js     → painel automático das séries de liberação
+    ├── ensaios-liberacao.js → lançamentos dos ensaios executados
     ├── dashboard.js   → gráficos do Dashboard
     ├── dados.js       → backup / importação / demo
     └── demo.js        → dados de exemplo (extraídos da sua planilha)
@@ -156,13 +160,13 @@ O gráfico semanal por projeto é calculado a partir dos lançamentos de **Produ
 
 Foi incorporado ao site o controle útil do projeto anexado, baseado na aba de **Ensaios de Liberação** / séries:
 
-- Nova tela **Ensaios de Liberação** no menu lateral.
+- Tela **Painel de séries** no menu lateral para acompanhamento automático.
 - Cálculo automático por **Fornecedor + Projeto/Bitola + Série**.
 - Alerta de **Ensaio obrigatório** ao atingir **2.000 peças** ou **10 lotes**.
 - Alerta de **Próximo do ensaio** a partir de **1.800 peças** ou **9 lotes**.
 - Identificação de produção **sem série definida**, para correção cadastral.
 - Cruzamento com a aba **Reprovados** para mostrar refugos vinculados aos lotes da série.
-- Exportação Excel agora inclui a aba **Ensaios de Liberação** calculada automaticamente.
+- Exportação Excel agora inclui a aba **Painel de Séries** calculada automaticamente.
 
 
 ## Atualização: filtros por bitola e semana operacional
@@ -173,6 +177,7 @@ Telas atualizadas com filtro de bitola:
 
 - **Dashboard**
 - **Indicador Semanal**
+- **Painel de séries**
 - **Ensaios de Liberação**
 - **Produção**
 - **Reprovados**
@@ -211,3 +216,93 @@ Novos recursos adicionados:
 - Botão **Completar** no alerta, abrindo diretamente a edição do lote.
 
 Os alertas respeitam os filtros atuais da tela, incluindo **Fornecedor**, **Projeto**, **Bitola**, **Status** e busca rápida.
+
+## Atualização: período operacional na aba Reprovados
+
+A tela **Dormentes Reprovados** agora também possui filtro de período com a mesma regra usada no restante do sistema.
+
+Regras aplicadas:
+
+- A semana operacional começa na **quinta-feira** e termina na **quarta-feira**.
+- A numeração segue a referência da planilha da especialista: **Semana 21/2026 = 14/05/2026 a 20/05/2026**.
+- O campo **Data de Produção** preenche automaticamente:
+  - número da semana;
+  - período inicial;
+  - período fim.
+- A lista de reprovados pode ser filtrada por:
+  - período inicial;
+  - período fim;
+  - botão **Última semana**;
+  - botão **Limpar período**.
+- A tabela de reprovados mostra a coluna **Período operacional**, facilitando a conferência dos registros.
+
+A função central de cálculo semanal foi corrigida para que todos os gráficos, indicadores e consolidações que usam semana operacional sigam essa mesma referência.
+
+## Atualização: tema escuro
+
+O site agora possui um botão **Tema escuro / Tema claro** no topo de todas as telas.
+
+Características do tema escuro:
+
+- predominância de **azul escuro**, mantendo o padrão visual do site;
+- uso de **branco** para leitura e contraste;
+- uso de **verde claro** como destaque principal em botões e elementos positivos;
+- uso de **amarelo** como destaque secundário para alertas e atenção;
+- preferência salva no navegador, mantendo o tema escolhido ao trocar de página;
+- gráficos, tabelas, cards, formulários, modais e alertas adaptados para melhor leitura no modo escuro.
+
+
+### Ajustes adicionados nesta versão
+
+- Na aba **Painel de séries**, cada card de série agora mostra os **lotes vinculados à série**.
+- O **último lote da série** fica destacado como **provável ensaio**, porque normalmente é o lote mais provável para liberação.
+- Na aba **Reprovados**, abaixo dos filtros, foi criado um **parecer automático** do recorte selecionado.
+- O parecer mostra total de refugos, quantidade de registros, lotes afetados e distribuição por **Motivo (Indicador)**, respeitando período, fornecedor, projeto, bitola, motivo e busca.
+
+## Atualização: filtro de semana em todas as abas
+
+Todas as telas operacionais agora possuem um filtro direto de **Semana**. As opções são geradas automaticamente a partir dos dados cadastrados/importados e seguem a semana operacional da área:
+
+- início na **quinta-feira**;
+- fim na **quarta-feira**;
+- referência validada: **Semana 21/2026 = 14/05/2026 a 20/05/2026**.
+
+O filtro de semana foi incluído em:
+
+- **Dashboard**;
+- **Indicador Semanal**;
+- **Painel de séries**;
+- **Ensaios de Liberação**;
+- **Produção**;
+- **Reprovados**;
+- **Dados & Backup**, como resumo informativo por semana.
+
+Nas telas que também possuem período inicial e final, escolher uma semana preenche automaticamente o período correspondente. Se o usuário alterar as datas manualmente, o seletor de semana é sincronizado quando o intervalo bater exatamente com uma semana operacional existente.
+
+
+## Atualização: Painel de séries e Ensaios de Liberação separados
+
+A antiga aba **Ensaios de Liberação** agora se chama **Painel de séries**. Ela continua sendo o painel automático que acompanha as séries pela produção cadastrada/importada.
+
+Foi criada uma nova aba **Ensaios de Liberação** dentro da área **Lançamentos**. Essa nova tela serve para registrar o ensaio que foi efetivamente realizado.
+
+Campos principais da nova tela:
+
+- data do ensaio;
+- fornecedor;
+- projeto;
+- bitola;
+- lote ensaiado;
+- resultado do ensaio;
+- série do projeto liberada quando o ensaio for aprovado;
+- quantidade ensaiada;
+- responsável;
+- link SharePoint/iAuditor do relatório;
+- observações.
+
+O **Painel de séries** passa a cruzar esses lançamentos com as séries monitoradas. Quando existir ensaio aprovado para uma série, o card passa a indicar **Série liberada** e mostra o lote ensaiado, a data e o link do relatório quando informado.
+
+A exportação Excel também foi atualizada:
+
+- **Ensaios Realizados**: lançamentos manuais dos ensaios executados;
+- **Painel de Séries**: visão calculada automaticamente das séries, gatilhos e saldos.
