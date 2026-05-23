@@ -94,3 +94,19 @@ Fluxo esperado:
 A semana operacional continua seguindo a regra da área: quinta-feira a quarta-feira, com Semana 21/2026 = 14/05/2026 a 20/05/2026.
 
 Opcionalmente, rode o SQL `supabase/2026-05-23-reprovados-indices.sql` para criar índices de consulta na tabela de reprovados.
+
+## Fase Supabase — Ensaios de Liberação
+
+A aba **Ensaios de Liberação** agora está conectada ao Supabase:
+
+- lista registros da tabela `ensaios_liberacao`;
+- permite cadastrar, editar e excluir ensaios reais executados;
+- vincula o ensaio ao lote da tabela `producao_lotes` por `producao_lote_id`;
+- preenche fornecedor, projeto, bitola, lote e série ao selecionar um lote produzido;
+- salva o resultado, a série liberada, quantidade ensaiada, responsável, observações e link SharePoint/iAuditor.
+
+Arquivo SQL opcional para índices:
+
+```text
+supabase/2026-05-23-ensaios-liberacao-indices.sql
+```
