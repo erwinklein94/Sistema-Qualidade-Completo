@@ -195,6 +195,11 @@ body {
   align-items: center;
   gap: 7px;
   white-space: nowrap;
+  text-decoration: none;
+}
+.hub-link {
+  font-weight: 800;
+  letter-spacing: .4px;
 }
 .btn-primario { background: var(--azul-escuro); color: var(--branco); }
 .btn-primario:hover { background: var(--azul-escuro-2); transform: translateY(-1px); }
