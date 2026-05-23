@@ -2,16 +2,47 @@
    AUTH.JS — Login, sessão e proteção das páginas
    ===================================================================== */
 
-const Auth = (() => {
+var Auth = (() => {
   const LOGIN_PAGE = 'login.html';
 
   function cliente() {
     return window.SUPABASE_CLIENTE || null;
   }
 
+  function cfg() {
+    return window.SUPABASE_CONFIG || {};
+  }
+
+  function chavePublica() {
+    return String(cfg().publishableKey || '').trim();
+  }
+
+  function chavePreenchida() {
+    const k = chavePublica();
+    return !!k && !k.includes('COLE_AQUI');
+  }
+
+  function chavePodeEstarIncompleta() {
+    const k = chavePublica();
+    // Aviso conservador: não bloqueia login, apenas ajuda no diagnóstico.
+    // A publishable key nova começa com sb_publishable_; se ela for copiada
+    // visualmente da tela, pode vir cortada. Use sempre o botão Copy do Supabase.
+    return k.startsWith('sb_publishable_') && k.length < 50;
+  }
+
   function configurado() {
-    const cfg = window.SUPABASE_CONFIG || {};
-    return !!(window.supabase && cfg.url && cfg.publishableKey && !cfg.publishableKey.includes('COLE_AQUI') && cliente());
+    return !!(window.supabase && cfg().url && chavePreenchida() && cliente());
+  }
+
+  function diagnostico() {
+    return {
+      bibliotecaSupabaseCarregada: !!window.supabase,
+      urlConfigurada: !!cfg().url,
+      publishableKeyPreenchida: chavePreenchida(),
+      publishableKeyPodeEstarIncompleta: chavePodeEstarIncompleta(),
+      clienteCriado: !!cliente(),
+      configurado: configurado(),
+    };
   }
 
   function paginaAtual() {
@@ -39,7 +70,25 @@ const Auth = (() => {
   }
 
   function erroConfiguracao() {
-    return 'Supabase ainda não configurado. Abra js/supabase-config.js e cole sua Publishable key.';
+    const d = diagnostico();
+    if (!d.bibliotecaSupabaseCarregada) {
+      return 'A biblioteca do Supabase não carregou. Verifique a internet, bloqueadores/extensões do navegador ou tente atualizar com Ctrl+F5.';
+    }
+    if (!d.urlConfigurada) {
+      return 'Supabase sem URL configurada em js/supabase-config.js.';
+    }
+    if (!d.publishableKeyPreenchida) {
+      return 'Supabase ainda não configurado. Abra js/supabase-config.js e cole sua Publishable key.';
+    }
+    if (!d.clienteCriado) {
+      return 'O cliente Supabase não foi inicializado. Confira js/supabase-config.js.';
+    }
+    return 'Supabase configurado.';
+  }
+
+  function avisoChave() {
+    if (!chavePodeEstarIncompleta()) return '';
+    return 'A Publishable key parece curta. Se o login falhar com erro de API key, copie novamente pelo botão Copy do Supabase, não pelo texto visível na tela.';
   }
 
   function exibirBloqueioConfiguracao() {
@@ -77,7 +126,7 @@ const Auth = (() => {
       .from('usuarios_app')
       .select('id,nome,email,perfil,ativo')
       .eq('id', session.user.id)
-      .single();
+      .maybeSingle();
     if (error) throw error;
     return data || null;
   }
@@ -115,8 +164,13 @@ const Auth = (() => {
 
   async function entrar(email, senha) {
     if (!configurado()) throw new Error(erroConfiguracao());
+
     const { data, error } = await cliente().auth.signInWithPassword({ email, password: senha });
     if (error) throw error;
+
+    if (!data?.session?.user?.id) {
+      throw new Error('Login não retornou sessão. Verifique se o e-mail foi confirmado no Supabase.');
+    }
 
     const perfil = await perfilAtual();
     if (!perfil || perfil.ativo !== true) {
@@ -161,6 +215,8 @@ const Auth = (() => {
   return {
     cliente,
     configurado,
+    diagnostico,
+    avisoChave,
     exigirLogin,
     entrar,
     sair,
@@ -171,3 +227,5 @@ const Auth = (() => {
     erroConfiguracao,
   };
 })();
+
+window.Auth = Auth;

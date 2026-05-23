@@ -79,8 +79,9 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-config.js"></script>
-  <script src="js/auth.js"></script>
+  <script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');}</script>
+  <script src="js/supabase-config.js?v=20260523-2"></script>
+  <script src="js/auth.js?v=20260523-2"></script>
   <script>Auth.exigirLogin();</script>
   <script src="js/config.js"></script>
   <script src="js/store.js"></script>

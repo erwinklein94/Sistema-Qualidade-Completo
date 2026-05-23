@@ -13,11 +13,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const erro = params.get('erro');
   if (erro) mensagem(decodeURIComponent(erro), 'erro');
 
+  console.info('Diagnóstico Supabase:', Auth.diagnostico());
+
   if (!Auth.configurado()) {
     mensagem(Auth.erroConfiguracao(), 'erro');
     btn.disabled = true;
     return;
   }
+
+  const aviso = Auth.avisoChave();
+  if (aviso && !erro) mensagem(aviso, 'info');
 
   try {
     const session = await Auth.sessaoAtual();
@@ -26,7 +31,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       setTimeout(() => { location.href = Auth.proximaUrlPadrao(); }, 600);
       return;
     }
-  } catch (_) {}
+  } catch (err) {
+    console.warn('Não foi possível checar sessão inicial:', err);
+  }
 
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
@@ -40,14 +47,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     btn.disabled = true;
     btn.textContent = 'Entrando...';
-    mensagem('Validando acesso...', 'info');
+    mensagem('Validando acesso no Supabase...', 'info');
 
     try {
       const perfil = await Auth.entrar(email, senha);
       mensagem(`Bem-vindo, ${perfil.nome || perfil.email}.`, 'sucesso');
       setTimeout(() => { location.href = Auth.proximaUrlPadrao(); }, 500);
     } catch (err) {
-      console.error(err);
+      console.error('Erro de login Supabase:', err);
       mensagem(traduzErro(err), 'erro');
       btn.disabled = false;
       btn.textContent = 'Entrar';
@@ -63,8 +70,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const t = String(err?.message || err || 'Erro ao entrar.');
     if (/Invalid login credentials/i.test(t)) return 'E-mail ou senha incorretos.';
     if (/Email not confirmed/i.test(t)) return 'E-mail ainda não confirmado no Supabase.';
-    if (/perfil ativo/i.test(t)) return t;
-    if (/Supabase ainda não configurado/i.test(t)) return t;
+    if (/Invalid API key|No API key|API key/i.test(t)) return 'A Publishable key está errada ou incompleta. Copie novamente pelo botão Copy do Supabase em Project Settings → API Keys.';
+    if (/Failed to fetch|NetworkError|Load failed|fetch/i.test(t)) return 'Falha de conexão com o Supabase. Verifique internet, bloqueador/extensão do navegador e se o GitHub Pages carregou js/supabase-config.js atualizado.';
+    if (/perfil ativo|usuarios_app/i.test(t)) return t;
+    if (/Supabase ainda não configurado|biblioteca do Supabase/i.test(t)) return t;
     return `Não foi possível entrar: ${t}`;
   }
 });

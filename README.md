@@ -362,3 +362,15 @@ Depois de publicar no GitHub Pages:
 ### Importante
 
 Nesta fase, as telas principais ainda usam `localStorage`. O Supabase foi conectado primeiro para validar login, RLS e leitura segura do banco. Depois que o teste passar, a próxima fase é migrar `Produção`, `Reprovados` e `Ensaios de Liberação` para gravar diretamente no banco.
+
+## Correção de login Supabase
+
+Esta versão melhora o diagnóstico do login:
+
+- expõe `window.Auth` para evitar falha em chamadas globais;
+- adiciona fallback de CDN para a biblioteca `supabase-js`;
+- adiciona cache-buster nos scripts de autenticação;
+- mostra erro claro quando a Publishable Key estiver ausente, incompleta ou inválida;
+- mantém o uso exclusivo da Publishable Key no navegador.
+
+Se o login falhar com erro de API key, copie novamente a chave pelo botão **Copy** em Supabase → Project Settings → API Keys → Publishable key.
