@@ -7,6 +7,11 @@ const LIMITE_LOTES = 10;
 const PROXIMO_PECAS = 1800;
 const PROXIMO_LOTES = 9;
 let chartSeries = null;
+let PAINEL_PRODUCAO = [];
+let PAINEL_REPROVADOS = [];
+let PAINEL_ENSAIOS = [];
+let PAINEL_CARREGANDO = false;
+let PAINEL_ERRO = '';
 
 const STATUS_SERIE = [
   { valor: '', texto: 'Todos' },
@@ -17,7 +22,7 @@ const STATUS_SERIE = [
   { valor: 'semserie', texto: 'Sem série definida' },
 ];
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   App.montarLayout('painelSeries', 'Painel de séries', 'Controle das séries, gatilhos de ensaio, lotes vinculados e liberações registradas');
   App.acoesTopo(`
     <button class="btn btn-secundario" onclick="location.href='producao.html'">${ICN.producao}Ver produção</button>
@@ -25,32 +30,67 @@ document.addEventListener('DOMContentLoaded', () => {
   `);
 
   preencherFiltros();
-  const p = periodoUltimaProducao();
-  atualizarFiltroSemanaEnsaios(U.valorSemana(p));
-  if (p) {
-    document.getElementById('fPeriodoIni').value = p.ini;
-    document.getElementById('fPeriodoFim').value = p.fim;
-    sincronizarSemanaEnsaios();
-  }
 
   ['busca', 'fFornecedor', 'fProjeto', 'fBitola', 'fSerie', 'fStatusSerie'].forEach(id => {
-    document.getElementById(id).addEventListener('input', render);
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', render);
+    if (el) el.addEventListener('change', render);
   });
-  document.getElementById('fSemana').addEventListener('change', () => {
+  document.getElementById('fSemana')?.addEventListener('change', () => {
     U.aplicarSemanaSelecionada('fSemana', 'fPeriodoIni', 'fPeriodoFim');
     render();
   });
   ['fPeriodoIni', 'fPeriodoFim'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => {
       sincronizarSemanaEnsaios();
       render();
     });
   });
 
   App.aplicarPadraoGraficos();
-
   render();
+  await carregarPainelSeries();
 });
+
+async function carregarPainelSeries() {
+  PAINEL_CARREGANDO = true;
+  PAINEL_ERRO = '';
+  render();
+
+  try {
+    await Auth.exigirLogin();
+    const [producao, reprovados, ensaios] = await Promise.all([
+      StoreSupabase.listarProducao({ limite: 5000 }),
+      StoreSupabase.listarReprovados({ limite: 5000 }),
+      StoreSupabase.listarEnsaiosLiberacao({ limite: 5000 }),
+    ]);
+
+    PAINEL_PRODUCAO = (producao || []).map(mapProducaoPainel);
+    PAINEL_REPROVADOS = (reprovados || []).map(mapReprovadoPainel);
+    PAINEL_ENSAIOS = (ensaios || []).map(mapEnsaioPainel);
+
+    atualizarFiltroSerie();
+    const p = periodoUltimaProducao();
+    atualizarFiltroSemanaEnsaios(U.valorSemana(p));
+    if (p) {
+      const ini = document.getElementById('fPeriodoIni');
+      const fim = document.getElementById('fPeriodoFim');
+      if (ini) ini.value = p.ini;
+      if (fim) fim.value = p.fim;
+      sincronizarSemanaEnsaios();
+    }
+
+    PAINEL_CARREGANDO = false;
+    render();
+  } catch (err) {
+    console.error('Erro ao carregar Painel de séries', err);
+    PAINEL_CARREGANDO = false;
+    PAINEL_ERRO = mensagemErroBanco(err, 'Não foi possível carregar o Painel de séries do Supabase.');
+    App.toast(PAINEL_ERRO, 'erro');
+    render();
+  }
+}
 
 
 
@@ -63,7 +103,7 @@ function sincronizarSemanaEnsaios() {
 }
 
 function datasSemanaEnsaios() {
-  return Store.listar('producao').map(r => r.dataFabricacao).filter(Boolean);
+  return PAINEL_PRODUCAO.map(r => r.dataFabricacao).filter(Boolean);
 }
 
 function preencherFiltros() {
@@ -75,7 +115,7 @@ function preencherFiltros() {
 }
 
 function atualizarFiltroSerie() {
-  const series = [...new Set(Store.listar('producao').map(r => normalizarSerie(r.serie, r.projeto)).filter(Boolean))]
+  const series = [...new Set(PAINEL_PRODUCAO.map(r => normalizarSerie(r.serie, r.projeto)).filter(Boolean))]
     .sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
   document.getElementById('fSerie').innerHTML = '<option value="">Todas</option>' + series.map(s => `<option value="${U.esc(s)}">${U.esc(s)}</option>`).join('');
 }
@@ -94,6 +134,20 @@ function filtros() {
 }
 
 function render() {
+  if (PAINEL_CARREGANDO) {
+    document.getElementById('kpis').innerHTML = `<div class="kpi escuro"><div class="rotulo">Painel de séries</div><div class="valor">...</div><div class="extra">Carregando dados do Supabase</div></div>`;
+    document.getElementById('alertasSeries').innerHTML = `<div class="vazio compacto"><h3>Carregando...</h3><p>Buscando produção, reprovados e ensaios.</p></div>`;
+    document.getElementById('resumoStatus').innerHTML = '';
+    document.getElementById('cardsSeries').innerHTML = `<div class="vazio">${ICN.vazioBox}<h3>Carregando séries</h3><p>Aguarde a leitura do banco.</p></div>`;
+    document.getElementById('tabelaSeries').innerHTML = '';
+    document.getElementById('contadorSeries').textContent = 'Carregando...';
+    return;
+  }
+  if (PAINEL_ERRO) {
+    document.getElementById('kpis').innerHTML = `<div class="kpi vermelho"><div class="rotulo">Erro no Supabase</div><div class="valor">!</div><div class="extra">${U.esc(PAINEL_ERRO)}</div></div>`;
+    document.getElementById('cardsSeries').innerHTML = `<div class="vazio">${ICN.vazioBox}<h3>Não foi possível carregar</h3><p>${U.esc(PAINEL_ERRO)}</p></div>`;
+    return;
+  }
   const f = filtros();
   const dados = calcularSeries(f);
   const series = f.status ? dados.series.filter(s => s.status === f.status) : dados.series;
@@ -108,9 +162,9 @@ function render() {
 }
 
 function calcularSeries(f) {
-  const prodBase = Store.listar('producao');
-  const repBase = Store.listar('reprovados');
-  const ensaiosBase = Store.listar('ensaiosLiberacao');
+  const prodBase = PAINEL_PRODUCAO;
+  const repBase = PAINEL_REPROVADOS;
+  const ensaiosBase = PAINEL_ENSAIOS;
 
   const ensaiosLibPorSerie = new Map();
   ensaiosBase.forEach(e => {
@@ -517,12 +571,87 @@ function ordemLote(a, b) {
   return String(a).localeCompare(String(b), 'pt-BR', { numeric: true });
 }
 
+
+function mapProducaoPainel(r) {
+  return {
+    id: r.id,
+    fornecedor: r.fornecedor || '',
+    pedido: r.pedido || '',
+    lote: r.lote || '',
+    projeto: r.projeto || '',
+    bitola: r.bitola || '',
+    tipo: r.tipo_dormente || '',
+    total: valorBanco(r.total_produzido),
+    dataFabricacao: dataBanco(r.data_fabricacao),
+    serie: r.serie || '',
+    ensaiados: valorBanco(r.dorm_ensaiados),
+    reprovados: valorBanco(r.dorm_reprovados),
+    aprovado: valorBanco(r.total_aprovado),
+    status: r.status || '',
+    semana: r.semana || '',
+    ano: r.ano || '',
+    periodoIni: dataBanco(r.periodo_inicio),
+    periodoFim: dataBanco(r.periodo_fim),
+  };
+}
+
+function mapReprovadoPainel(r) {
+  return {
+    id: r.id,
+    producaoLoteId: r.producao_lote_id || '',
+    fornecedor: r.fornecedor || '',
+    semana: r.semana || '',
+    ano: r.ano || '',
+    dataProducao: dataBanco(r.data_producao),
+    periodoIni: dataBanco(r.periodo_inicio),
+    periodoFim: dataBanco(r.periodo_fim),
+    lote: r.lote || '',
+    projeto: r.projeto || '',
+    bitola: r.bitola || '',
+    tipo: r.tipo || '',
+    totalRefugos: valorBanco(r.total_refugos || 1),
+  };
+}
+
+function mapEnsaioPainel(r) {
+  return {
+    id: r.id,
+    producaoLoteId: r.producao_lote_id || '',
+    dataEnsaio: dataBanco(r.data_ensaio),
+    semana: r.semana || '',
+    ano: r.ano || '',
+    periodoIni: dataBanco(r.periodo_inicio),
+    periodoFim: dataBanco(r.periodo_fim),
+    fornecedor: r.fornecedor || '',
+    projeto: r.projeto || '',
+    bitola: r.bitola || '',
+    lote: r.lote_ensaiado || '',
+    serieLiberada: r.serie_liberada || '',
+    resultado: r.resultado || '',
+    quantidadeEnsaiada: valorBanco(r.quantidade_ensaiada),
+    responsavel: r.responsavel || '',
+    linkRelatorio: r.link_relatorio_iauditor || '',
+    observacoes: r.observacoes || '',
+  };
+}
+
+function valorBanco(v) { return v == null ? '' : String(v); }
+function dataBanco(v) { return v ? String(v).slice(0, 10) : ''; }
+
+function mensagemErroBanco(err, padrao) {
+  const msg = err?.message || err?.details || '';
+  if (!msg) return padrao;
+  if (/row-level security|violates row-level security/i.test(msg)) return 'Acesso bloqueado pelas regras de segurança do Supabase. Confira seu perfil em usuarios_app.';
+  if (/JWT|token|auth/i.test(msg)) return 'Sessão expirada ou inválida. Saia e faça login novamente.';
+  return msg;
+}
+
 function norm(v) {
   return String(v == null ? '' : v).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
 }
 
 function periodoUltimaProducao() {
-  const datas = Store.listar('producao').map(r => r.dataFabricacao).filter(Boolean).sort();
+  const datas = PAINEL_PRODUCAO.map(r => r.dataFabricacao).filter(Boolean).sort();
   const ultima = datas.pop();
   return ultima ? U.periodoSemanaOperacional(ultima) : null;
 }

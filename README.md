@@ -110,3 +110,21 @@ Arquivo SQL opcional para índices:
 ```text
 supabase/2026-05-23-ensaios-liberacao-indices.sql
 ```
+
+## Painel de Séries conectado ao Supabase
+
+A tela **Painel de séries** agora lê diretamente do Supabase e calcula as séries a partir das tabelas:
+
+- `producao_lotes`
+- `reprovados`
+- `ensaios_liberacao`
+
+O painel não grava dados próprios: ele é uma visão calculada. Para uma série aparecer como liberada, registre o ensaio aprovado na aba **Ensaios de Liberação** informando a série liberada.
+
+SQL opcional incluído:
+
+```text
+supabase/2026-05-23-painel-series-indices.sql
+```
+
+Esse arquivo cria índices para acelerar os filtros e cruzamentos do painel quando a base crescer.
