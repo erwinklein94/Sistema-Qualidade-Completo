@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usuários · Controle de Dormentes</title>
+  <link rel="stylesheet" href="css/style.css?v=20260523-mobile" />
+</head>
+<body>
+  <div id="app">
+    <main class="conteudo" id="conteudo">
+      <div class="container">
+        <div class="card aviso-info" style="margin-bottom:20px">
+          <div class="card-titulo"><span class="acento">Cadastro de usuários reais</span></div>
+          <p style="font-size:14px;line-height:1.7;margin-bottom:10px">
+            Primeiro crie o usuário em <strong>Supabase → Authentication → Users → Add user</strong>. Depois copie o <strong>UID</strong> desse usuário e cadastre aqui o perfil do sistema.
+          </p>
+          <p style="font-size:14px;line-height:1.7;margin:0">
+            Perfis: <strong>admin</strong> faz tudo; <strong>qualidade</strong> cria/edita, mas não exclui; <strong>consulta</strong> apenas visualiza.
+          </p>
+        </div>
+
+        <div class="grid-2" style="align-items:start">
+          <div class="card">
+            <div class="card-titulo"><span class="acento">Adicionar ou atualizar perfil</span></div>
+            <form id="formUsuario" class="form-grid" style="margin-top:14px">
+              <label class="col-2">UID do Supabase Auth
+                <input id="uId" required placeholder="cole aqui o UID do usuário criado no Auth" />
+              </label>
+              <label>Nome
+                <input id="uNome" required placeholder="Nome do usuário" />
+              </label>
+              <label>E-mail
+                <input id="uEmail" type="email" required placeholder="email@empresa.com" />
+              </label>
+              <label>Perfil
+                <select id="uPerfil" required>
+                  <option value="admin">admin</option>
+                  <option value="qualidade">qualidade</option>
+                  <option value="consulta">consulta</option>
+                </select>
+              </label>
+              <label>Ativo
+                <select id="uAtivo">
+                  <option value="true">Sim</option>
+                  <option value="false">Não</option>
+                </select>
+              </label>
+              <div class="col-2 flex gap12" style="justify-content:flex-end;flex-wrap:wrap">
+                <button class="btn btn-secundario" type="button" onclick="limparFormUsuario()">Limpar</button>
+                <button class="btn btn-primario" type="submit">Salvar perfil</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo"><span class="acento">Permissões aplicadas</span></div>
+            <div class="table-wrap" style="margin-top:14px">
+              <table>
+                <thead><tr><th>Perfil</th><th>Ver</th><th>Criar/editar</th><th>Excluir</th></tr></thead>
+                <tbody>
+                  <tr><td><strong>admin</strong></td><td>Sim</td><td>Sim</td><td>Sim</td></tr>
+                  <tr><td><strong>qualidade</strong></td><td>Sim</td><td>Sim</td><td>Não</td></tr>
+                  <tr><td><strong>consulta</strong></td><td>Sim</td><td>Não</td><td>Não</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:20px">
+          <div class="flex entre" style="margin-bottom:12px;gap:12px;flex-wrap:wrap">
+            <div class="card-titulo" style="margin:0"><span class="acento">Usuários cadastrados no sistema</span></div>
+            <button class="btn btn-secundario btn-sm" onclick="carregarUsuarios()">Atualizar</button>
+          </div>
+          <div id="usuariosStatus" class="muted" style="margin-bottom:12px"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>E-mail</th>
+                  <th>Perfil</th>
+                  <th>Ativo</th>
+                  <th>UID</th>
+                  <th>Atualizado em</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="usuariosTabela"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');}</script>
+  <script src="js/supabase-config.js?v=20260523-3"></script>
+  <script src="js/auth.js?v=20260523-3"></script>
+  <script>Auth.exigirLogin();</script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/store-supabase.js?v=20260523-audit"></script>
+  <script src="js/exportacoes.js?v=20260523-export"></script>
+  <script src="js/comum.js?v=20260523-audit"></script>
+  <script src="js/usuarios.js?v=20260523-audit"></script>
+</body>
+</html>

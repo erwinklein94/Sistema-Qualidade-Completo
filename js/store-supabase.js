@@ -173,6 +173,53 @@ const StoreSupabase = (() => {
     return data || [];
   }
 
+
+  async function listarUsuariosApp() {
+    const { data, error } = await db()
+      .from('usuarios_app')
+      .select('id,nome,email,perfil,ativo,criado_em,atualizado_em')
+      .order('nome', { ascending: true, nullsFirst: false })
+      .order('email', { ascending: true, nullsFirst: false });
+    if (error) throw error;
+    return data || [];
+  }
+
+  async function salvarUsuarioApp(registro) {
+    const payload = {
+      id: registro.id,
+      nome: registro.nome || null,
+      email: registro.email,
+      perfil: registro.perfil || 'consulta',
+      ativo: registro.ativo !== false,
+    };
+
+    const { data, error } = await db()
+      .from('usuarios_app')
+      .upsert(payload, { onConflict: 'id' })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function listarAuditoria(filtros = {}) {
+    let q = db()
+      .from('auditoria_alteracoes')
+      .select('*')
+      .order('criado_em', { ascending: false })
+      .limit(filtros.limite || 300);
+
+    if (filtros.tabela) q = q.eq('tabela', filtros.tabela);
+    if (filtros.acao) q = q.eq('acao', filtros.acao);
+    if (filtros.usuarioId) q = q.eq('usuario_id', filtros.usuarioId);
+    if (filtros.dataIni) q = q.gte('criado_em', `${filtros.dataIni}T00:00:00`);
+    if (filtros.dataFim) q = q.lte('criado_em', `${filtros.dataFim}T23:59:59`);
+
+    const { data, error } = await q;
+    if (error) throw error;
+    return data || [];
+  }
+
   return {
     perfil,
     usuarioAtual,
@@ -185,6 +232,9 @@ const StoreSupabase = (() => {
     listarEnsaiosLiberacao,
     salvarEnsaioLiberacao,
     removerEnsaioLiberacao,
+    listarUsuariosApp,
+    salvarUsuarioApp,
+    listarAuditoria,
     listarConfiguracoes,
   };
 })();

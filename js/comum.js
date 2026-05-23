@@ -17,6 +17,8 @@ const App = {
       { k: 'reprovados', t: 'Reprovados', ic: ICN.reprova, href: 'reprovados.html' },
       { sec: 'Sistema' },
       { k: 'banco', t: 'Conexão Supabase', ic: ICN.config, href: 'banco.html' },
+      { k: 'usuarios', t: 'Usuários', ic: ICN.config, href: 'usuarios.html' },
+      { k: 'auditoria', t: 'Auditoria', ic: ICN.config, href: 'auditoria.html' },
       { k: 'dados', t: 'Dados do Sistema', ic: ICN.config, href: 'dados.html' },
     ];
 

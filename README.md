@@ -180,3 +180,37 @@ A sequência das colunas segue o modelo antigo: Semana, Data de Produção, Per�
 ## Ajuste mobile
 
 Esta versão preserva o layout desktop e adiciona regras responsivas para telas menores, evitando sobreposição no topo, campos saindo da tela, tabelas estourando a largura e cards desalinhados no celular.
+
+## Usuários reais e auditoria
+
+Para ativar auditoria completa, rode no Supabase SQL Editor:
+
+```text
+supabase/2026-05-23-auditoria-e-usuarios.sql
+```
+
+Depois, crie os usuários reais em:
+
+```text
+Supabase → Authentication → Users → Add user
+```
+
+Copie o UID de cada usuário e cadastre o perfil na tela:
+
+```text
+Sistema → Usuários
+```
+
+Perfis:
+
+- `admin`: visualiza, cria, edita e exclui.
+- `qualidade`: visualiza, cria e edita, mas não exclui.
+- `consulta`: apenas visualiza.
+
+A auditoria fica disponível em:
+
+```text
+Sistema → Auditoria
+```
+
+Ela registra criação, alteração e exclusão em Produção, Reprovados e Ensaios de Liberação, com usuário, data/hora, tabela, registro e resumo dos campos alterados.

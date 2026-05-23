@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auditoria · Controle de Dormentes</title>
+  <link rel="stylesheet" href="css/style.css?v=20260523-mobile" />
+</head>
+<body>
+  <div id="app">
+    <main class="conteudo" id="conteudo">
+      <div class="container">
+        <div class="card aviso-info" style="margin-bottom:20px">
+          <div class="card-titulo"><span class="acento">Auditoria das alterações</span></div>
+          <p style="font-size:14px;line-height:1.7;margin:0">
+            Esta tela mostra quem criou, alterou ou excluiu registros nas tabelas principais. Para funcionar, rode antes o SQL <strong>supabase/2026-05-23-auditoria-e-usuarios.sql</strong> no Supabase.
+          </p>
+        </div>
+
+        <div class="filtros-grid" style="margin-bottom:20px">
+          <label>Tabela
+            <select id="fTabela">
+              <option value="">Todas</option>
+              <option value="producao_lotes">Produção</option>
+              <option value="reprovados">Reprovados</option>
+              <option value="ensaios_liberacao">Ensaios de Liberação</option>
+            </select>
+          </label>
+          <label>Ação
+            <select id="fAcao">
+              <option value="">Todas</option>
+              <option value="INSERT">Criação</option>
+              <option value="UPDATE">Alteração</option>
+              <option value="DELETE">Exclusão</option>
+            </select>
+          </label>
+          <label>Data inicial
+            <input type="date" id="fDataIni" />
+          </label>
+          <label>Data fim
+            <input type="date" id="fDataFim" />
+          </label>
+          <div style="align-self:end">
+            <button class="btn btn-primario" onclick="carregarAuditoria()">Atualizar</button>
+          </div>
+        </div>
+
+        <div class="grid-cards" id="auditoriaKpis" style="margin-bottom:20px"></div>
+
+        <div class="card">
+          <div class="flex entre" style="margin-bottom:12px;gap:12px;flex-wrap:wrap">
+            <div class="card-titulo" style="margin:0"><span class="acento">Registros de auditoria</span></div>
+            <div class="muted" id="auditoriaStatus"></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data/hora</th>
+                  <th>Usuário</th>
+                  <th>Ação</th>
+                  <th>Tabela</th>
+                  <th>Registro</th>
+                  <th>Resumo</th>
+                </tr>
+              </thead>
+              <tbody id="auditoriaTabela"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');}</script>
+  <script src="js/supabase-config.js?v=20260523-3"></script>
+  <script src="js/auth.js?v=20260523-3"></script>
+  <script>Auth.exigirLogin();</script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/store-supabase.js?v=20260523-audit"></script>
+  <script src="js/exportacoes.js?v=20260523-export"></script>
+  <script src="js/comum.js?v=20260523-audit"></script>
+  <script src="js/auditoria.js?v=20260523-audit"></script>
+</body>
+</html>
