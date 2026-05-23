@@ -43,7 +43,7 @@ const Exportacoes = (() => {
       return {
         titulo: sec.titulo || `Dados ${idx + 1}`,
         columns,
-        headers: columns.map(c => c.label || c.key),
+        headers: columns.map(c => c.label !== undefined ? c.label : c.key),
         rows,
       };
     }).filter(sec => sec.headers.length && sec.rows.length);

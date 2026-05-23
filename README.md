@@ -170,3 +170,9 @@ Na aba **Produção**, o botão **Excel** gera um arquivo já no layout da plani
 A exportação usa a sequência de colunas da planilha antiga para facilitar copiar e colar durante a fase de transição. A importação por Excel permanece removida; o Excel é usado apenas como saída/relatório.
 
 As colunas de datas de ruptura são preenchidas a partir da data de fabricação quando possível: 7, 14 e 28 dias. Quando houver datas de cura 14/28 cadastradas, elas são usadas nas respectivas colunas de ruptura 14/28.
+
+## Exportação de transição — Reprovados para planilha antiga
+
+Na aba **Reprovados**, o botão **Excel** também gera um arquivo no layout da planilha antiga, respeitando todos os filtros aplicados na tela.
+
+A sequência das colunas segue o modelo antigo: Semana, Data de Produção, Período de Inspeção, Lote, Projeto, Tipo, Molde, Cavidade, Motivo Detalhado, Motivo do Indicador Semanal e Total de Refugos da Semana. A importação por Excel permanece removida.
