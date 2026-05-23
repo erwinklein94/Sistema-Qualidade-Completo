@@ -1,9 +1,9 @@
 /* =====================================================================
-   BANCO-TESTE.JS — Diagnóstico Supabase
+   BANCO-TESTE.JS — Diagnóstico Supabase sem dados de exemplo fixos
    ===================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
-  App.montarLayout('banco', 'Teste Supabase', 'Validação de login, perfil e leitura do banco');
+  App.montarLayout('banco', 'Conexão Supabase', 'Validação de login, perfil e leitura do banco');
   App.acoesTopo(`<button class="btn btn-primario" onclick="testarBanco()">Testar conexão</button>`);
   testarBanco();
 });
@@ -14,14 +14,14 @@ async function testarBanco() {
   const loteBox = document.getElementById('loteBanco');
   const listasBox = document.getElementById('listasBanco');
 
-  status.innerHTML = `<div class="aviso-info"><strong>Testando...</strong><br>Consultando perfil, lote TESTE-001 e listas de configuração.</div>`;
+  status.innerHTML = `<div class="aviso-info"><strong>Testando...</strong><br>Consultando perfil, últimos lotes cadastrados e listas de configuração.</div>`;
   perfilBox.innerHTML = '';
   loteBox.innerHTML = '';
   listasBox.innerHTML = '';
 
   try {
     const perfil = await StoreSupabase.perfil();
-    const lotes = await StoreSupabase.listarProducao({ lote: 'TESTE-001', limite: 5 });
+    const lotes = await StoreSupabase.listarProducao({ limite: 10 });
     const listas = await StoreSupabase.listarConfiguracoes();
 
     status.innerHTML = `<div class="aviso-info sucesso"><strong>Conexão OK.</strong><br>Supabase respondeu com RLS usando o usuário logado.</div>`;
@@ -45,7 +45,7 @@ function cardPerfil(p) {
 
 function tabelaLotes(lotes) {
   if (!lotes.length) {
-    return `<div class="aviso-info aviso"><strong>Lote TESTE-001 não encontrado.</strong><br>Volte no Supabase e confirme se o lote fictício existe em producao_lotes.</div>`;
+    return `<div class="aviso-info aviso"><strong>Nenhum lote cadastrado.</strong><br>Cadastre novos lotes pela aba Produção. Esta tela não cria nem importa dados.</div>`;
   }
   const linhas = lotes.map(r => `
     <tr>
@@ -72,5 +72,5 @@ function resumoListas(listas) {
   }, {});
   const cards = Object.entries(grupos).map(([tipo, qtd]) => `
     <div class="kpi"><div class="rotulo">${U.esc(tipo)}</div><div class="valor">${qtd}</div><div class="extra">item(ns) ativos</div></div>`).join('');
-  return `<div class="grid-kpi">${cards}</div>`;
+  return `<div class="grid-kpi">${cards || '<div class="aviso-info aviso">Nenhuma lista de configuração encontrada.</div>'}</div>`;
 }

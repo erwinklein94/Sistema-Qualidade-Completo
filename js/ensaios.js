@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
   App.montarLayout('painelSeries', 'Painel de séries', 'Controle das séries, gatilhos de ensaio, lotes vinculados e liberações registradas');
   App.acoesTopo(`
     <button class="btn btn-secundario" onclick="location.href='producao.html'">${ICN.producao}Ver produção</button>
-    <button class="btn btn-secundario" onclick="location.href='dados.html'">${ICN.upload}Importar planilha</button>
     <button class="btn btn-primario" onclick="location.href='ensaios-liberacao.html'">${ICN.add}Registrar ensaio</button>
   `);
 
@@ -354,7 +353,7 @@ function renderResumoStatus(series) {
 function renderCards(series) {
   const alvo = document.getElementById('cardsSeries');
   if (!series.length) {
-    alvo.innerHTML = `<div class="vazio">${ICN.vazioBox}<h3>Nenhuma série encontrada</h3><p>Ajuste os filtros ou importe a planilha de produção.</p></div>`;
+    alvo.innerHTML = `<div class="vazio">${ICN.vazioBox}<h3>Nenhuma série encontrada</h3><p>Ajuste os filtros ou cadastre novos lotes de produção.</p></div>`;
     return;
   }
   alvo.innerHTML = `<div class="series-grid">${series.map(s => cardSerie(s)).join('')}</div>`;

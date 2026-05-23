@@ -88,20 +88,9 @@ const Store = (() => {
       _baixar(blob, `dormentes_backup_${_dataArq()}.json`);
     },
 
-    // ---- Importar JSON ----
-    importarJSON(file) {
-      return new Promise((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = e => {
-          try {
-            const obj = JSON.parse(e.target.result);
-            this.substituirTudo(obj);
-            resolve(true);
-          } catch (err) { reject(err); }
-        };
-        r.onerror = reject;
-        r.readAsText(file);
-      });
+    // ---- Importar JSON desativado ----
+    importarJSON() {
+      return Promise.reject(new Error('Importação de backup desativada. Cadastre os dados diretamente no site.'));
     },
 
     // ---- Exportar Excel (.xlsx) usando SheetJS ----

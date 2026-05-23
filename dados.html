@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dados & Backup · Controle de Dormentes Rumo</title>
+  <title>Dados do Sistema · Controle de Dormentes Rumo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
@@ -14,7 +14,6 @@
       <div class="pagina">
 
         <div class="grid-kpi" id="kpis"></div>
-
 
         <div class="card">
           <div class="card-titulo">
@@ -28,46 +27,32 @@
         </div>
 
         <div class="card">
-          <div class="card-titulo"><span class="acento">Backup e exportação</span></div>
+          <div class="card-titulo"><span class="acento">Entrada de dados</span></div>
           <p class="txt-cinza" style="margin-bottom:18px;font-size:14px">
-            Os dados ficam salvos <strong>neste navegador</strong>. Faça backup com frequência: exporte para JSON ou Excel. Também é possível importar a planilha original <strong>Indicador Semanal</strong> em formato .xlsx, puxando Produção, Reprovados e Indicador Semanal. O site também identifica a bitola automaticamente a partir do tipo do dormente.
+            Para evitar conflito de informações, esta versão não carrega dados de exemplo e não importa planilhas. Os registros devem ser criados diretamente nas telas do sistema, usando os botões de novo lançamento.
           </p>
           <div class="flex gap12" style="flex-wrap:wrap">
-            <button class="btn btn-primario" onclick="Store.exportarExcel()"><span id="bxExcel"></span>Exportar Excel (.xlsx)</button>
-            <button class="btn btn-secundario" onclick="Store.exportarJSON()"><span id="bxJson"></span>Exportar backup (.json)</button>
-            <label class="btn btn-verde" style="cursor:pointer">
-              <span id="bxUp"></span>Importar backup (.json)
-              <input type="file" accept=".json" style="display:none" onchange="importar(this)">
-            </label>
-            <label class="btn btn-primario" style="cursor:pointer">
-              <span id="bxPlanilha"></span>Importar planilha (.xlsx)
-              <input type="file" accept=".xlsx,.xls,.xlsm" style="display:none" onchange="importarPlanilha(this)">
-            </label>
+            <button class="btn btn-primario" onclick="location.href='producao.html'"><span id="bxProducao"></span>Novo lote de produção</button>
+            <button class="btn btn-secundario" onclick="location.href='reprovados.html'"><span id="bxReprovados"></span>Lançar reprova</button>
+            <button class="btn btn-secundario" onclick="location.href='ensaios-liberacao.html'"><span id="bxEnsaios"></span>Registrar ensaio</button>
           </div>
         </div>
 
         <div class="card">
-          <div class="card-titulo"><span class="acento">Dados de demonstração</span></div>
-          <p class="txt-cinza" style="margin-bottom:18px;font-size:14px">
-            Carregue alguns registros de exemplo para experimentar o sistema e ver os gráficos preenchidos. Isto não afeta seus dados reais se você já tiver lançado algo (será perguntado).
-          </p>
-          <button class="btn btn-secundario" onclick="carregarDemo()">Carregar dados de exemplo</button>
-        </div>
-
-        <div class="card">
-          <div class="card-titulo"><span class="acento" style="color:var(--erro)">Zona de risco</span></div>
-          <p class="txt-cinza" style="margin-bottom:18px;font-size:14px">
-            Apaga <strong>todos</strong> os dados salvos neste navegador. Faça um backup antes. Esta ação não pode ser desfeita.
-          </p>
-          <button class="btn btn-perigo" onclick="limparTudo()">Apagar todos os dados</button>
-        </div>
-
-        <div class="card">
-          <div class="card-titulo"><span class="acento">Como funciona / próximos passos</span></div>
+          <div class="card-titulo"><span class="acento">Importações bloqueadas</span></div>
           <div style="font-size:14px;line-height:1.7;color:var(--cinza-texto)">
-            <p style="margin-bottom:10px"><strong style="color:var(--azul-escuro)">Hoje (GitHub Pages):</strong> o site roda 100% no navegador. Cada pessoa que abre o site tem os seus próprios dados localmente. Para compartilhar, exporte o JSON e a outra pessoa importa.</p>
-            <p style="margin-bottom:10px"><strong style="color:var(--azul-escuro)">Futuro (banco de dados):</strong> quando você tiver um banco, basta trocar o arquivo <code>js/store.js</code> para que os métodos <code>listar / salvar / remover</code> conversem com sua API. Todo o restante do site continua igual.</p>
-            <p><strong style="color:var(--azul-escuro)">Para publicar:</strong> suba a pasta inteira para um repositório no GitHub e ative o GitHub Pages em Settings → Pages → branch <code>main</code>.</p>
+            <p style="margin-bottom:10px">A importação de Excel e o carregamento de dados de demonstração foram removidos para preservar o banco como fonte única da verdade.</p>
+            <p style="margin-bottom:10px">Se existir dado antigo salvo no navegador por versões anteriores, ele pode afetar apenas telas que ainda não foram migradas para o Supabase. Use o botão abaixo somente para limpar esse armazenamento local legado.</p>
+            <button class="btn btn-perigo" onclick="limparDadosLocaisLegados()">Limpar dados locais legados</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-titulo"><span class="acento">Como funciona agora</span></div>
+          <div style="font-size:14px;line-height:1.7;color:var(--cinza-texto)">
+            <p style="margin-bottom:10px"><strong style="color:var(--azul-escuro)">Produção:</strong> os lotes passam a ser lançados e lidos pelo Supabase.</p>
+            <p style="margin-bottom:10px"><strong style="color:var(--azul-escuro)">Próximas migrações:</strong> Reprovados, Ensaios de Liberação, Painel de Séries e Dashboard também devem ser conectados ao banco para substituir totalmente o armazenamento local.</p>
+            <p><strong style="color:var(--azul-escuro)">Regra operacional:</strong> o histórico oficial deve nascer dos lançamentos feitos no site, não de planilhas importadas.</p>
           </div>
         </div>
 
@@ -75,17 +60,14 @@
     </main>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');}</script>
-  <script src="js/supabase-config.js?v=20260523-2"></script>
-  <script src="js/auth.js?v=20260523-2"></script>
+  <script src="js/supabase-config.js?v=20260523-3"></script>
+  <script src="js/auth.js?v=20260523-3"></script>
   <script>Auth.exigirLogin();</script>
   <script src="js/config.js"></script>
   <script src="js/store.js"></script>
   <script src="js/comum.js"></script>
-  <script src="js/demo.js"></script>
-  <script src="js/dados.js"></script>
-  <script src="js/importador-excel.js"></script>
+  <script src="js/dados.js?v=20260523-sem-importacao"></script>
 </body>
 </html>

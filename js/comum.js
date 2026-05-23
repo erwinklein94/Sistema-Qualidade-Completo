@@ -15,8 +15,8 @@ const App = {
       { k: 'ensaiosLiberacao', t: 'Ensaios de Liberação', ic: ICN.check, href: 'ensaios-liberacao.html' },
       { k: 'reprovados', t: 'Reprovados', ic: ICN.reprova, href: 'reprovados.html' },
       { sec: 'Sistema' },
-      { k: 'banco', t: 'Teste Supabase', ic: ICN.config, href: 'banco.html' },
-      { k: 'dados', t: 'Dados & Backup', ic: ICN.config, href: 'dados.html' },
+      { k: 'banco', t: 'Conexão Supabase', ic: ICN.config, href: 'banco.html' },
+      { k: 'dados', t: 'Dados do Sistema', ic: ICN.config, href: 'dados.html' },
     ];
 
     let nav = '';

@@ -1,14 +1,16 @@
 /* =====================================================================
-   DADOS.JS
+   DADOS.JS — Administração sem importação de massa
    ===================================================================== */
 document.addEventListener('DOMContentLoaded', () => {
-  App.montarLayout('dados', 'Dados & Backup', 'Exportação, importação e manutenção dos dados');
-  // ícones nos botões
-  document.getElementById('bxExcel').innerHTML = ICN.excel;
-  document.getElementById('bxJson').innerHTML = ICN.download;
-  document.getElementById('bxUp').innerHTML = ICN.upload;
-  const bxPlanilha = document.getElementById('bxPlanilha');
-  if (bxPlanilha) bxPlanilha.innerHTML = ICN.excel;
+  App.montarLayout('dados', 'Dados do Sistema', 'Administração, resumo e limpeza de dados locais legados');
+
+  const bxProducao = document.getElementById('bxProducao');
+  const bxReprovados = document.getElementById('bxReprovados');
+  const bxEnsaios = document.getElementById('bxEnsaios');
+  if (bxProducao) bxProducao.innerHTML = ICN.producao;
+  if (bxReprovados) bxReprovados.innerHTML = ICN.reprova;
+  if (bxEnsaios) bxEnsaios.innerHTML = ICN.check;
+
   atualizarFiltroSemanaDados();
   document.getElementById('fSemanaDados')?.addEventListener('change', renderResumoSemanaDados);
   atualizarKpis();
@@ -19,44 +21,22 @@ function atualizarKpis() {
   const d = Store.tudo();
   const fmt = d.atualizadoEm ? new Date(d.atualizadoEm).toLocaleString('pt-BR') : '—';
   document.getElementById('kpis').innerHTML = `
-    <div class="kpi escuro"><div class="rotulo">Produção</div><div class="valor">${d.producao.length}</div><div class="extra">lançamentos</div></div>
-    <div class="kpi vermelho"><div class="rotulo">Reprovados</div><div class="valor">${d.reprovados.length}</div><div class="extra">registros</div></div>
-    <div class="kpi"><div class="rotulo">Indicador semanal</div><div class="valor">${d.semanal.length}</div><div class="extra">semanas</div></div>
-    <div class="kpi verde"><div class="rotulo">Ensaios de liberação</div><div class="valor">${(d.ensaiosLiberacao || []).length}</div><div class="extra">ensaios executados</div></div>
-    <div class="kpi verde"><div class="rotulo">Último salvamento</div><div class="valor" style="font-size:15px;font-weight:600;line-height:1.4;margin-top:10px">${fmt}</div></div>`;
+    <div class="kpi escuro"><div class="rotulo">Produção</div><div class="valor">${d.producao.length}</div><div class="extra">registros locais legados</div></div>
+    <div class="kpi vermelho"><div class="rotulo">Reprovados</div><div class="valor">${d.reprovados.length}</div><div class="extra">registros locais legados</div></div>
+    <div class="kpi"><div class="rotulo">Indicador semanal</div><div class="valor">${d.semanal.length}</div><div class="extra">registros locais legados</div></div>
+    <div class="kpi verde"><div class="rotulo">Ensaios de liberação</div><div class="valor">${(d.ensaiosLiberacao || []).length}</div><div class="extra">registros locais legados</div></div>
+    <div class="kpi amarelo"><div class="rotulo">Último dado local</div><div class="valor" style="font-size:15px;font-weight:600;line-height:1.4;margin-top:10px">${fmt}</div><div class="extra">apenas armazenamento do navegador</div></div>`;
 }
 
-function importar(input) {
-  const f = input.files[0];
-  if (!f) return;
-  if (!App.confirmar('Importar este backup vai SUBSTITUIR todos os dados atuais. Continuar?')) { input.value = ''; return; }
-  Store.importarJSON(f)
-    .then(() => { App.toast('Backup importado com sucesso.'); atualizarFiltroSemanaDados(); atualizarKpis(); renderResumoSemanaDados(); })
-    .catch(() => App.toast('Arquivo inválido. Verifique se é um backup .json deste sistema.', 'erro'));
-  input.value = '';
-}
-
-function carregarDemo() {
-  const d = Store.tudo();
-  const temDados = d.producao.length || d.reprovados.length || d.semanal.length || (d.ensaiosLiberacao || []).length;
-  if (temDados && !App.confirmar('Você já tem dados. Carregar a demonstração vai SUBSTITUIR tudo. Continuar?')) return;
-  Store.substituirTudo(DEMO);
-  App.toast('Dados de exemplo carregados.');
-  atualizarFiltroSemanaDados();
-  atualizarKpis();
-  renderResumoSemanaDados();
-}
-
-function limparTudo() {
-  if (!App.confirmar('Tem certeza? Isto apaga TODOS os dados deste navegador.')) return;
-  if (!App.confirmar('Última confirmação: apagar tudo de forma permanente?')) return;
+function limparDadosLocaisLegados() {
+  if (!App.confirmar('Isto apaga apenas dados antigos salvos neste navegador. Dados do Supabase não serão apagados. Continuar?')) return;
+  if (!App.confirmar('Última confirmação: limpar armazenamento local legado?')) return;
   Store.limpar();
   atualizarFiltroSemanaDados();
-  App.toast('Todos os dados foram apagados.', 'aviso');
   atualizarKpis();
   renderResumoSemanaDados();
+  App.toast('Dados locais legados foram limpos.');
 }
-
 
 function atualizarFiltroSemanaDados() {
   U.preencherFiltroSemana('fSemanaDados', datasSemanaDados(), document.getElementById('fSemanaDados')?.value, 'Todas as semanas');
@@ -86,10 +66,10 @@ function renderResumoSemanaDados() {
   const rotulo = periodo ? `${U.dataBR(periodo.ini)} a ${U.dataBR(periodo.fim)}` : 'todas as semanas';
   alvo.innerHTML = `
     <div class="kpi escuro"><div class="rotulo">Período</div><div class="valor" style="font-size:15px">${rotulo}</div><div class="extra">semana operacional selecionada</div></div>
-    <div class="kpi"><div class="rotulo">Produção</div><div class="valor">${totalProd.toLocaleString('pt-BR')}</div><div class="extra">${prod.length} lote(s)</div></div>
-    <div class="kpi vermelho"><div class="rotulo">Reprovados</div><div class="valor">${totalRef.toLocaleString('pt-BR')}</div><div class="extra">${reps.length} registro(s)</div></div>
-    <div class="kpi verde"><div class="rotulo">Indicador semanal</div><div class="valor">${sem.length}</div><div class="extra">linha(s) consolidadas</div></div>
-    <div class="kpi amarelo"><div class="rotulo">Ensaios de liberação</div><div class="valor">${ens.length}</div><div class="extra">registro(s) executados</div></div>`;
+    <div class="kpi"><div class="rotulo">Produção local</div><div class="valor">${totalProd.toLocaleString('pt-BR')}</div><div class="extra">${prod.length} lote(s) locais</div></div>
+    <div class="kpi vermelho"><div class="rotulo">Reprovados locais</div><div class="valor">${totalRef.toLocaleString('pt-BR')}</div><div class="extra">${reps.length} registro(s) locais</div></div>
+    <div class="kpi verde"><div class="rotulo">Indicador local</div><div class="valor">${sem.length}</div><div class="extra">linha(s) locais</div></div>
+    <div class="kpi amarelo"><div class="rotulo">Ensaios locais</div><div class="valor">${ens.length}</div><div class="extra">registro(s) locais</div></div>`;
 }
 
 function dentroPeriodoData(iso, ini, fim) {
