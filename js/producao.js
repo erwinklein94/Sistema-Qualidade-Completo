@@ -3,6 +3,52 @@
    ===================================================================== */
 const COL = 'producao';
 
+const GRUPOS_PREENCHIMENTO = [
+  {
+    nome: 'Datas e Cura',
+    campos: [
+      ['dataFabricacao', 'Data de Fabricação'], ['cura14', 'Cura 14 dias'],
+      ['cura28', 'Cura 28 dias'], ['tempoCura', 'Tempo de Cura']
+    ]
+  },
+  {
+    nome: 'USP / Ombreiras',
+    campos: [
+      ['comUsp', 'Com USP'], ['uspLote', 'USP (Lote)'],
+      ['ombreira', 'Tipo de Ombreiras'], ['loteOmbreira', 'Lote Ombreiras']
+    ]
+  },
+  {
+    nome: 'Temperatura (°C)',
+    campos: [['tempIni', 'Inicial'], ['tempMeio', 'Meio'], ['tempFim', 'Final']]
+  },
+  {
+    nome: 'Slump Test (mm)',
+    campos: [
+      ['slumpIniA', 'Início — Abatimento'], ['slumpIniE', 'Início — Espalhamento'],
+      ['slumpMeioA', 'Meio — Abatimento'], ['slumpMeioE', 'Meio — Espalhamento'],
+      ['slumpFimA', 'Fim — Abatimento'], ['slumpFimE', 'Fim — Espalhamento']
+    ]
+  },
+  {
+    nome: 'Resistências',
+    campos: [
+      ['comp7', 'Comp. Axial 7 dias'], ['comp14', 'Comp. Axial 14 dias'],
+      ['tracao14', 'Tração Flexão 14 dias'], ['comp28', 'Comp. Axial 28 dias'],
+      ['tracao28', 'Tração Flexão 28 dias']
+    ]
+  },
+  {
+    nome: 'Ensaio / Resultado',
+    campos: [
+      ['serie', 'Série — Ensaio de Liberação'], ['iauditor', 'Ensaio no iAuditor'],
+      ['ensaiados', 'Dormentes Ensaiados'], ['aAnalisar', 'Dormentes a Analisar'],
+      ['reprovados', 'Dormentes Reprovados'], ['aprovado', 'Total Produção Aprovado']
+    ]
+  },
+  { nome: 'Status', campos: [['status', 'Status']] }
+];
+
 document.addEventListener('DOMContentLoaded', () => {
   App.montarLayout('producao', 'Produção de Dormentes', 'Lançamento e controle de fabricação por lote');
   App.acoesTopo(`<button class="btn btn-primario" onclick="abrirNovo()">${ICN.add}Novo lançamento</button>`);
@@ -50,6 +96,7 @@ function render() {
     return true;
   }).sort((a, b) => (b.dataFabricacao || '').localeCompare(a.dataFabricacao || ''));
 
+  renderAlertasPreenchimento(lista);
   document.getElementById('contador').textContent = `${lista.length} de ${todos.length} registros`;
 
   const cont = document.getElementById('lista');
@@ -61,7 +108,8 @@ function render() {
 
   let linhas = '';
   lista.forEach(r => {
-    linhas += `<tr>
+    const preenchimento = calcularPreenchimentoLote(r);
+    linhas += `<tr class="${preenchimento.status === 'critico' ? 'linha-alerta' : ''}">
       <td>${U.dataBR(r.dataFabricacao)}</td>
       <td><strong>${U.esc(r.lote)}</strong></td>
       <td>${U.badgeProjeto(r.projeto)}</td>
@@ -71,6 +119,7 @@ function render() {
       <td class="right">${U.esc(r.reprovados || 0)}</td>
       <td class="right">${U.esc(r.aprovado || '')}</td>
       <td>${U.esc(r.serie || '—')}</td>
+      <td>${badgePreenchimento(preenchimento)}</td>
       <td>${U.badgeStatus(r.status)}</td>
       <td class="acoes-cel">
         <button class="icone-btn" title="Ver" onclick="ver('${r.id}')">${ICN.olho}</button>
@@ -84,8 +133,103 @@ function render() {
     <thead><tr>
       <th>Fabricação</th><th>Lote</th><th>Projeto</th><th>Bitola</th><th>Tipo</th>
       <th class="right">Produção</th><th class="right">Reprov.</th><th class="right">Aprovado</th>
-      <th>Série</th><th>Status</th><th>Ações</th>
+      <th>Série</th><th>Preenchimento</th><th>Status</th><th>Ações</th>
     </tr></thead><tbody>${linhas}</tbody></table></div>`;
+}
+
+function valorPreenchido(v) {
+  if (v === 0) return true;
+  if (v == null) return false;
+  return String(v).trim() !== '';
+}
+
+function calcularPreenchimentoLote(reg) {
+  let total = 0;
+  let preenchidos = 0;
+  const grupos = GRUPOS_PREENCHIMENTO.map(grupo => {
+    const faltantes = [];
+    grupo.campos.forEach(([campo, rotulo]) => {
+      total++;
+      if (valorPreenchido(reg[campo])) preenchidos++;
+      else faltantes.push(rotulo);
+    });
+    const qtd = grupo.campos.length;
+    const pctGrupo = Math.round(((qtd - faltantes.length) / qtd) * 100);
+    return { nome: grupo.nome, faltantes, pct: pctGrupo };
+  });
+  const pct = total ? Math.round((preenchidos / total) * 100) : 100;
+  return {
+    pct,
+    preenchidos,
+    total,
+    faltantes: grupos.filter(g => g.faltantes.length),
+    status: pct >= 90 ? 'ok' : pct >= 70 ? 'aviso' : 'critico'
+  };
+}
+
+function badgePreenchimento(info) {
+  const cls = info.status === 'ok' ? 'badge-ok' : info.status === 'aviso' ? 'badge-amarelo' : 'badge-reprovado';
+  const titulo = info.faltantes.length
+    ? info.faltantes.map(g => `${g.nome}: ${g.faltantes.join(', ')}`).join(' | ')
+    : 'Cadastro completo nos campos críticos';
+  return `<div class="preenchimento-cel" title="${U.esc(titulo)}">
+    <span class="badge ${cls}">${info.pct}%</span>
+    <div class="barra-preenchimento"><span class="${info.status}" style="width:${info.pct}%"></span></div>
+  </div>`;
+}
+
+function renderAlertasPreenchimento(lista) {
+  const alvo = document.getElementById('alertasPreenchimento');
+  if (!alvo) return;
+
+  const analises = lista.map(r => ({ registro: r, info: calcularPreenchimentoLote(r) }));
+  const incompletos = analises.filter(a => a.info.pct < 100).sort((a, b) => a.info.pct - b.info.pct);
+  const criticos = analises.filter(a => a.info.status === 'critico');
+  const media = analises.length
+    ? Math.round(analises.reduce((acc, a) => acc + a.info.pct, 0) / analises.length)
+    : 0;
+
+  document.getElementById('kpiPreenchimentoMedio').textContent = `${media}%`;
+  document.getElementById('kpiLotesIncompletos').textContent = incompletos.length;
+  document.getElementById('kpiLotesCriticos').textContent = criticos.length;
+  document.getElementById('resumoPreenchimento').textContent = `${analises.length} lote(s) no recorte atual`;
+
+  if (!analises.length) {
+    alvo.innerHTML = `<div class="vazio compacto">${ICN.vazioBox}<h3>Nenhum lote para analisar</h3><p>Os alertas aparecem quando houver registros no filtro atual.</p></div>`;
+    return;
+  }
+
+  if (!incompletos.length) {
+    alvo.innerHTML = `<div class="vazio compacto">${ICN.check}<h3>Todos os lotes estão completos</h3><p>Os campos críticos estão 100% preenchidos no recorte atual.</p></div>`;
+    return;
+  }
+
+  const linhas = incompletos.slice(0, 12).map(({ registro: r, info }) => {
+    const grupos = info.faltantes.map(g => {
+      const qtd = g.faltantes.length;
+      const amostra = g.faltantes.slice(0, 3).join(', ');
+      const resto = qtd > 3 ? ` +${qtd - 3}` : '';
+      return `<span class="chip-faltante" title="${U.esc(g.faltantes.join(', '))}">${U.esc(g.nome)} <small>${qtd}</small><em>${U.esc(amostra)}${resto}</em></span>`;
+    }).join('');
+    return `<tr class="${info.status === 'critico' ? 'linha-alerta' : ''}">
+      <td><strong>${U.esc(r.lote || 'Sem lote')}</strong><div class="txt-mini txt-cinza">${U.dataBR(r.dataFabricacao)}</div></td>
+      <td>${U.badgeProjeto(r.projeto)}</td>
+      <td>${U.badgeBitola(r)}</td>
+      <td>${badgePreenchimento(info)}</td>
+      <td><div class="chips-faltantes">${grupos}</div></td>
+      <td class="acoes-cel"><button class="btn btn-secundario btn-sm" onclick="editar('${r.id}')">Completar</button></td>
+    </tr>`;
+  }).join('');
+
+  alvo.innerHTML = `<div class="alerta-preenchimento-topo">
+      <strong>${ICN.alerta} ${incompletos.length} lote(s) com dados pendentes</strong>
+      <span>Lista ordenada pelos menores percentuais de preenchimento. Campos avaliados: Datas e Cura, USP / Ombreiras, Temperatura, Slump Test, Resistências, Ensaio / Resultado e Status.</span>
+    </div>
+    <div class="tabela-wrap"><table class="tabela tabela-alertas">
+      <thead><tr><th>Lote</th><th>Projeto</th><th>Bitola</th><th>Preenchimento</th><th>Dados faltantes</th><th>Ação</th></tr></thead>
+      <tbody>${linhas}</tbody>
+    </table></div>
+    ${incompletos.length > 12 ? `<p class="txt-mini txt-cinza margem-topo-sm">Mostrando os 12 lotes mais incompletos de ${incompletos.length} encontrados no filtro atual.</p>` : ''}`;
 }
 
 const CAMPOS = ['fornecedor','pista','pedido','lote','projeto','tipo','total','dataFabricacao','cura14','cura28',

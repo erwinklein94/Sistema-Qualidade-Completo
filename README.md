@@ -184,3 +184,30 @@ A regra semanal também foi ajustada para o padrão usado pela área: a semana c
 - geração do **Indicador Semanal** a partir da produção;
 - gráfico **Produção × Reprova semanal por projeto**;
 - filtros de período nas telas operacionais.
+
+
+## Atualização: alertas de preenchimento na Produção
+
+A tela **Produção de Dormentes** agora possui um painel de controle de preenchimento dos lotes registrados.
+
+O sistema calcula automaticamente o percentual de preenchimento de cada lote considerando os campos críticos das seções:
+
+- **Datas e Cura**
+- **USP / Ombreiras**
+- **Temperatura (°C)**
+- **Slump Test (mm)**
+- **Resistências**
+- **Ensaio / Resultado**
+- **Status**
+
+Novos recursos adicionados:
+
+- Card de **Preenchimento médio** dos lotes filtrados.
+- Card de **Lotes incompletos**.
+- Card de **Atenção crítica**, para lotes abaixo de 70% de preenchimento.
+- Lista dos lotes com dados pendentes, ordenada pelos menores percentuais.
+- Indicação dos grupos e campos faltantes em cada lote.
+- Coluna **Preenchimento** na tabela de registros de produção.
+- Botão **Completar** no alerta, abrindo diretamente a edição do lote.
+
+Os alertas respeitam os filtros atuais da tela, incluindo **Fornecedor**, **Projeto**, **Bitola**, **Status** e busca rápida.

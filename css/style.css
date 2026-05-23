@@ -576,3 +576,91 @@ table.tabela .acoes-cel { display: flex; gap: 6px; }
   .serie-card-topo, .serie-rodape { flex-direction: column; }
   .serie-metricas { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ===================== ALERTAS DE PREENCHIMENTO - PRODUÇÃO ===================== */
+.grid-kpi-compacto {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  margin-bottom: 16px;
+}
+.grid-kpi-compacto .kpi { padding: 15px 18px; }
+.grid-kpi-compacto .kpi .valor { font-size: 24px; }
+
+.preenchimento-cel {
+  min-width: 105px;
+  display: grid;
+  gap: 6px;
+}
+.barra-preenchimento {
+  width: 100%;
+  height: 7px;
+  background: #edf2f7;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.barra-preenchimento span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+.barra-preenchimento span.ok { background: var(--verde); }
+.barra-preenchimento span.aviso { background: var(--amarelo); }
+.barra-preenchimento span.critico { background: var(--erro); }
+
+.alerta-preenchimento-topo {
+  border: 1px solid #f1d38d;
+  border-left: 4px solid var(--amarelo);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #fffdf2;
+  display: grid;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+.alerta-preenchimento-topo strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+}
+.alerta-preenchimento-topo strong .ic { width: 17px; height: 17px; }
+.alerta-preenchimento-topo span {
+  color: var(--cinza-texto);
+  font-size: 12.5px;
+}
+
+.chips-faltantes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 780px;
+}
+.chip-faltante {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  gap: 4px 6px;
+  align-items: center;
+  border: 1px solid #f1caca;
+  background: #fffafa;
+  color: var(--bloqueado);
+  border-radius: 10px;
+  padding: 5px 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.chip-faltante small {
+  background: #ffeaea;
+  color: var(--erro);
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: 10px;
+}
+.chip-faltante em {
+  grid-column: 1 / -1;
+  color: var(--cinza-texto);
+  font-size: 10.5px;
+  font-style: normal;
+  font-weight: 500;
+}
+tr.linha-alerta td { background: #fffafa; }
+.tabela-alertas td { vertical-align: top; }
+.margem-topo-sm { margin-top: 10px; }

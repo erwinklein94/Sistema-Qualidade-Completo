@@ -39,6 +39,31 @@
 
         <div class="card">
           <div class="card-titulo">
+            <span class="acento">Alertas de preenchimento dos lotes</span>
+            <span class="txt-mini txt-cinza" id="resumoPreenchimento">Considerando os filtros atuais</span>
+          </div>
+          <div class="grid-kpi grid-kpi-compacto">
+            <div class="kpi escuro">
+              <div class="rotulo">Preenchimento médio</div>
+              <div class="valor" id="kpiPreenchimentoMedio">0%</div>
+              <div class="extra">Campos críticos preenchidos</div>
+            </div>
+            <div class="kpi amarelo">
+              <div class="rotulo">Lotes incompletos</div>
+              <div class="valor" id="kpiLotesIncompletos">0</div>
+              <div class="extra">Com pelo menos um campo faltando</div>
+            </div>
+            <div class="kpi vermelho">
+              <div class="rotulo">Atenção crítica</div>
+              <div class="valor" id="kpiLotesCriticos">0</div>
+              <div class="extra">Abaixo de 70% preenchido</div>
+            </div>
+          </div>
+          <div id="alertasPreenchimento"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-titulo">
             <span class="acento">Registros de Produção</span>
             <span class="txt-mini txt-cinza" id="contador">0 registros</span>
           </div>
