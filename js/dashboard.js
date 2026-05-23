@@ -188,6 +188,14 @@ function render() {
     <div class="kpi amarelo"><div class="rotulo">Taxa de reprova</div><div class="valor">${String(taxaReprova).replace('.', ',')}%</div><div class="extra">sobre produção do filtro</div></div>
     <div class="kpi"><div class="rotulo">Ensaios de liberação</div><div class="valor">${ens.length}</div><div class="extra">${ensAprov} aprovado(s)</div></div>`;
 
+  registrarExportacaoDashboard(prod, rep, ens, filtros, {
+    totalProd,
+    totalAprov,
+    reprovadosKpi,
+    taxaReprova,
+    ensAprov,
+    periodoTxt
+  });
   desenharGraficos(prod, rep, ens, filtros);
 }
 

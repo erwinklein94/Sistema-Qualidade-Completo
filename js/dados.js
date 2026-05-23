@@ -64,6 +64,7 @@ function renderResumoSemanaDados() {
   const totalProd = prod.reduce((s, r) => s + U.int(r.total), 0);
   const totalRef = reps.reduce((s, r) => s + (U.int(r.totalRefugos) || 1), 0);
   const rotulo = periodo ? `${U.dataBR(periodo.ini)} a ${U.dataBR(periodo.fim)}` : 'todas as semanas';
+  registrarExportacaoDadosResumo(periodo, totalProd, prod, totalRef, reps, sem, ens);
   alvo.innerHTML = `
     <div class="kpi escuro"><div class="rotulo">Período</div><div class="valor" style="font-size:15px">${rotulo}</div><div class="extra">semana operacional selecionada</div></div>
     <div class="kpi"><div class="rotulo">Produção local</div><div class="valor">${totalProd.toLocaleString('pt-BR')}</div><div class="extra">${prod.length} lote(s) locais</div></div>
