@@ -74,7 +74,7 @@ Para evitar conflito:
 - importação de JSON foi desativada;
 - a página de diagnóstico não depende mais de lote fictício fixo.
 
-Os arquivos `js/demo.js` e `js/importador-excel.js` permanecem apenas como neutralizadores, para impedir erro caso algum cache antigo ainda tente chamá-los.
+A tela e os scripts de migração/importação foram removidos após a carga inicial para impedir nova importação de Excel pelo site.
 
 
 ## Fase Supabase — Reprovados
@@ -138,24 +138,15 @@ Esse arquivo cria índices para acelerar os filtros e cruzamentos do painel quan
 
 
 
-## Migração inicial da planilha para o Supabase
+## Estado final após a carga inicial
 
-Esta versão inclui uma tela temporária chamada **Migração Inicial** (`migracao-inicial.html`) para carregar o histórico da planilha antiga no Supabase sem cadastrar linha por linha.
+A migração histórica da planilha para o Supabase já foi executada. Esta versão final remove a tela **Migração Inicial** e não possui botão, página ou script ativo para importar Excel.
 
-Fluxo recomendado:
+A partir daqui, o fluxo oficial é:
 
-1. Entrar no site com usuário `admin`.
-2. Abrir **Sistema → Migração Inicial**.
-3. Selecionar a planilha `Indicador semanal_2026.xlsx`.
-4. Clicar em **Analisar planilha**.
-5. Conferir a prévia.
-6. Clicar em **Confirmar migração para o Supabase**.
-7. Conferir os dados em Produção, Reprovados, Dashboard e Indicador Semanal.
-8. Após validar, remover a tela temporária de migração do site.
+1. Criar novos lotes na aba **Produção**.
+2. Lançar reprovas na aba **Reprovados**.
+3. Registrar ensaios reais na aba **Ensaios de Liberação**.
+4. Acompanhar séries, dashboard e indicador semanal a partir dos dados do Supabase.
 
-A migração grava:
-- Produção em `producao_lotes`, usando `fornecedor + lote` para evitar duplicidade.
-- Reprovas em `reprovados`, tentando vincular automaticamente ao lote produzido.
-- Um marcador em `listas_configuracao` com valor `MIGRACAO_INICIAL_EXCEL_CONCLUIDA`, bloqueando nova execução pela tela.
-
-Depois da migração, o sistema deve continuar sem importação de Excel para uso normal. Os dados novos devem ser inseridos manualmente pelo site.
+A exportação, quando usada, deve servir apenas como relatório/consulta externa, não como fonte de entrada de dados.
