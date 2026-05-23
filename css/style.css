@@ -1221,3 +1221,359 @@ body[data-tema="escuro"] .usuario-perfil {
 .exportacoes-grupo{display:flex;gap:8px;align-items:center;margin-left:8px;padding-left:8px;border-left:1px solid var(--borda, #d9e2ec)}
 .exportacoes-grupo .btn{min-height:34px}
 @media (max-width: 760px){.exportacoes-grupo{width:100%;margin-left:0;padding-left:0;border-left:0}.exportacoes-grupo .btn{flex:1}}
+
+/* ===================== AJUSTES MOBILE — sem alterar o desktop ===================== */
+@media (max-width: 820px) {
+  html,
+  body,
+  .app,
+  .conteudo {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    font-size: 14px;
+  }
+
+  .conteudo,
+  .pagina,
+  .topo,
+  .card,
+  .modal,
+  .tabela-wrap,
+  .chart-box,
+  .grid-graficos,
+  .series-grid {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .topo {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+
+  .topo > .flex {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .topo h1 {
+    font-size: 18px;
+    line-height: 1.18;
+    overflow-wrap: anywhere;
+  }
+
+  .topo .subtitulo {
+    font-size: 12px;
+    line-height: 1.35;
+    max-width: 100%;
+  }
+
+  .topo-acoes {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .topo-acoes > .btn,
+  .topo-acoes > a.btn {
+    flex: 0 0 auto;
+  }
+
+  #topoAcoes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  #topoAcoes > .btn,
+  #topoAcoes > a.btn {
+    flex: 0 0 auto;
+  }
+
+  .exportacoes-grupo {
+    width: auto !important;
+    max-width: 100%;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    border-left: 0 !important;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 0 1 auto;
+  }
+
+  .exportacoes-grupo .btn {
+    flex: 0 0 auto !important;
+  }
+
+  .topo .btn {
+    min-height: 36px;
+    padding: 8px 11px;
+    font-size: 12.5px;
+  }
+
+  .menu-toggle span {
+    display: inline;
+  }
+
+  .pagina {
+    padding: 16px 14px 44px;
+  }
+
+  .card {
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 14px;
+  }
+
+  .card-titulo {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 15px;
+    margin-bottom: 14px;
+  }
+
+  .barra-filtros {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    align-items: end;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .barra-filtros .campo,
+  .barra-filtros .busca-rapida {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .barra-filtros .busca-rapida,
+  .barra-filtros .campo:has(#fSemana),
+  .barra-filtros .campo:has(#fPeriodoIni),
+  .barra-filtros .campo:has(#fPeriodoFim) {
+    grid-column: 1 / -1;
+  }
+
+  .barra-filtros input,
+  .barra-filtros select,
+  .campo input,
+  .campo select,
+  .campo textarea {
+    min-width: 0 !important;
+    max-width: 100%;
+    width: 100%;
+    font-size: 14px;
+  }
+
+  .barra-filtros > button.btn {
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
+  }
+
+  .aviso-info {
+    margin: 0 0 14px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    line-height: 1.45;
+  }
+
+  .grid-kpi,
+  .grid-kpi-compacto {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .kpi {
+    padding: 16px 18px;
+  }
+
+  .kpi .valor {
+    font-size: 28px;
+  }
+
+  .grid-graficos {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .chart-box,
+  .chart-box.alto {
+    height: 250px;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  canvas {
+    max-width: 100% !important;
+  }
+
+  .tabela-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table.tabela {
+    font-size: 12px;
+  }
+
+  table.tabela thead th,
+  table.tabela tbody td {
+    padding: 9px 10px;
+  }
+
+  .form-grid,
+  .detalhe-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-acoes {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .form-acoes .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modal-overlay {
+    padding: 10px;
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+
+  .modal {
+    max-height: calc(100vh - 20px);
+    border-radius: 16px;
+  }
+
+  .modal-cab,
+  .modal-corpo {
+    padding: 16px;
+  }
+
+  .series-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .serie-card {
+    padding: 15px;
+  }
+
+  .serie-card-topo,
+  .serie-rodape,
+  .serie-liberacao,
+  .motivo-card-topo {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .serie-metricas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .motivos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lotes-serie-lista {
+    display: grid;
+    grid-template-columns: 1fr;
+    max-height: 240px;
+  }
+
+  .lote-serie-chip {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .toast-wrap {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .toast {
+    max-width: none;
+    width: 100%;
+  }
+}
+
+@media (max-width: 460px) {
+  .topo {
+    padding: 10px 12px;
+  }
+
+  .topo > .flex {
+    align-items: start !important;
+  }
+
+  .topo h1 {
+    font-size: 17px;
+  }
+
+  .topo .subtitulo {
+    font-size: 12px;
+  }
+
+  .topo .btn {
+    padding: 8px 10px;
+  }
+
+  .hub-link {
+    min-width: 58px;
+    justify-content: center;
+  }
+
+  .pagina {
+    padding: 14px 10px 40px;
+  }
+
+  .barra-filtros {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  .kpi .valor {
+    font-size: 26px;
+  }
+
+  .serie-metricas {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-box,
+  .chart-box.alto {
+    height: 220px;
+  }
+}

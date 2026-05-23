@@ -176,3 +176,7 @@ As colunas de datas de ruptura são preenchidas a partir da data de fabricação
 Na aba **Reprovados**, o botão **Excel** também gera um arquivo no layout da planilha antiga, respeitando todos os filtros aplicados na tela.
 
 A sequência das colunas segue o modelo antigo: Semana, Data de Produção, Período de Inspeção, Lote, Projeto, Tipo, Molde, Cavidade, Motivo Detalhado, Motivo do Indicador Semanal e Total de Refugos da Semana. A importação por Excel permanece removida.
+
+## Ajuste mobile
+
+Esta versão preserva o layout desktop e adiciona regras responsivas para telas menores, evitando sobreposição no topo, campos saindo da tela, tabelas estourando a largura e cards desalinhados no celular.
