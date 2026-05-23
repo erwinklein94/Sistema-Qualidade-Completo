@@ -116,6 +116,7 @@ function render() {
     String(b.lote || '').localeCompare(String(a.lote || ''), 'pt-BR', { numeric: true })
   );
 
+  registrarExportacaoEnsaiosLiberacao(lista);
   renderKpis(lista);
   renderTabela(lista, todos.length);
 }
@@ -537,3 +538,37 @@ function mensagemErroBanco(err, padrao) {
 }
 
 window.render = render;
+
+function registrarExportacaoEnsaiosLiberacao(lista) {
+  if (!window.Exportacoes) return;
+  Exportacoes.registrar({
+    titulo: 'Ensaios de Liberação',
+    nomeArquivo: 'ensaios-liberacao',
+    filtros: Exportacoes.filtrosDaTela(),
+    secoes: [{
+      titulo: 'Ensaios filtrados',
+      columns: [
+        { key: 'dataEnsaioExport', label: 'Data do ensaio' },
+        { key: 'semanaExport', label: 'Semana operacional' },
+        { key: 'fornecedor', label: 'Fornecedor' },
+        { key: 'projeto', label: 'Projeto' },
+        { key: 'bitolaExport', label: 'Bitola' },
+        { key: 'lote', label: 'Lote ensaiado' },
+        { key: 'serieLiberada', label: 'Série liberada' },
+        { key: 'resultado', label: 'Resultado' },
+        { key: 'quantidadeEnsaiada', label: 'Quantidade ensaiada' },
+        { key: 'responsavel', label: 'Responsável' },
+        { key: 'linkRelatorio', label: 'Link relatório SharePoint/iAuditor' },
+        { key: 'observacoes', label: 'Observações' },
+        { key: 'vinculoExport', label: 'Vínculo' }
+      ],
+      rows: lista.map(r => ({
+        ...r,
+        dataEnsaioExport: U.dataBR(r.dataEnsaio),
+        semanaExport: rotuloSemana(r),
+        bitolaExport: bitolaRegistro(r),
+        vinculoExport: r.producaoLoteId ? 'Vinculado à produção' : 'Manual'
+      }))
+    }]
+  });
+}

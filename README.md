@@ -150,3 +150,14 @@ A partir daqui, o fluxo oficial é:
 4. Acompanhar séries, dashboard e indicador semanal a partir dos dados do Supabase.
 
 A exportação, quando usada, deve servir apenas como relatório/consulta externa, não como fonte de entrada de dados.
+
+## Exportações Excel/PDF
+
+O sistema permite exportar relatórios em Excel (`.xlsx`) e PDF nas abas operacionais, sempre considerando os filtros aplicados na tela no momento da exportação.
+
+- A exportação é somente saída de relatório.
+- Não existe importação de planilha nesta versão.
+- Produção, Reprovados, Ensaios de Liberação, Painel de Séries, Dashboard e Indicador Semanal usam o Supabase como fonte dos dados.
+- Os arquivos exportados incluem os filtros selecionados, período/semana operacional e os dados atualmente filtrados.
+- A semana operacional continua seguindo quinta-feira até quarta-feira.
+

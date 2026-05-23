@@ -154,6 +154,7 @@ function render() {
     U.bitolaDe(a).localeCompare(U.bitolaDe(b))
   );
 
+  registrarExportacaoSemanal(lista);
   const ag = lista.reduce((s, r) => {
     s.prod += U.int(r.produzidos);
     s.ref += U.int(r.dormRecusados);
@@ -343,4 +344,38 @@ function mensagemErroBanco(err, padrao) {
   if (/row-level security|violates row-level security/i.test(msg)) return 'Acesso bloqueado pelas regras de segurança do Supabase. Confira seu perfil em usuarios_app.';
   if (/JWT|token|auth/i.test(msg)) return 'Sessão expirada ou inválida. Saia e faça login novamente.';
   return msg;
+}
+
+function registrarExportacaoSemanal(lista) {
+  if (!window.Exportacoes) return;
+  Exportacoes.registrar({
+    titulo: 'Indicador Semanal',
+    nomeArquivo: 'indicador-semanal',
+    filtros: Exportacoes.filtrosDaTela(),
+    secoes: [{
+      titulo: 'Indicador semanal filtrado',
+      columns: [
+        { key: 'semanaExport', label: 'Semana' },
+        { key: 'fornecedor', label: 'Fornecedor' },
+        { key: 'projetoExport', label: 'Projeto' },
+        { key: 'bitolaExport', label: 'Bitola' },
+        { key: 'periodoExport', label: 'Período' },
+        { key: 'produzidos', label: 'Produzidos' },
+        { key: 'dormRecusados', label: 'Refugos' },
+        { key: 'pctReprovaExport', label: '% Reprova' },
+        { key: 'ensaiosReal', label: 'Ensaios realizados' },
+        { key: 'ensaiosAprov', label: 'Ensaios aprovados' },
+        { key: 'ensaiosRec', label: 'Ensaios reprovados' },
+        { key: 'ensaiosPend', label: 'Ensaios pendentes' }
+      ],
+      rows: lista.map(r => ({
+        ...r,
+        semanaExport: `${r.semana}/${r.ano}`,
+        projetoExport: r.projeto || 'Geral',
+        bitolaExport: r.bitola || U.bitolaDe(r),
+        periodoExport: `${U.dataBR(r.periodoIni)} a ${U.dataBR(r.periodoFim)}`,
+        pctReprovaExport: U.int(r.produzidos) ? `${((U.int(r.dormRecusados) / U.int(r.produzidos)) * 100).toFixed(1).replace('.', ',')}%` : '0,0%'
+      }))
+    }]
+  });
 }

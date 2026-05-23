@@ -521,3 +521,81 @@ function mensagemErroBanco(err, padrao) {
   if (/JWT|token|auth/i.test(msg)) return 'Sessão expirada ou inválida. Saia e faça login novamente.';
   return msg;
 }
+
+function registrarExportacaoDashboard(prod, rep, ens, filtros, resumo) {
+  if (!window.Exportacoes) return;
+  const filtrosTela = Exportacoes.filtrosDaTela();
+  Exportacoes.registrar({
+    titulo: 'Dashboard',
+    nomeArquivo: 'dashboard',
+    filtros: filtrosTela,
+    secoes: [
+      {
+        titulo: 'Resumo do Dashboard',
+        columns: [
+          { key: 'indicador', label: 'Indicador' },
+          { key: 'valor', label: 'Valor' }
+        ],
+        rows: [
+          { indicador: 'Produção total', valor: resumo.totalProd },
+          { indicador: 'Aprovados', valor: resumo.totalAprov },
+          { indicador: 'Reprovados / refugos', valor: resumo.reprovadosKpi },
+          { indicador: 'Taxa de reprova', valor: `${String(resumo.taxaReprova).replace('.', ',')}%` },
+          { indicador: 'Ensaios de liberação', valor: ens.length },
+          { indicador: 'Ensaios aprovados', valor: resumo.ensAprov },
+          { indicador: 'Período', valor: resumo.periodoTxt }
+        ]
+      },
+      {
+        titulo: 'Produção filtrada',
+        columns: [
+          { key: 'dataExport', label: 'Data fabricação' },
+          { key: 'semanaExport', label: 'Semana' },
+          { key: 'fornecedor', label: 'Fornecedor' },
+          { key: 'lote', label: 'Lote' },
+          { key: 'projeto', label: 'Projeto' },
+          { key: 'bitolaExport', label: 'Bitola' },
+          { key: 'tipo', label: 'Tipo' },
+          { key: 'total', label: 'Produção' },
+          { key: 'reprovados', label: 'Reprovados informados' },
+          { key: 'aprovado', label: 'Aprovado' },
+          { key: 'status', label: 'Status' },
+          { key: 'serie', label: 'Série' }
+        ],
+        rows: prod.map(r => ({
+          ...r,
+          dataExport: U.dataBR(r.dataFabricacao),
+          semanaExport: r.dataFabricacao ? U.semanaOperacionalInfo(r.dataFabricacao).rotulo : '',
+          bitolaExport: U.bitolaDe(r)
+        }))
+      },
+      {
+        titulo: 'Reprovas filtradas',
+        columns: [
+          { key: 'dataExport', label: 'Data produção' },
+          { key: 'fornecedor', label: 'Fornecedor' },
+          { key: 'lote', label: 'Lote' },
+          { key: 'projeto', label: 'Projeto' },
+          { key: 'bitolaExport', label: 'Bitola' },
+          { key: 'motivoIndicador', label: 'Motivo' },
+          { key: 'totalRefugos', label: 'Refugos' }
+        ],
+        rows: rep.map(r => ({ ...r, dataExport: U.dataBR(r.dataProducao), bitolaExport: U.bitolaDe(r) }))
+      },
+      {
+        titulo: 'Ensaios filtrados',
+        columns: [
+          { key: 'dataExport', label: 'Data ensaio' },
+          { key: 'fornecedor', label: 'Fornecedor' },
+          { key: 'lote', label: 'Lote' },
+          { key: 'projeto', label: 'Projeto' },
+          { key: 'bitolaExport', label: 'Bitola' },
+          { key: 'serieLiberada', label: 'Série liberada' },
+          { key: 'resultado', label: 'Resultado' },
+          { key: 'quantidadeEnsaiada', label: 'Qtd. ensaiada' }
+        ],
+        rows: ens.map(r => ({ ...r, dataExport: U.dataBR(r.dataEnsaio), bitolaExport: U.bitolaDe(r) }))
+      }
+    ]
+  });
+}

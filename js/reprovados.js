@@ -188,6 +188,7 @@ function render() {
       (a.lote || '').localeCompare(b.lote || '', 'pt-BR');
   });
 
+  registrarExportacaoReprovados(lista);
   const totalRefugos = lista.reduce((s, r) => s + (U.int(r.totalRefugos) || 1), 0);
   const txtPeriodo = f.ini || f.fim ? ` · período: ${U.dataBR(f.ini) || 'início'} a ${U.dataBR(f.fim) || 'fim'}` : '';
   const contador = document.getElementById('contador');
@@ -562,3 +563,42 @@ function mensagemErroBanco(err, padrao) {
 function fecharModal() { document.getElementById('modal')?.classList.remove('aberto'); }
 
 window.render = render;
+
+function registrarExportacaoReprovados(lista) {
+  if (!window.Exportacoes) return;
+  Exportacoes.registrar({
+    titulo: 'Reprovados',
+    nomeArquivo: 'reprovados',
+    filtros: Exportacoes.filtrosDaTela(),
+    secoes: [{
+      titulo: 'Reprovas filtradas',
+      columns: [
+        { key: 'semanaExport', label: 'Semana' },
+        { key: 'periodoExport', label: 'Período operacional' },
+        { key: 'dataProducaoExport', label: 'Data de produção' },
+        { key: 'fornecedor', label: 'Fornecedor' },
+        { key: 'lote', label: 'Lote' },
+        { key: 'projeto', label: 'Projeto' },
+        { key: 'bitolaExport', label: 'Bitola' },
+        { key: 'tipo', label: 'Tipo' },
+        { key: 'molde', label: 'Molde' },
+        { key: 'cavidade', label: 'Cavidade' },
+        { key: 'motivoIndicador', label: 'Motivo indicador' },
+        { key: 'motivoDetalhado', label: 'Motivo detalhado' },
+        { key: 'totalRefugos', label: 'Refugos' },
+        { key: 'vinculoExport', label: 'Vínculo' }
+      ],
+      rows: lista.map(r => {
+        const p = periodoRegistro(r);
+        return {
+          ...r,
+          semanaExport: `${p.semana || r.semana || ''}/${p.ano || r.ano || ''}`,
+          periodoExport: p.ini || p.fim ? `${U.dataBR(p.ini)} a ${U.dataBR(p.fim)}` : '',
+          dataProducaoExport: U.dataBR(r.dataProducao),
+          bitolaExport: U.bitolaDe(r),
+          vinculoExport: r.producaoLoteId ? 'Vinculado à produção' : 'Manual'
+        };
+      })
+    }]
+  });
+}

@@ -89,3 +89,27 @@ function dentroPeriodoIntervalo(regIni, regFim, dataUnica, filtroIni, filtroFim)
   if (filtroFim && a && a > filtroFim) return false;
   return true;
 }
+
+function registrarExportacaoDadosResumo(periodo, totalProd, prod, totalRef, reps, sem, ens) {
+  if (!window.Exportacoes) return;
+  const rotulo = periodo ? `${U.dataBR(periodo.ini)} a ${U.dataBR(periodo.fim)}` : 'Todas as semanas';
+  Exportacoes.registrar({
+    titulo: 'Dados do Sistema',
+    nomeArquivo: 'dados-sistema-resumo',
+    filtros: Exportacoes.filtrosDaTela(),
+    secoes: [{
+      titulo: 'Resumo administrativo',
+      columns: [{ key: 'indicador', label: 'Indicador' }, { key: 'valor', label: 'Valor' }],
+      rows: [
+        { indicador: 'Período', valor: rotulo },
+        { indicador: 'Produção local legada', valor: totalProd },
+        { indicador: 'Lotes locais legados', valor: prod.length },
+        { indicador: 'Reprovados locais legados', valor: totalRef },
+        { indicador: 'Registros locais de reprovados', valor: reps.length },
+        { indicador: 'Indicadores locais legados', valor: sem.length },
+        { indicador: 'Ensaios locais legados', valor: ens.length },
+        { indicador: 'Observação', valor: 'Esta tela é administrativa. Os dados oficiais de produção, reprovas, ensaios, dashboard e indicador vêm do Supabase.' }
+      ]
+    }]
+  });
+}

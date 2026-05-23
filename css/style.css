@@ -1211,3 +1211,8 @@ body[data-tema="escuro"] .usuario-perfil {
 }
 
 
+
+/* Exportações */
+.exportacoes-grupo{display:flex;gap:8px;align-items:center;margin-left:8px;padding-left:8px;border-left:1px solid var(--borda, #d9e2ec)}
+.exportacoes-grupo .btn{min-height:34px}
+@media (max-width: 760px){.exportacoes-grupo{width:100%;margin-left:0;padding-left:0;border-left:0}.exportacoes-grupo .btn{flex:1}}

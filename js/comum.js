@@ -5,6 +5,7 @@
 const App = {
   // monta sidebar + topo. paginaAtiva: chave do menu
   montarLayout(paginaAtiva, titulo, subtitulo) {
+    this.paginaAtiva = paginaAtiva;
     const menu = [
       { sec: 'Painel' },
       { k: 'dashboard', t: 'Dashboard', ic: ICN.dashboard, href: 'index.html' },
@@ -48,7 +49,7 @@ const App = {
         <div class="topo-acoes">
           <button class="btn btn-secundario btn-sm tema-toggle" id="botaoTema" type="button" onclick="App.alternarTema()" aria-pressed="false" title="Alternar tema">${ICN.tema}<span>Tema escuro</span></button>
           <div class="usuario-auth" id="areaUsuario"></div>
-          <div class="topo-acoes" id="topoAcoes"></div>
+          <div class="topo-acoes" id="topoAcoes">${window.Exportacoes && paginaAtiva !== 'banco' ? window.Exportacoes.botoes() : ''}</div>
         </div>
       </header>`;
 
@@ -65,7 +66,12 @@ const App = {
     }
   },
 
-  acoesTopo(html) { document.getElementById('topoAcoes').innerHTML = html; },
+  acoesTopo(html) {
+    const alvo = document.getElementById('topoAcoes');
+    if (!alvo) return;
+    const exportBtns = window.Exportacoes && this.paginaAtiva !== 'banco' ? window.Exportacoes.botoes() : '';
+    alvo.innerHTML = `${html || ''}${exportBtns}`;
+  },
 
   aplicarTemaInicial() {
     const salvo = localStorage.getItem('temaControleDormentes') || 'claro';

@@ -152,6 +152,7 @@ function render() {
   const dados = calcularSeries(f);
   const series = f.status ? dados.series.filter(s => s.status === f.status) : dados.series;
 
+  registrarExportacaoPainelSeries(series);
   renderKpis(series, dados.totais);
   renderGrafico(series.slice(0, 15));
   renderAlertas(series);
@@ -654,4 +655,42 @@ function periodoUltimaProducao() {
   const datas = PAINEL_PRODUCAO.map(r => r.dataFabricacao).filter(Boolean).sort();
   const ultima = datas.pop();
   return ultima ? U.periodoSemanaOperacional(ultima) : null;
+}
+
+function registrarExportacaoPainelSeries(series) {
+  if (!window.Exportacoes) return;
+  Exportacoes.registrar({
+    titulo: 'Painel de Séries',
+    nomeArquivo: 'painel-series',
+    filtros: Exportacoes.filtrosDaTela(),
+    secoes: [{
+      titulo: 'Séries filtradas',
+      columns: [
+        { key: 'fornecedor', label: 'Fornecedor' },
+        { key: 'grupo', label: 'Projeto / Bitola' },
+        { key: 'serie', label: 'Série' },
+        { key: 'statusLabel', label: 'Status' },
+        { key: 'total', label: 'Produção' },
+        { key: 'loteQtd', label: 'Lotes' },
+        { key: 'saldoPecas', label: 'Saldo peças' },
+        { key: 'saldoLotes', label: 'Saldo lotes' },
+        { key: 'ensaiados', label: 'Ensaiados' },
+        { key: 'reprovadosEnsaio', label: 'Reprovados no ensaio' },
+        { key: 'refugos', label: 'Refugos' },
+        { key: 'dataIniExport', label: 'Início produção' },
+        { key: 'dataFimExport', label: 'Fim produção' },
+        { key: 'ultimoLoteExport', label: 'Último lote / provável ensaio' },
+        { key: 'liberacaoExport', label: 'Liberação' },
+        { key: 'lotesExport', label: 'Lotes vinculados' }
+      ],
+      rows: series.map(s => ({
+        ...s,
+        dataIniExport: U.dataBR(s.dataIni),
+        dataFimExport: U.dataBR(s.dataFim),
+        ultimoLoteExport: s.ultimoLote ? `${s.ultimoLote.lote || ''} (${U.dataBR(s.ultimoLote.data)})` : '',
+        liberacaoExport: s.ultimoEnsaio ? `${s.ultimoEnsaio.resultado || ''} · lote ${s.ultimoEnsaio.lote || ''} · ${U.dataBR(s.ultimoEnsaio.dataEnsaio)}` : '',
+        lotesExport: (s.lotesLista || []).join(', ')
+      }))
+    }]
+  });
 }

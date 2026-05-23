@@ -130,6 +130,7 @@ function render() {
     return true;
   }).sort((a, b) => (b.dataFabricacao || '').localeCompare(a.dataFabricacao || ''));
 
+  registrarExportacaoProducao(lista);
   renderAlertasPreenchimento(lista);
   document.getElementById('contador').textContent = PRODUCAO_CARREGANDO
     ? 'Carregando do Supabase...'
@@ -606,3 +607,40 @@ function mensagemErroBanco(err, padrao) {
 }
 
 window.render = render;
+
+function registrarExportacaoProducao(lista) {
+  if (!window.Exportacoes) return;
+  Exportacoes.registrar({
+    titulo: 'Produção de Dormentes',
+    nomeArquivo: 'producao-dormentes',
+    filtros: Exportacoes.filtrosDaTela(),
+    secoes: [{
+      titulo: 'Produção filtrada',
+      columns: [
+        { key: 'dataFabricacao', label: 'Data de fabricação' },
+        { key: 'semanaExport', label: 'Semana operacional' },
+        { key: 'fornecedor', label: 'Fornecedor' },
+        { key: 'pista', label: 'Pista' },
+        { key: 'pedido', label: 'Pedido' },
+        { key: 'lote', label: 'Lote' },
+        { key: 'projeto', label: 'Projeto' },
+        { key: 'bitolaExport', label: 'Bitola' },
+        { key: 'tipo', label: 'Tipo de dormente' },
+        { key: 'total', label: 'Produção' },
+        { key: 'reprovados', label: 'Dormentes reprovados' },
+        { key: 'aprovado', label: 'Total aprovado' },
+        { key: 'serie', label: 'Série' },
+        { key: 'status', label: 'Status' },
+        { key: 'preenchimentoExport', label: 'Preenchimento' },
+        { key: 'motivo', label: 'Motivo/observação' }
+      ],
+      rows: lista.map(r => ({
+        ...r,
+        dataFabricacao: U.dataBR(r.dataFabricacao),
+        semanaExport: semanaRotulo(r.dataFabricacao),
+        bitolaExport: U.bitolaDe(r),
+        preenchimentoExport: `${calcularPreenchimentoLote(r).pct}%`
+      }))
+    }]
+  });
+}
