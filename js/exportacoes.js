@@ -53,7 +53,9 @@ const Exportacoes = (() => {
       nomeArquivo: limparNomeArquivo(rel.nomeArquivo || titulo),
       filtros,
       secoes,
-      observacao: rel.observacao || 'Fonte: Supabase. Exportação gerada somente a partir dos filtros aplicados na tela.'
+      observacao: rel.observacao || 'Fonte: Supabase. Exportação gerada somente a partir dos filtros aplicados na tela.',
+      xlsxSomenteDados: !!rel.xlsxSomenteDados,
+      toastXlsx: rel.toastXlsx || ''
     };
   }
 
@@ -134,6 +136,21 @@ const Exportacoes = (() => {
   async function exportarXLSX(rel) {
     const XLSX = await garantirXLSX();
     const wb = XLSX.utils.book_new();
+
+    if (rel.xlsxSomenteDados) {
+      const sec = rel.secoes[0];
+      if (!sec || !sec.rows.length) throw new Error('Não há dados filtrados para exportar.');
+      const aoa = [sec.headers, ...sec.rows];
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      ws['!cols'] = sec.headers.map((h, idx) => ({
+        wch: Math.min(55, Math.max(12, String(h).length + 3, ...sec.rows.slice(0, 200).map(r => String(r[idx] ?? '').length + 2)))
+      }));
+      ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+      XLSX.utils.book_append_sheet(wb, ws, nomeAba(sec.titulo || 'Dados filtrados', 0));
+      XLSX.writeFile(wb, `${rel.nomeArquivo}.xlsx`);
+      App?.toast?.(rel.toastXlsx || 'Excel gerado com os dados filtrados.', 'sucesso');
+      return;
+    }
 
     const resumo = [
       ['Relatório', rel.titulo],

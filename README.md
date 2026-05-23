@@ -161,3 +161,12 @@ O sistema permite exportar relatórios em Excel (`.xlsx`) e PDF nas abas operaci
 - Os arquivos exportados incluem os filtros selecionados, período/semana operacional e os dados atualmente filtrados.
 - A semana operacional continua seguindo quinta-feira até quarta-feira.
 
+
+
+## Exportação de transição — Produção para planilha antiga
+
+Na aba **Produção**, o botão **Excel** gera um arquivo já no layout da planilha antiga, respeitando os filtros aplicados na tela.
+
+A exportação usa a sequência de colunas da planilha antiga para facilitar copiar e colar durante a fase de transição. A importação por Excel permanece removida; o Excel é usado apenas como saída/relatório.
+
+As colunas de datas de ruptura são preenchidas a partir da data de fabricação quando possível: 7, 14 e 28 dias. Quando houver datas de cura 14/28 cadastradas, elas são usadas nas respectivas colunas de ruptura 14/28.

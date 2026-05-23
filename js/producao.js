@@ -611,36 +611,121 @@ window.render = render;
 function registrarExportacaoProducao(lista) {
   if (!window.Exportacoes) return;
   Exportacoes.registrar({
-    titulo: 'Produção de Dormentes',
-    nomeArquivo: 'producao-dormentes',
+    titulo: 'Produção de Dormentes — layout da planilha antiga',
+    nomeArquivo: 'producao-planilha-antiga',
     filtros: Exportacoes.filtrosDaTela(),
+    xlsxSomenteDados: true,
+    toastXlsx: 'Excel gerado no layout da planilha antiga, respeitando os filtros atuais.',
+    observacao: 'Fonte: Supabase. Exportação de transição para copiar e colar na planilha antiga; a importação por Excel permanece removida.',
     secoes: [{
-      titulo: 'Produção filtrada',
-      columns: [
-        { key: 'dataFabricacao', label: 'Data de fabricação' },
-        { key: 'semanaExport', label: 'Semana operacional' },
-        { key: 'fornecedor', label: 'Fornecedor' },
-        { key: 'pista', label: 'Pista' },
-        { key: 'pedido', label: 'Pedido' },
-        { key: 'lote', label: 'Lote' },
-        { key: 'projeto', label: 'Projeto' },
-        { key: 'bitolaExport', label: 'Bitola' },
-        { key: 'tipo', label: 'Tipo de dormente' },
-        { key: 'total', label: 'Produção' },
-        { key: 'reprovados', label: 'Dormentes reprovados' },
-        { key: 'aprovado', label: 'Total aprovado' },
-        { key: 'serie', label: 'Série' },
-        { key: 'status', label: 'Status' },
-        { key: 'preenchimentoExport', label: 'Preenchimento' },
-        { key: 'motivo', label: 'Motivo/observação' }
-      ],
-      rows: lista.map(r => ({
-        ...r,
-        dataFabricacao: U.dataBR(r.dataFabricacao),
-        semanaExport: semanaRotulo(r.dataFabricacao),
-        bitolaExport: U.bitolaDe(r),
-        preenchimentoExport: `${calcularPreenchimentoLote(r).pct}%`
-      }))
+      titulo: 'Produção',
+      columns: COLUNAS_PLANILHA_ANTIGA_PRODUCAO,
+      rows: lista.map(linhaPlanilhaAntigaProducao)
     }]
   });
+}
+
+const COLUNAS_PLANILHA_ANTIGA_PRODUCAO = [
+  { key: 'pista', label: 'PISTA:' },
+  { key: 'pedido', label: 'N° PEDIDO' },
+  { key: 'lote', label: 'LOTE' },
+  { key: 'projeto', label: 'PROJETO' },
+  { key: 'tipo', label: 'TIPO DE DORMENTE' },
+  { key: 'total', label: 'TOTAL DA PRODUÇÃO' },
+  { key: 'dataFabricacao', label: 'DATA DE FABRICAÇÃO:' },
+  { key: 'cura14', label: 'CURA 14 DIAS' },
+  { key: 'cura28', label: 'CURA 28 DIAS' },
+  { key: 'comUsp', label: 'COM USP' },
+  { key: 'uspLote', label: 'USP (LOTE)' },
+  { key: 'ombreira', label: 'TIPO DE OMBREIRAS' },
+  { key: 'loteOmbreira', label: 'LOTE OMBREIRAS' },
+  { key: 'tempIni', label: 'TEMPERATURA °C INICIAL' },
+  { key: 'tempMeio', label: 'TEMPERATURA °C MEIO' },
+  { key: 'tempFim', label: 'TEMPERATURA °C FINAL' },
+  { key: 'slumpIniA', label: 'ENSAIO SLUMP TEST (mm) - ÍNICIO PISTA  - ABATIMENTO (230 +-30)' },
+  { key: 'slumpIniE', label: 'ENSAIO SLUMP TEST (mm) - ÍNICIO PISTA - ESPALHAMENTO' },
+  { key: 'slumpMeioA', label: 'ENSAIO SLUMP TEST (mm) - MEIO PISTA - ABATIMANTO' },
+  { key: 'slumpMeioE', label: 'ENSAIO SLUMP TEST (mm) - MEIO PISTA - ESPALHAMENTO' },
+  { key: 'slumpFimA', label: 'ENSAIO SLUMP TEST (mm) - FIM PISTA - ABATIMENTO' },
+  { key: 'slumpFimE', label: 'ENSAIO SLUMP TEST (mm) - FIM PISTA - ESPALHAMENTO' },
+  { key: 'desproIni', label: 'DESPRONTENSÃO INICIO PISTA' },
+  { key: 'desproMeio', label: 'DESPRONTENSÃO MEIO PISTA' },
+  { key: 'desproFim', label: 'DESPRONTENSÃO FIM PISTA' },
+  { key: 'tempoCura', label: 'TEMPO DE CURA (Horas)' },
+  { key: 'ruptura7Comp', label: 'DATAS DE RUPTURAS  7 DIAS (COMP.)' },
+  { key: 'ruptura14Comp', label: 'DATAS DE RUPTURAS  14 DIAS (COMP.)' },
+  { key: 'ruptura14Tracao', label: 'DATAS DE RUPTURAS  14 DIAS (TRAÇÃO)' },
+  { key: 'ruptura28Comp', label: 'DATAS DE RUPTURAS  28 DIAS (COMP.)' },
+  { key: 'ruptura28Tracao', label: 'DATAS DE RUPTURAS  28 DIAS' },
+  { key: 'comp7', label: 'COMP. AXIAL (MPa) 7 DIAS' },
+  { key: 'comp14', label: 'COMP. AXIAL (MPa) 14 DIAS' },
+  { key: 'tracao14', label: 'TRAÇÃO NA FLEXÃO 14 DIAS' },
+  { key: 'comp28', label: 'COMP. AXIAL (MPa) 28 DIAS' },
+  { key: 'tracao28', label: 'TRAÇÃO NA FLEXÃO 28 DIAS' },
+  { key: 'serie', label: 'SÉRIE - ENSAIO DE LIBERAÇÃO' },
+  { key: 'iauditor', label: 'ENSAIO NO IAUDITOR' },
+  { key: 'ensaiados', label: 'DORMENTES ENSIADOS' },
+  { key: 'aAnalisar', label: 'DORMENTES A SEREM ANALISADOS' },
+  { key: 'reprovados', label: 'DORMENTES REPROVADOS' },
+  { key: 'aprovado', label: 'TOTAL DA PRODUÇÃO APROVADO:' },
+  { key: 'status', label: 'STATUS' },
+  { key: 'motivo', label: 'MOTIVO / ESPECIFICAÇÃO' }
+];
+
+function linhaPlanilhaAntigaProducao(r) {
+  return {
+    pista: r.pista || '',
+    pedido: r.pedido || '',
+    lote: r.lote || '',
+    projeto: r.projeto || '',
+    tipo: r.tipo || '',
+    total: r.total || '',
+    dataFabricacao: U.dataBR(r.dataFabricacao),
+    cura14: U.dataBR(r.cura14),
+    cura28: U.dataBR(r.cura28),
+    comUsp: r.comUsp || '',
+    uspLote: r.uspLote || '',
+    ombreira: r.ombreira || '',
+    loteOmbreira: r.loteOmbreira || '',
+    tempIni: r.tempIni || '',
+    tempMeio: r.tempMeio || '',
+    tempFim: r.tempFim || '',
+    slumpIniA: r.slumpIniA || '',
+    slumpIniE: r.slumpIniE || '',
+    slumpMeioA: r.slumpMeioA || '',
+    slumpMeioE: r.slumpMeioE || '',
+    slumpFimA: r.slumpFimA || '',
+    slumpFimE: r.slumpFimE || '',
+    desproIni: r.desproIni || '',
+    desproMeio: r.desproMeio || '',
+    desproFim: r.desproFim || '',
+    tempoCura: r.tempoCura || '',
+    ruptura7Comp: dataRupturaBR(r, 7),
+    ruptura14Comp: U.dataBR(r.cura14) || dataRupturaBR(r, 14),
+    ruptura14Tracao: U.dataBR(r.cura14) || dataRupturaBR(r, 14),
+    ruptura28Comp: U.dataBR(r.cura28) || dataRupturaBR(r, 28),
+    ruptura28Tracao: U.dataBR(r.cura28) || dataRupturaBR(r, 28),
+    comp7: r.comp7 || '',
+    comp14: r.comp14 || '',
+    tracao14: r.tracao14 || '',
+    comp28: r.comp28 || '',
+    tracao28: r.tracao28 || '',
+    serie: r.serie || '',
+    iauditor: r.iauditor || '',
+    ensaiados: r.ensaiados || '',
+    aAnalisar: r.aAnalisar || '',
+    reprovados: r.reprovados || '',
+    aprovado: r.aprovado || '',
+    status: r.status || '',
+    motivo: r.motivo || ''
+  };
+}
+
+function dataRupturaBR(reg, dias) {
+  const base = reg?.dataFabricacao;
+  if (!base || !/^\d{4}-\d{2}-\d{2}$/.test(String(base))) return '';
+  const [ano, mes, dia] = String(base).split('-').map(Number);
+  const d = new Date(ano, mes - 1, dia);
+  d.setDate(d.getDate() + dias);
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 }
