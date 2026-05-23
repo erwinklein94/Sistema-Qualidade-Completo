@@ -217,6 +217,8 @@ body {
   gap: 12px;
 }
 .card-titulo .acento { display: inline-flex; align-items: center; gap: 9px; }
+.card-titulo .card-sub { font-size: 12px; font-weight: 500; color: var(--cinza-texto); text-align: right; }
+@media (max-width: 640px){ .card-titulo .card-sub { display: none; } }
 .card-titulo .acento::before {
   content: '';
   width: 4px; height: 18px;

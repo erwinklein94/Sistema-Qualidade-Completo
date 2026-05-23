@@ -91,30 +91,84 @@ function desenharGraficos(prod, rep, sem) {
     options: baseOpt({ legend: 'right' })
   });
 
-  // 3. Produção semanal × previsto (barras + linha) — usa semanal se houver, senão agrega produção
-  let semOrd = sem.slice().sort((a, b) => U.int(a.semana) - U.int(b.semana));
-  let labels, prodSem, prevSem;
-  if (semOrd.length) {
-    // agrupa por semana somando fornecedores
-    const g = {};
-    semOrd.forEach(r => {
-      const k = r.semana;
-      if (!g[k]) g[k] = { prod: 0, prev: 0 };
-      g[k].prod += U.int(r.produzidos); g[k].prev += U.int(r.previsto);
-    });
-    labels = Object.keys(g).map(s => 'Sem ' + s);
-    prodSem = Object.values(g).map(x => x.prod);
-    prevSem = Object.values(g).map(x => x.prev);
-  } else {
-    const g = {};
-    prod.forEach(r => { if (!r.dataFabricacao) return; const s = U.semanaDe(r.dataFabricacao); g[s] = (g[s] || 0) + U.int(r.total); });
-    const ks = Object.keys(g).sort((a, b) => a - b);
-    labels = ks.map(s => 'Sem ' + s); prodSem = ks.map(s => g[s]); prevSem = [];
-  }
-  const ds = [{ type: 'bar', label: 'Produzidos', data: prodSem, backgroundColor: C.azulEscuro, borderRadius: 5 }];
-  if (prevSem.length) ds.push({ type: 'line', label: 'Previsto', data: prevSem, borderColor: C.amarelo, backgroundColor: C.amarelo, borderWidth: 2.5, tension: 0.3, pointRadius: 3, pointBackgroundColor: C.amarelo });
-  charts.sem = new Chart(document.getElementById('chartSemanal'), {
-    data: { labels, datasets: ds }, options: baseOpt({ legend: prevSem.length ? 'top' : false })
+  // 3. Produção × Reprova por lote (barras de produzidos/refugos + linha de % reprova)
+  // cruza os mesmos lotes: total produzido vs. refugos registrados, com o % de cada lote
+  const porLote = {};
+  prod.forEach(r => {
+    const k = (r.lote || '—').toString();
+    if (!porLote[k]) porLote[k] = { prod: 0, rep: 0, projeto: r.projeto || '—' };
+    porLote[k].prod += U.int(r.total);
+  });
+  rep.forEach(r => {
+    const k = (r.lote || '—').toString();
+    if (!porLote[k]) porLote[k] = { prod: 0, rep: 0, projeto: r.projeto || '—' };
+    porLote[k].rep += U.int(r.totalRefugos || 1);
+  });
+  // ordena por lote e mantém só quem teve produção (lotes sem produção entram no fim)
+  const lotesOrd = Object.keys(porLote).sort((a, b) => {
+    const na = parseInt(a, 10), nb = parseInt(b, 10);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return a.localeCompare(b);
+  });
+  const loteLabels = lotesOrd;
+  const loteProd = lotesOrd.map(k => porLote[k].prod);
+  const loteRep = lotesOrd.map(k => porLote[k].rep);
+  const lotePct = lotesOrd.map(k => porLote[k].prod ? (porLote[k].rep / porLote[k].prod) * 100 : 0);
+  const loteProj = lotesOrd.map(k => porLote[k].projeto);
+
+  // plugin leve para escrever o % pequeno acima de cada ponto da linha
+  const rotuloPct = {
+    id: 'rotuloPct',
+    afterDatasetsDraw(chart) {
+      const meta = chart.getDatasetMeta(2); // dataset da linha de %
+      if (!meta || meta.hidden) return;
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.font = '700 10px Inter, sans-serif';
+      ctx.fillStyle = '#7a5c00';
+      ctx.textAlign = 'center';
+      meta.data.forEach((pt, i) => {
+        const v = lotePct[i];
+        if (v > 0) ctx.fillText(v.toFixed(1).replace('.', ',') + '%', pt.x, pt.y - 8);
+      });
+      ctx.restore();
+    }
+  };
+
+  charts.lote = new Chart(document.getElementById('chartLote'), {
+    data: {
+      labels: loteLabels,
+      datasets: [
+        { type: 'bar', label: 'Produzidos', data: loteProd, backgroundColor: C.azulEscuro, borderRadius: 5, yAxisID: 'y', order: 3 },
+        { type: 'bar', label: 'Refugos', data: loteRep, backgroundColor: C.erro, borderRadius: 5, yAxisID: 'y', order: 2 },
+        { type: 'line', label: '% de reprova', data: lotePct, borderColor: C.amarelo, backgroundColor: C.amarelo,
+          borderWidth: 2.5, tension: 0.3, pointRadius: 3, pointBackgroundColor: C.amarelo, yAxisID: 'y1', order: 1 }
+      ]
+    },
+    plugins: [rotuloPct],
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { usePointStyle: true, padding: 14, font: { size: 12 } } },
+        tooltip: {
+          backgroundColor: '#003567', padding: 10, cornerRadius: 8, titleFont: { weight: '700' },
+          callbacks: {
+            title: items => 'Lote ' + items[0].label + ' · ' + (loteProj[items[0].dataIndex] || '—'),
+            label: item => {
+              if (item.dataset.label === '% de reprova') return '% de reprova: ' + Number(item.raw).toFixed(1).replace('.', ',') + '%';
+              return item.dataset.label + ': ' + U.int(item.raw).toLocaleString('pt-BR');
+            }
+          }
+        }
+      },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: 'Dormentes', font: { size: 11 } } },
+        y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false },
+          title: { display: true, text: '% reprova', font: { size: 11 } },
+          ticks: { callback: v => v + '%' } }
+      }
+    }
   });
 
   // 4. Status dos lotes (pizza)
@@ -129,9 +183,9 @@ function desenharGraficos(prod, rep, sem) {
     options: baseOpt({ legend: 'right' })
   });
 
-  // 5. Ensaios aprovados × recusados por semana (barras empilhadas) ou agregado
+  // 5. Ensaios aprovados × recusados (rosca) — usa semanal se houver, senão agrega produção
   let aprov = 0, recus = 0;
-  if (semOrd.length) { semOrd.forEach(r => { aprov += U.int(r.ensaiosAprov); recus += U.int(r.ensaiosRec); }); }
+  if (sem.length) { sem.forEach(r => { aprov += U.int(r.ensaiosAprov); recus += U.int(r.ensaiosRec); }); }
   else { prod.forEach(r => { aprov += U.int(r.ensaiados) - U.int(r.reprovados); recus += U.int(r.reprovados); }); }
   charts.ens = new Chart(document.getElementById('chartEnsaios'), {
     type: 'doughnut',
