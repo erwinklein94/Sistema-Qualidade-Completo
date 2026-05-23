@@ -1,7 +1,10 @@
 /* =====================================================================
-   PRODUCAO.JS
+   PRODUCAO.JS — Produção conectada ao Supabase
    ===================================================================== */
 const COL = 'producao';
+let PRODUCAO_REGISTROS = [];
+let PRODUCAO_CARREGANDO = true;
+let PRODUCAO_ERRO = '';
 
 const GRUPOS_PREENCHIMENTO = [
   {
@@ -49,11 +52,16 @@ const GRUPOS_PREENCHIMENTO = [
   { nome: 'Status', campos: [['status', 'Status']] }
 ];
 
-document.addEventListener('DOMContentLoaded', () => {
+const CAMPOS = ['fornecedor','pista','pedido','lote','projeto','tipo','total','dataFabricacao','cura14','cura28',
+  'tempoCura','comUsp','uspLote','ombreira','loteOmbreira','tempIni','tempMeio','tempFim',
+  'slumpIniA','slumpIniE','slumpMeioA','slumpMeioE','slumpFimA','slumpFimE',
+  'desproIni','desproMeio','desproFim','comp7','comp14','tracao14','comp28','tracao28',
+  'serie','iauditor','ensaiados','aAnalisar','reprovados','aprovado','status','motivo'];
+
+document.addEventListener('DOMContentLoaded', async () => {
   App.montarLayout('producao', 'Produção de Dormentes', 'Lançamento e controle de fabricação por lote');
   App.acoesTopo(`<button class="btn btn-primario" onclick="abrirNovo()">${ICN.add}Novo lançamento</button>`);
 
-  // popular selects do formulário
   sel('fornecedor', CFG.listas.fornecedores, '');
   sel('pedido', CFG.listas.pedidos, '');
   sel('projeto', CFG.listas.projetos, 'Selecione...');
@@ -62,29 +70,52 @@ document.addEventListener('DOMContentLoaded', () => {
   sel('ombreira', CFG.listas.ombreiras, '');
   sel('status', CFG.listas.status, 'Selecione...');
 
-  // filtros
   sel('fFornecedor', CFG.listas.fornecedores, 'Todos');
   sel('fProjeto', CFG.listas.projetos, 'Todos');
   sel('fBitola', CFG.listas.bitolas, 'Todas');
-  atualizarFiltroSemanaProducao();
   sel('fStatus', CFG.listas.status, 'Todos');
+  atualizarFiltroSemanaProducao();
 
-  ['busca', 'fFornecedor', 'fProjeto', 'fBitola', 'fSemana', 'fStatus'].forEach(id =>
-    document.getElementById(id).addEventListener('input', render));
+  ['busca', 'fFornecedor', 'fProjeto', 'fBitola', 'fSemana', 'fStatus'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', render);
+    if (el) el.addEventListener('change', render);
+  });
 
   render();
+  await carregarProducao();
 });
 
 function sel(id, arr, ph) { document.getElementById(id).innerHTML = U.opcoes(arr, '', ph); }
 
+async function carregarProducao() {
+  PRODUCAO_CARREGANDO = true;
+  PRODUCAO_ERRO = '';
+  render();
+  try {
+    await Auth.exigirLogin();
+    const linhas = await StoreSupabase.listarProducao({ limite: 5000 });
+    PRODUCAO_REGISTROS = linhas.map(mapProducaoDoBanco);
+    PRODUCAO_CARREGANDO = false;
+    atualizarFiltroSemanaProducao();
+    render();
+  } catch (err) {
+    console.error('Erro ao carregar produção', err);
+    PRODUCAO_CARREGANDO = false;
+    PRODUCAO_ERRO = mensagemErroBanco(err, 'Não foi possível carregar a produção do Supabase.');
+    App.toast(PRODUCAO_ERRO, 'erro');
+    render();
+  }
+}
+
 function render() {
-  const todos = Store.listar(COL);
-  const q = document.getElementById('busca').value.toLowerCase().trim();
-  const ff = document.getElementById('fFornecedor').value;
-  const fp = document.getElementById('fProjeto').value;
-  const fb = document.getElementById('fBitola').value;
-  const fw = U.periodoDeValorSemana(document.getElementById('fSemana').value);
-  const fs = document.getElementById('fStatus').value;
+  const todos = PRODUCAO_REGISTROS;
+  const q = document.getElementById('busca')?.value.toLowerCase().trim() || '';
+  const ff = document.getElementById('fFornecedor')?.value || '';
+  const fp = document.getElementById('fProjeto')?.value || '';
+  const fb = document.getElementById('fBitola')?.value || '';
+  const fw = U.periodoDeValorSemana(document.getElementById('fSemana')?.value || '');
+  const fs = document.getElementById('fStatus')?.value || '';
 
   const lista = todos.filter(r => {
     if (ff && r.fornecedor !== ff) return false;
@@ -100,12 +131,26 @@ function render() {
   }).sort((a, b) => (b.dataFabricacao || '').localeCompare(a.dataFabricacao || ''));
 
   renderAlertasPreenchimento(lista);
-  document.getElementById('contador').textContent = `${lista.length} de ${todos.length} registros`;
+  document.getElementById('contador').textContent = PRODUCAO_CARREGANDO
+    ? 'Carregando do Supabase...'
+    : `${lista.length} de ${todos.length} registro(s) no Supabase`;
 
   const cont = document.getElementById('lista');
+  if (!cont) return;
+
+  if (PRODUCAO_CARREGANDO) {
+    cont.innerHTML = `<div class="vazio">${ICN.vazioBox}<h3>Carregando produção</h3><p>Buscando registros no Supabase...</p></div>`;
+    return;
+  }
+
+  if (PRODUCAO_ERRO) {
+    cont.innerHTML = `<div class="vazio">${ICN.alerta}<h3>Erro ao carregar</h3><p>${U.esc(PRODUCAO_ERRO)}</p><button class="btn btn-secundario" onclick="carregarProducao()">Tentar novamente</button></div>`;
+    return;
+  }
+
   if (!lista.length) {
     cont.innerHTML = `<div class="vazio">${ICN.vazioBox}<h3>Nenhum registro</h3>
-      <p>${todos.length ? 'Ajuste os filtros ou' : 'Comece'} adicionando um novo lançamento de produção.</p></div>`;
+      <p>${todos.length ? 'Ajuste os filtros ou' : 'Comece'} adicionando um novo lançamento de produção no Supabase.</p></div>`;
     return;
   }
 
@@ -162,13 +207,7 @@ function calcularPreenchimentoLote(reg) {
     return { nome: grupo.nome, faltantes, pct: pctGrupo };
   });
   const pct = total ? Math.round((preenchidos / total) * 100) : 100;
-  return {
-    pct,
-    preenchidos,
-    total,
-    faltantes: grupos.filter(g => g.faltantes.length),
-    status: pct >= 90 ? 'ok' : pct >= 70 ? 'aviso' : 'critico'
-  };
+  return { pct, preenchidos, total, faltantes: grupos.filter(g => g.faltantes.length), status: pct >= 90 ? 'ok' : pct >= 70 ? 'aviso' : 'critico' };
 }
 
 function badgePreenchimento(info) {
@@ -189,14 +228,17 @@ function renderAlertasPreenchimento(lista) {
   const analises = lista.map(r => ({ registro: r, info: calcularPreenchimentoLote(r) }));
   const incompletos = analises.filter(a => a.info.pct < 100).sort((a, b) => a.info.pct - b.info.pct);
   const criticos = analises.filter(a => a.info.status === 'critico');
-  const media = analises.length
-    ? Math.round(analises.reduce((acc, a) => acc + a.info.pct, 0) / analises.length)
-    : 0;
+  const media = analises.length ? Math.round(analises.reduce((acc, a) => acc + a.info.pct, 0) / analises.length) : 0;
 
   document.getElementById('kpiPreenchimentoMedio').textContent = `${media}%`;
   document.getElementById('kpiLotesIncompletos').textContent = incompletos.length;
   document.getElementById('kpiLotesCriticos').textContent = criticos.length;
-  document.getElementById('resumoPreenchimento').textContent = `${analises.length} lote(s) no recorte atual`;
+  document.getElementById('resumoPreenchimento').textContent = PRODUCAO_CARREGANDO ? 'Carregando...' : `${analises.length} lote(s) no recorte atual`;
+
+  if (PRODUCAO_CARREGANDO) {
+    alvo.innerHTML = `<div class="vazio compacto">${ICN.vazioBox}<h3>Carregando</h3><p>Buscando dados no Supabase.</p></div>`;
+    return;
+  }
 
   if (!analises.length) {
     alvo.innerHTML = `<div class="vazio compacto">${ICN.vazioBox}<h3>Nenhum lote para analisar</h3><p>Os alertas aparecem quando houver registros no filtro atual.</p></div>`;
@@ -236,12 +278,6 @@ function renderAlertasPreenchimento(lista) {
     ${incompletos.length > 12 ? `<p class="txt-mini txt-cinza margem-topo-sm">Mostrando os 12 lotes mais incompletos de ${incompletos.length} encontrados no filtro atual.</p>` : ''}`;
 }
 
-const CAMPOS = ['fornecedor','pista','pedido','lote','projeto','tipo','total','dataFabricacao','cura14','cura28',
-  'tempoCura','comUsp','uspLote','ombreira','loteOmbreira','tempIni','tempMeio','tempFim',
-  'slumpIniA','slumpIniE','slumpMeioA','slumpMeioE','slumpFimA','slumpFimE',
-  'desproIni','desproMeio','desproFim','comp7','comp14','tracao14','comp28','tracao28',
-  'serie','iauditor','ensaiados','aAnalisar','reprovados','aprovado','status','motivo'];
-
 function abrirNovo() {
   document.getElementById('form').reset();
   document.getElementById('id').value = '';
@@ -249,8 +285,12 @@ function abrirNovo() {
   document.getElementById('modal').classList.add('aberto');
 }
 
+function obterProducao(id) {
+  return PRODUCAO_REGISTROS.find(r => String(r.id) === String(id)) || null;
+}
+
 function editar(id) {
-  const r = Store.obter(COL, id);
+  const r = obterProducao(id);
   if (!r) return;
   document.getElementById('id').value = r.id;
   CAMPOS.forEach(c => { const el = document.getElementById(c); if (el) el.value = r[c] != null ? r[c] : ''; });
@@ -258,7 +298,7 @@ function editar(id) {
   document.getElementById('modal').classList.add('aberto');
 }
 
-function salvar() {
+async function salvar() {
   const lote = document.getElementById('lote').value.trim();
   const projeto = document.getElementById('projeto').value;
   const tipo = document.getElementById('tipo').value;
@@ -268,27 +308,67 @@ function salvar() {
   if (!lote || !projeto || !tipo || !total || !dataFab || !status) {
     App.toast('Preencha os campos obrigatórios (*).', 'aviso'); return;
   }
+
   const reg = { id: document.getElementById('id').value || undefined };
   CAMPOS.forEach(c => { const el = document.getElementById(c); if (el) reg[c] = el.value; });
-  Store.salvar(COL, reg);
-  atualizarFiltroSemanaProducao();
-  App.toast('Lançamento salvo com sucesso.');
-  fecharModal();
-  render();
+
+  const btn = document.querySelector('.form-acoes .btn-primario');
+  const textoOriginal = btn?.innerHTML;
+  if (btn) { btn.disabled = true; btn.innerHTML = 'Salvando...'; }
+
+  try {
+    const payloadCompleto = mapProducaoParaBanco(reg, { compatibilidade: false });
+    const payloadCompat = mapProducaoParaBanco(reg, { compatibilidade: true });
+    let salvo;
+    try {
+      salvo = await StoreSupabase.salvarProducao(payloadCompleto);
+    } catch (err) {
+      if (!erroPermiteFallback(err)) throw err;
+      console.warn('Salvando produção em modo compatível com o schema inicial do Supabase:', err);
+      salvo = await StoreSupabase.salvarProducao(payloadCompat);
+      App.toast('Salvo no Supabase. Alguns campos complementares exigem a migração SQL para persistirem integralmente.', 'aviso');
+    }
+
+    const convertido = mapProducaoDoBanco(salvo);
+    const idx = PRODUCAO_REGISTROS.findIndex(x => x.id === convertido.id);
+    if (idx >= 0) PRODUCAO_REGISTROS[idx] = convertido;
+    else PRODUCAO_REGISTROS.unshift(convertido);
+
+    atualizarFiltroSemanaProducao();
+    App.toast('Lançamento salvo no Supabase.');
+    fecharModal();
+    render();
+  } catch (err) {
+    console.error('Erro ao salvar produção', err);
+    App.toast(mensagemErroBanco(err, 'Não foi possível salvar no Supabase.'), 'erro');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = textoOriginal || 'Salvar lançamento'; }
+  }
 }
 
-function excluir(id) {
-  const r = Store.obter(COL, id);
-  if (App.confirmar(`Excluir o lançamento do lote ${r ? r.lote : ''}?`)) {
-    Store.remover(COL, id);
+async function excluir(id) {
+  const r = obterProducao(id);
+  if (!r) return;
+  const perfil = window.USUARIO_ATUAL?.perfil?.perfil;
+  if (perfil !== 'admin') {
+    App.toast('Somente usuários admin podem excluir registros.', 'aviso');
+    return;
+  }
+  if (!App.confirmar(`Excluir o lançamento do lote ${r ? r.lote : ''}?`)) return;
+  try {
+    await StoreSupabase.removerProducao(id);
+    PRODUCAO_REGISTROS = PRODUCAO_REGISTROS.filter(x => x.id !== id);
     atualizarFiltroSemanaProducao();
-    App.toast('Registro excluído.', 'aviso');
+    App.toast('Registro excluído do Supabase.', 'aviso');
     render();
+  } catch (err) {
+    console.error('Erro ao excluir produção', err);
+    App.toast(mensagemErroBanco(err, 'Não foi possível excluir no Supabase.'), 'erro');
   }
 }
 
 function ver(id) {
-  const r = Store.obter(COL, id);
+  const r = obterProducao(id);
   if (!r) return;
   const item = (rot, val) => `<div class="detalhe-item"><div class="rot">${rot}</div><div class="val">${U.esc(val || '—')}</div></div>`;
   const html = `
@@ -314,6 +394,8 @@ function ver(id) {
       ${item('Meio Abat.', r.slumpMeioA)}${item('Meio Esp.', r.slumpMeioE)}
       ${item('Fim Abat.', r.slumpFimA)}${item('Fim Esp.', r.slumpFimE)}
     </div>
+    <div class="detalhe-secao">Despronteção</div>
+    <div class="detalhe-grid">${item('Início Pista', r.desproIni)}${item('Meio Pista', r.desproMeio)}${item('Fim Pista', r.desproFim)}</div>
     <div class="detalhe-secao">Resistências</div>
     <div class="detalhe-grid">
       ${item('Comp. 7d', r.comp7)}${item('Comp. 14d', r.comp14)}${item('Tração 14d', r.tracao14)}
@@ -338,14 +420,8 @@ function ver(id) {
 function fecharVer() { document.getElementById('modalVer').classList.remove('aberto'); }
 function fecharModal() { document.getElementById('modal').classList.remove('aberto'); }
 
-
 function atualizarFiltroSemanaProducao() {
-  U.preencherFiltroSemana(
-    'fSemana',
-    Store.listar(COL).map(r => r.dataFabricacao).filter(Boolean),
-    document.getElementById('fSemana')?.value,
-    'Todas as semanas'
-  );
+  U.preencherFiltroSemana('fSemana', PRODUCAO_REGISTROS.map(r => r.dataFabricacao).filter(Boolean), document.getElementById('fSemana')?.value, 'Todas as semanas');
 }
 
 function semanaRotulo(iso) {
@@ -360,3 +436,173 @@ function dentroPeriodoData(iso, ini, fim) {
   if (fim && iso > fim) return false;
   return true;
 }
+
+function mapProducaoDoBanco(r) {
+  return {
+    id: r.id,
+    fornecedor: r.fornecedor || '',
+    pista: r.pista || '',
+    pedido: r.pedido || '',
+    lote: r.lote || '',
+    projeto: r.projeto || '',
+    bitola: r.bitola || '',
+    tipo: r.tipo_dormente || '',
+    total: valorBanco(r.total_produzido),
+    dataFabricacao: dataBanco(r.data_fabricacao),
+    cura14: dataBanco(r.cura_14),
+    cura28: dataBanco(r.cura_28),
+    tempoCura: r.tempo_cura || '',
+    comUsp: boolParaSimNao(r.com_usp),
+    uspLote: r.usp_lote || '',
+    ombreira: r.tipo_ombreira || '',
+    loteOmbreira: r.lote_ombreira || '',
+    tempIni: valorBanco(r.temp_inicial),
+    tempMeio: valorBanco(r.temp_meio),
+    tempFim: valorBanco(r.temp_final),
+    slumpIniA: valorBanco(r.slump_inicial_abatimento),
+    slumpIniE: valorBanco(r.slump_inicial_espalhamento),
+    slumpMeioA: valorBanco(r.slump_meio_abatimento),
+    slumpMeioE: valorBanco(r.slump_meio_espalhamento),
+    slumpFimA: valorBanco(r.slump_final_abatimento),
+    slumpFimE: valorBanco(r.slump_final_espalhamento),
+    desproIni: r.despro_ini || '',
+    desproMeio: r.despro_meio || '',
+    desproFim: r.despro_fim || '',
+    comp7: valorBanco(r.comp_7),
+    comp14: valorBanco(r.comp_14),
+    tracao14: valorBanco(r.tracao_14),
+    comp28: valorBanco(r.comp_28),
+    tracao28: valorBanco(r.tracao_28),
+    serie: r.serie || '',
+    iauditor: r.iauditor || '',
+    ensaiados: valorBanco(r.dorm_ensaiados),
+    aAnalisar: valorBanco(r.dorm_a_analisar),
+    reprovados: valorBanco(r.dorm_reprovados),
+    aprovado: valorBanco(r.total_aprovado),
+    status: r.status || '',
+    motivo: r.motivo || '',
+    semana: r.semana || '',
+    ano: r.ano || '',
+    periodoIni: dataBanco(r.periodo_inicio),
+    periodoFim: dataBanco(r.periodo_fim),
+  };
+}
+
+function mapProducaoParaBanco(reg, { compatibilidade = false } = {}) {
+  const info = U.semanaOperacionalInfo(reg.dataFabricacao);
+  const bitola = U.bitolaDe({ bitola: reg.bitola, tipo: reg.tipo, projeto: reg.projeto });
+  const base = {
+    fornecedor: textoOuNull(reg.fornecedor),
+    pista: textoOuNull(reg.pista),
+    pedido: textoOuNull(reg.pedido),
+    lote: textoOuNull(reg.lote),
+    projeto: textoOuNull(reg.projeto),
+    bitola,
+    tipo_dormente: textoOuNull(reg.tipo),
+    total_produzido: inteiroOuZero(reg.total),
+    data_fabricacao: dataOuNull(reg.dataFabricacao),
+    cura_14: dataOuNull(reg.cura14),
+    cura_28: dataOuNull(reg.cura28),
+    com_usp: simNaoParaBool(reg.comUsp),
+    usp_lote: textoOuNull(reg.uspLote),
+    tipo_ombreira: textoOuNull(reg.ombreira),
+    lote_ombreira: textoOuNull(reg.loteOmbreira),
+    serie: textoOuNull(reg.serie),
+    iauditor: textoOuNull(reg.iauditor),
+    dorm_ensaiados: inteiroOuZero(reg.ensaiados),
+    dorm_a_analisar: inteiroOuZero(reg.aAnalisar),
+    dorm_reprovados: inteiroOuZero(reg.reprovados),
+    total_aprovado: inteiroOuZero(reg.aprovado),
+    status: textoOuNull(reg.status),
+    motivo: textoOuNull(reg.motivo),
+    semana: info.semana || null,
+    ano: info.ano || null,
+    periodo_inicio: info.ini || null,
+    periodo_fim: info.fim || null,
+  };
+  if (reg.id) base.id = reg.id;
+
+  if (compatibilidade) {
+    return {
+      ...base,
+      temp_inicial: numeroOuNull(reg.tempIni),
+      temp_meio: numeroOuNull(reg.tempMeio),
+      temp_final: numeroOuNull(reg.tempFim),
+      slump_inicial_abatimento: numeroOuNull(reg.slumpIniA),
+      slump_inicial_espalhamento: numeroOuNull(reg.slumpIniE),
+      slump_meio_abatimento: numeroOuNull(reg.slumpMeioA),
+      slump_meio_espalhamento: numeroOuNull(reg.slumpMeioE),
+      slump_final_abatimento: numeroOuNull(reg.slumpFimA),
+      slump_final_espalhamento: numeroOuNull(reg.slumpFimE),
+      comp_7: numeroOuNull(reg.comp7),
+      comp_14: numeroOuNull(reg.comp14),
+      tracao_14: numeroOuNull(reg.tracao14),
+      comp_28: numeroOuNull(reg.comp28),
+      tracao_28: numeroOuNull(reg.tracao28),
+    };
+  }
+
+  return {
+    ...base,
+    tempo_cura: textoOuNull(reg.tempoCura),
+    temp_inicial: textoOuNull(reg.tempIni),
+    temp_meio: textoOuNull(reg.tempMeio),
+    temp_final: textoOuNull(reg.tempFim),
+    slump_inicial_abatimento: textoOuNull(reg.slumpIniA),
+    slump_inicial_espalhamento: textoOuNull(reg.slumpIniE),
+    slump_meio_abatimento: textoOuNull(reg.slumpMeioA),
+    slump_meio_espalhamento: textoOuNull(reg.slumpMeioE),
+    slump_final_abatimento: textoOuNull(reg.slumpFimA),
+    slump_final_espalhamento: textoOuNull(reg.slumpFimE),
+    despro_ini: textoOuNull(reg.desproIni),
+    despro_meio: textoOuNull(reg.desproMeio),
+    despro_fim: textoOuNull(reg.desproFim),
+    comp_7: textoOuNull(reg.comp7),
+    comp_14: textoOuNull(reg.comp14),
+    tracao_14: textoOuNull(reg.tracao14),
+    comp_28: textoOuNull(reg.comp28),
+    tracao_28: textoOuNull(reg.tracao28),
+  };
+}
+
+function valorBanco(v) { return v == null ? '' : String(v); }
+function dataBanco(v) { return v ? String(v).slice(0, 10) : ''; }
+function textoOuNull(v) { const s = String(v == null ? '' : v).trim(); return s ? s : null; }
+function dataOuNull(v) { const s = String(v == null ? '' : v).slice(0, 10).trim(); return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null; }
+function inteiroOuZero(v) { const n = parseInt(String(v == null ? '' : v).replace(/[^0-9-]/g, ''), 10); return isNaN(n) ? 0 : n; }
+function numeroOuNull(v) {
+  const s = String(v == null ? '' : v).trim();
+  if (!s) return null;
+  const m = s.replace(',', '.').match(/-?\d+(?:\.\d+)?/);
+  if (!m) return null;
+  const n = Number(m[0]);
+  return Number.isFinite(n) ? n : null;
+}
+function simNaoParaBool(v) {
+  const s = U.norm(v);
+  if (!s) return null;
+  if (s === 'SIM' || s === 'S' || s === 'TRUE') return true;
+  if (s === 'NAO' || s === 'NÃO' || s === 'N' || s === 'FALSE') return false;
+  return null;
+}
+function boolParaSimNao(v) {
+  if (v === true) return 'SIM';
+  if (v === false) return 'NÃO';
+  return v == null ? '' : String(v);
+}
+
+function erroPermiteFallback(err) {
+  const msg = `${err?.message || ''} ${err?.details || ''} ${err?.hint || ''} ${err?.code || ''}`.toLowerCase();
+  return msg.includes('column') || msg.includes('schema cache') || msg.includes('numeric') || msg.includes('invalid input') || msg.includes('pgrst204') || msg.includes('22p02');
+}
+
+function mensagemErroBanco(err, padrao) {
+  const msg = err?.message || err?.details || '';
+  if (!msg) return padrao;
+  if (/duplicate key|unique constraint/i.test(msg)) return 'Já existe um lote com esse fornecedor no Supabase.';
+  if (/row-level security|violates row-level security/i.test(msg)) return 'Acesso bloqueado pelas regras de segurança do Supabase. Confira seu perfil em usuarios_app.';
+  if (/JWT|token|auth/i.test(msg)) return 'Sessão expirada ou inválida. Saia e faça login novamente.';
+  return msg;
+}
+
+window.render = render;

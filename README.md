@@ -374,3 +374,25 @@ Esta versão melhora o diagnóstico do login:
 - mantém o uso exclusivo da Publishable Key no navegador.
 
 Se o login falhar com erro de API key, copie novamente a chave pelo botão **Copy** em Supabase → Project Settings → API Keys → Publishable key.
+
+## Atualização — Fase 2.1: Produção conectada ao Supabase
+
+A tela `producao.html` agora usa o Supabase para:
+
+- listar registros da tabela `producao_lotes`;
+- salvar novos lançamentos;
+- editar lotes existentes;
+- excluir registros apenas para usuários com perfil `admin`;
+- manter filtros, semana operacional e alertas de preenchimento.
+
+### Migração SQL recomendada
+
+Antes de usar a tela de Produção em definitivo, rode no Supabase SQL Editor o arquivo:
+
+```text
+supabase/2026-05-23-producao-campos-complementares.sql
+```
+
+Essa migração adiciona campos complementares do formulário e altera medições/resistências para `text`, porque alguns dados da planilha podem vir como valores compostos, por exemplo `64,22 / 60,26`.
+
+A tela possui um modo de compatibilidade: se a migração ainda não tiver sido rodada, ela tenta salvar usando o schema inicial do banco. Porém, nesse modo, alguns campos complementares podem não persistir integralmente. Para uso real, rode a migração.
