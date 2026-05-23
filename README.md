@@ -136,3 +136,26 @@ Esse arquivo cria índices para acelerar os filtros e cruzamentos do painel quan
 - A aba Indicador Semanal não depende mais de importação de planilha nem de registros locais no navegador.
 - Os filtros de fornecedor, projeto, bitola, semana e período continuam funcionando sobre os dados do Supabase.
 
+
+
+## Migração inicial da planilha para o Supabase
+
+Esta versão inclui uma tela temporária chamada **Migração Inicial** (`migracao-inicial.html`) para carregar o histórico da planilha antiga no Supabase sem cadastrar linha por linha.
+
+Fluxo recomendado:
+
+1. Entrar no site com usuário `admin`.
+2. Abrir **Sistema → Migração Inicial**.
+3. Selecionar a planilha `Indicador semanal_2026.xlsx`.
+4. Clicar em **Analisar planilha**.
+5. Conferir a prévia.
+6. Clicar em **Confirmar migração para o Supabase**.
+7. Conferir os dados em Produção, Reprovados, Dashboard e Indicador Semanal.
+8. Após validar, remover a tela temporária de migração do site.
+
+A migração grava:
+- Produção em `producao_lotes`, usando `fornecedor + lote` para evitar duplicidade.
+- Reprovas em `reprovados`, tentando vincular automaticamente ao lote produzido.
+- Um marcador em `listas_configuracao` com valor `MIGRACAO_INICIAL_EXCEL_CONCLUIDA`, bloqueando nova execução pela tela.
+
+Depois da migração, o sistema deve continuar sem importação de Excel para uso normal. Os dados novos devem ser inseridos manualmente pelo site.

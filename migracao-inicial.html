@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migração Inicial · Controle de Dormentes Rumo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <main class="conteudo" id="conteudo">
+      <div class="pagina">
+
+        <div class="card alerta-card">
+          <div class="card-titulo">
+            <span class="acento">Migração única da planilha para o Supabase</span>
+            <span class="card-sub">Use somente para carregar o histórico inicial. Depois remova esta tela do site.</span>
+          </div>
+          <div class="aviso-info" style="margin-top:14px">
+            <strong>Atenção:</strong> esta página é temporária. Ela importa a planilha antiga para o banco, evita duplicidade de produção por fornecedor+lote e bloqueia uma nova execução após a migração ser concluída.
+          </div>
+        </div>
+
+        <div class="grid-kpi" id="kpisMigracao">
+          <div class="kpi"><div class="kpi-label">Produção encontrada</div><div class="kpi-valor" id="kpiProducao">—</div></div>
+          <div class="kpi"><div class="kpi-label">Reprovas encontradas</div><div class="kpi-valor" id="kpiReprovados">—</div></div>
+          <div class="kpi"><div class="kpi-label">Ignorados / alertas</div><div class="kpi-valor" id="kpiAlertas">—</div></div>
+          <div class="kpi"><div class="kpi-label">Status</div><div class="kpi-valor" id="kpiStatus">Aguardando</div></div>
+        </div>
+
+        <div class="card" id="cardSelecao">
+          <div class="card-titulo"><span class="acento">1. Selecionar planilha</span></div>
+          <p class="txt-cinza" style="font-size:14px;line-height:1.65;margin-bottom:16px">
+            Selecione a planilha <strong>Indicador semanal_2026.xlsx</strong>. O sistema vai ler as abas de Produção e Reprovados, mostrar uma prévia e só gravar no Supabase após sua confirmação.
+          </p>
+          <div class="flex gap12" style="flex-wrap:wrap;align-items:center">
+            <label class="btn btn-secundario" for="arquivoExcel">${ICN.excel}<span>Escolher planilha Excel</span></label>
+            <input id="arquivoExcel" type="file" accept=".xlsx,.xls" style="display:none">
+            <button class="btn btn-primario" id="btnAnalisar" type="button" onclick="analisarPlanilha()" disabled>Analisar planilha</button>
+            <span class="txt-mini txt-cinza" id="nomeArquivo">Nenhum arquivo selecionado.</span>
+          </div>
+        </div>
+
+        <div class="card" id="cardPrevia" style="display:none">
+          <div class="card-titulo">
+            <span class="acento">2. Prévia antes de gravar</span>
+            <span class="card-sub">Confira os totais antes de enviar ao Supabase.</span>
+          </div>
+          <div id="previaMigracao"></div>
+          <div class="form-acoes" style="margin-top:18px">
+            <button class="btn btn-secundario" type="button" onclick="limparPrevia()">Trocar planilha</button>
+            <button class="btn btn-primario" id="btnMigrar" type="button" onclick="executarMigracao()">Confirmar migração para o Supabase</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-titulo"><span class="acento">Log da migração</span></div>
+          <div id="logMigracao" class="log-migracao">Aguardando seleção da planilha.</div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');}</script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>if(!window.XLSX){document.write('<script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>');}</script>
+  <script src="js/supabase-config.js?v=20260523-3"></script>
+  <script src="js/auth.js?v=20260523-3"></script>
+  <script>Auth.exigirLogin();</script>
+  <script src="js/config.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/store-supabase.js?v=20260523-3"></script>
+  <script src="js/comum.js"></script>
+  <script src="js/migracao-inicial.js?v=20260523-1"></script>
+</body>
+</html>
