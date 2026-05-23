@@ -16,6 +16,7 @@
         <div class="barra-filtros">
           <div class="campo"><label>Fornecedor</label><select id="fFornecedor"></select></div>
           <div class="campo"><label>Projeto</label><select id="fProjeto"></select></div>
+          <div class="campo"><label>Bitola</label><select id="fBitola"></select></div>
           <div class="campo"><label>Período inicial</label><input type="date" id="fPeriodoIni"></div>
           <div class="campo"><label>Período fim</label><input type="date" id="fPeriodoFim"></div>
           <button class="btn btn-secundario btn-sm" id="btnUltimaSemana" type="button">Última semana</button>
@@ -35,7 +36,7 @@
             </div>
             <div class="card span2">
               <div class="card-titulo"><span class="acento">Produção × Reprova semanal por projeto</span>
-                <span class="card-sub">Total produzido, refugos e % de reprova por semana/projeto</span></div>
+                <span class="card-sub">Total produzido, refugos e % de reprova por semana operacional, projeto e bitola</span></div>
               <div class="chart-box alto"><canvas id="chartSemanalProjeto"></canvas></div>
             </div>
             <div class="card span2">

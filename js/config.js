@@ -10,6 +10,7 @@ const CFG = {
     pedidos: ['N/A', '4501971179', '4501971181', '4501971186', '4501977441', '4501985412', '4920122050', '4920122051', '361'],
     projetos: ['MALHA PAULISTA', 'FMT', 'FERRO NORTE', 'MALHA CENTRAL'],
     tipos: ['Bitola Larga FMT USP', 'Bitola Larga MP', 'Bitola Mista MP - USP', 'Bitola Larga FN', 'Bitola Mista', 'Contra Trilho', 'PN', 'AMV'],
+    bitolas: ['Bitola Larga', 'Bitola Mista', 'Sem bitola definida'],
     comUsp: ['SIM', 'NÃO'],
     ombreiras: ['Fast Clip', 'E-Clip'],
     status: ['Liberado para transporte', 'Em processo de cura', 'Entregue', 'Bloqueado', 'Reprovado'],

@@ -163,3 +163,24 @@ Foi incorporado ao site o controle útil do projeto anexado, baseado na aba de *
 - Identificação de produção **sem série definida**, para correção cadastral.
 - Cruzamento com a aba **Reprovados** para mostrar refugos vinculados aos lotes da série.
 - Exportação Excel agora inclui a aba **Ensaios de Liberação** calculada automaticamente.
+
+
+## Atualização: filtros por bitola e semana operacional
+
+O sistema agora diferencia **Bitola Larga**, **Bitola Mista** e **Sem bitola definida** de forma padronizada. A bitola é detectada automaticamente pelo campo **Tipo de Dormente**, permitindo separar corretamente o projeto **Malha Paulista** entre BL e BM.
+
+Telas atualizadas com filtro de bitola:
+
+- **Dashboard**
+- **Indicador Semanal**
+- **Ensaios de Liberação**
+- **Produção**
+- **Reprovados**
+
+A regra semanal também foi ajustada para o padrão usado pela área: a semana começa na **quinta-feira** e termina na **quarta-feira** da semana seguinte. Isso afeta:
+
+- preenchimento automático do período inicial/final;
+- botão **Última semana** do Dashboard;
+- geração do **Indicador Semanal** a partir da produção;
+- gráfico **Produção × Reprova semanal por projeto**;
+- filtros de período nas telas operacionais.

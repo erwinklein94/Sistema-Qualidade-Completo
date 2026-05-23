@@ -120,16 +120,84 @@ const U = {
 
   esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); },
 
-  // semana ISO a partir de uma data
+  // Semana operacional usada pela área: quinta-feira até quarta-feira.
   semanaDe(iso) {
-    if (!iso) return '';
-    const d = new Date(iso + 'T00:00:00');
-    const target = new Date(d.valueOf());
-    const dayNr = (d.getDay() + 6) % 7;
-    target.setDate(target.getDate() - dayNr + 3);
-    const firstThursday = target.valueOf();
-    target.setMonth(0, 1);
-    if (target.getDay() !== 4) target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
-    return 1 + Math.ceil((firstThursday - target) / 604800000);
+    return this.semanaOperacionalInfo(iso).semana || '';
+  },
+
+  semanaOperacionalInfo(iso) {
+    if (!iso) return { semana: '', ano: '', ini: '', fim: '', rotulo: '' };
+    const d = this._dataLocal(iso);
+    if (!d) return { semana: '', ano: '', ini: '', fim: '', rotulo: '' };
+    const ini = this._inicioSemanaOperacional(d);
+    const fim = new Date(ini.valueOf());
+    fim.setDate(ini.getDate() + 6);
+    let ano = ini.getFullYear();
+    let primeiro = this._primeiraQuintaDoAno(ano);
+    if (ini < primeiro) {
+      ano -= 1;
+      primeiro = this._primeiraQuintaDoAno(ano);
+    }
+    const semana = 1 + Math.floor((ini - primeiro) / 604800000);
+    const iniISO = this.isoLocal(ini);
+    const fimISO = this.isoLocal(fim);
+    return { semana, ano, ini: iniISO, fim: fimISO, rotulo: `Sem. ${String(semana).padStart(2, '0')}/${ano} (${this.dataBR(iniISO)} a ${this.dataBR(fimISO)})` };
+  },
+
+  periodoSemanaOperacional(iso) {
+    const i = this.semanaOperacionalInfo(iso);
+    return i.ini ? { ini: i.ini, fim: i.fim } : null;
+  },
+
+  isoLocal(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  },
+
+  bitolaDe(registroOuTexto) {
+    const texto = typeof registroOuTexto === 'string'
+      ? registroOuTexto
+      : `${registroOuTexto?.bitola || ''} ${registroOuTexto?.tipo || ''} ${registroOuTexto?.projeto || ''}`;
+    const k = this.norm(texto);
+    if (k.includes('BITOLA MISTA') || /(^|\s)BM($|\s)/.test(k)) return 'Bitola Mista';
+    if (k.includes('BITOLA LARGA') || /(^|\s)BL($|\s)/.test(k)) return 'Bitola Larga';
+    return 'Sem bitola definida';
+  },
+
+  bitolaCodigo(registroOuTexto) {
+    const b = this.bitolaDe(registroOuTexto);
+    if (b === 'Bitola Larga') return 'BL';
+    if (b === 'Bitola Mista') return 'BM';
+    return 'SB';
+  },
+
+  badgeBitola(registroOuTexto) {
+    const b = this.bitolaDe(registroOuTexto);
+    const cls = b === 'Bitola Larga' ? 'badge-bitola-larga' : b === 'Bitola Mista' ? 'badge-bitola-mista' : 'badge-bitola-sem';
+    return `<span class="badge ${cls}">${this.esc(b)}</span>`;
+  },
+
+  norm(v) {
+    return String(v == null ? '' : v).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
+  },
+
+  _dataLocal(iso) {
+    if (!iso) return null;
+    const p = String(iso).slice(0, 10).split('-').map(Number);
+    if (p.length !== 3 || p.some(isNaN)) return null;
+    return new Date(p[0], p[1] - 1, p[2]);
+  },
+
+  _inicioSemanaOperacional(d) {
+    const ini = new Date(d.valueOf());
+    const desloc = (ini.getDay() - 4 + 7) % 7; // quinta = 4
+    ini.setDate(ini.getDate() - desloc);
+    return ini;
+  },
+
+  _primeiraQuintaDoAno(ano) {
+    const d = new Date(ano, 0, 1);
+    const desloc = (4 - d.getDay() + 7) % 7;
+    d.setDate(d.getDate() + desloc);
+    return d;
   },
 };

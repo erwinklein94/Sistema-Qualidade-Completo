@@ -13,6 +13,14 @@
     <main class="conteudo" id="conteudo">
       <div class="pagina">
 
+        <div class="barra-filtros">
+          <div class="campo"><label>Fornecedor</label><select id="fFornecedor"></select></div>
+          <div class="campo"><label>Projeto</label><select id="fProjeto"></select></div>
+          <div class="campo"><label>Bitola</label><select id="fBitola"></select></div>
+          <div class="campo"><label>Período inicial</label><input type="date" id="fPeriodoIni"></div>
+          <div class="campo"><label>Período fim</label><input type="date" id="fPeriodoFim"></div>
+        </div>
+
         <div class="grid-kpi" id="kpis"></div>
 
         <div class="card">
@@ -43,6 +51,8 @@
             <div class="campo"><label>Período — Início</label><input id="periodoIni" type="date"></div>
             <div class="campo"><label>Período — Fim</label><input id="periodoFim" type="date"></div>
             <div class="campo"><label>Fornecedor <span class="obrig">*</span></label><select id="fornecedor" required></select></div>
+            <div class="campo"><label>Projeto</label><select id="projeto"></select></div>
+            <div class="campo"><label>Bitola</label><select id="bitola"></select></div>
 
             <div class="form-secao">Produção</div>
             <div class="campo"><label>Produzidos</label><input id="produzidos" type="number" min="0"></div>

@@ -111,7 +111,7 @@ const Store = (() => {
 
       const prod = d.producao.map(r => ({
         Fornecedor: r.fornecedor, Pista: r.pista, 'N° Pedido': r.pedido, Lote: r.lote,
-        Projeto: r.projeto, 'Tipo de Dormente': r.tipo, 'Total Produção': r.total,
+        Projeto: r.projeto, Bitola: _bitola(r), 'Tipo de Dormente': r.tipo, 'Total Produção': r.total,
         'Data Fabricação': r.dataFabricacao, 'Cura 14 dias': r.cura14, 'Cura 28 dias': r.cura28,
         'Com USP': r.comUsp, 'USP (Lote)': r.uspLote, 'Tipo Ombreira': r.ombreira, 'Lote Ombreira': r.loteOmbreira,
         'Temp Inicial': r.tempIni, 'Temp Meio': r.tempMeio, 'Temp Final': r.tempFim,
@@ -127,13 +127,13 @@ const Store = (() => {
       const rep = d.reprovados.map(r => ({
         Fornecedor: r.fornecedor, Semana: r.semana, 'Data Produção': r.dataProducao,
         'Período Início': r.periodoIni, 'Período Fim': r.periodoFim, Lote: r.lote, Projeto: r.projeto,
-        Tipo: r.tipo, Molde: r.molde, Cavidade: r.cavidade,
+        Bitola: _bitola(r), Tipo: r.tipo, Molde: r.molde, Cavidade: r.cavidade,
         'Motivo Detalhado': r.motivoDetalhado, 'Motivo (Indicador)': r.motivoIndicador,
         'Total Refugos': r.totalRefugos,
       }));
       const sem = d.semanal.map(r => ({
         Semana: r.semana, Data: r.data, 'Período Início': r.periodoIni, 'Período Fim': r.periodoFim,
-        Fornecedor: r.fornecedor, Produzidos: r.produzidos, 'Ensaios Realizados': r.ensaiosReal,
+        Fornecedor: r.fornecedor, Projeto: r.projeto || '', Bitola: r.bitola || '', Produzidos: r.produzidos, 'Ensaios Realizados': r.ensaiosReal,
         'Ensaios Aprovados': r.ensaiosAprov, 'Ensaios Recusados': r.ensaiosRec,
         'Dorm Recusados': r.dormRecusados, Previsto: r.previsto,
       }));
@@ -155,14 +155,14 @@ const Store = (() => {
     const mapa = new Map();
     const reps = new Map();
     (reprovados || []).forEach(r => {
-      const k = `${r.fornecedor || '—'}|||${r.projeto || '—'}|||${r.lote || '—'}`;
+      const k = `${r.fornecedor || '—'}|||${r.projeto || '—'}|||${_bitola(r)}|||${r.lote || '—'}`;
       reps.set(k, (reps.get(k) || 0) + (_int(r.totalRefugos) || 1));
     });
     (producao || []).forEach(r => {
       const serie = _serie(r.serie, r.projeto);
       const grupo = _grupo(r);
       const k = `${r.fornecedor || '—'}|||${grupo}|||${serie}`;
-      const item = mapa.get(k) || { fornecedor: r.fornecedor || '—', projeto: r.projeto || '—', grupo, serie, tipo: r.tipo || '—', total: 0, ensaiados: 0, reprovadosEnsaio: 0, aprovadosEnsaio: 0, lotes: new Set(), dataIni: '', dataFim: '' };
+      const item = mapa.get(k) || { fornecedor: r.fornecedor || '—', projeto: r.projeto || '—', bitola: _bitola(r), grupo, serie, tipo: r.tipo || '—', total: 0, ensaiados: 0, reprovadosEnsaio: 0, aprovadosEnsaio: 0, lotes: new Set(), dataIni: '', dataFim: '' };
       item.total += _int(r.total);
       item.ensaiados += _int(r.ensaiados);
       item.reprovadosEnsaio += _int(r.reprovados);
@@ -175,7 +175,7 @@ const Store = (() => {
     return Array.from(mapa.values()).map(item => {
       const loteQtd = item.lotes.size;
       const lotes = Array.from(item.lotes).filter(v => v !== '—');
-      const refugos = lotes.reduce((s, lote) => s + (reps.get(`${item.fornecedor}|||${item.projeto}|||${lote}`) || 0), 0);
+      const refugos = lotes.reduce((s, lote) => s + (reps.get(`${item.fornecedor}|||${item.projeto}|||${item.bitola}|||${lote}`) || 0), 0);
       let status = 'Em andamento';
       if (String(item.serie).startsWith('Série aberta / sem série')) status = 'Sem série definida';
       else if (item.total >= LIMITE_PECAS || loteQtd >= LIMITE_LOTES) status = 'Ensaio obrigatório';
@@ -183,6 +183,7 @@ const Store = (() => {
       return {
         Fornecedor: item.fornecedor,
         'Projeto / Bitola': item.grupo,
+        Bitola: item.bitola,
         Série: item.serie,
         Status: status,
         'Produção acumulada': item.total,
@@ -215,9 +216,22 @@ const Store = (() => {
     if (k.includes('MALHA CENTRAL')) return 'MC';
     return k.split(' ').map(p => p[0]).join('').slice(0, 4) || 'PRJ';
   }
+  function _bitola(r) {
+    if (typeof U !== 'undefined' && U.bitolaDe) return U.bitolaDe(r);
+    const k = _norm(`${r?.bitola || ''} ${r?.tipo || ''} ${r?.projeto || ''}`);
+    if (k.includes('BITOLA MISTA') || /(^|\s)BM($|\s)/.test(k)) return 'Bitola Mista';
+    if (k.includes('BITOLA LARGA') || /(^|\s)BL($|\s)/.test(k)) return 'Bitola Larga';
+    return 'Sem bitola definida';
+  }
+  function _bitolaCodigo(r) {
+    const b = _bitola(r);
+    if (b === 'Bitola Larga') return 'BL';
+    if (b === 'Bitola Mista') return 'BM';
+    return 'SB';
+  }
   function _grupo(r) {
     const k = _norm(`${r.tipo || ''} ${r.projeto || ''}`);
-    const bitola = k.includes('BITOLA MISTA') ? 'BM' : k.includes('BITOLA LARGA') ? 'BL' : 'SB';
+    const bitola = _bitolaCodigo(r);
     return `${r.projeto || 'Sem projeto'} • ${bitola}`;
   }
   function _norm(v) { return String(v == null ? '' : v).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toUpperCase(); }

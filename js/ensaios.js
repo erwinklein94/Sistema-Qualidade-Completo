@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('fPeriodoFim').value = p.fim;
   }
 
-  ['busca', 'fFornecedor', 'fProjeto', 'fSerie', 'fStatusSerie', 'fPeriodoIni', 'fPeriodoFim'].forEach(id => {
+  ['busca', 'fFornecedor', 'fProjeto', 'fBitola', 'fSerie', 'fStatusSerie', 'fPeriodoIni', 'fPeriodoFim'].forEach(id => {
     document.getElementById(id).addEventListener('input', render);
   });
 
@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function preencherFiltros() {
   document.getElementById('fFornecedor').innerHTML = U.opcoes(CFG.listas.fornecedores, '', 'Todos');
   document.getElementById('fProjeto').innerHTML = U.opcoes(CFG.listas.projetos, '', 'Todos');
+  document.getElementById('fBitola').innerHTML = U.opcoes(CFG.listas.bitolas, '', 'Todas');
   document.getElementById('fStatusSerie').innerHTML = STATUS_SERIE.map(s => `<option value="${s.valor}">${s.texto}</option>`).join('');
   atualizarFiltroSerie();
 }
@@ -61,6 +62,7 @@ function filtros() {
     busca: document.getElementById('busca').value.toLowerCase().trim(),
     fornecedor: document.getElementById('fFornecedor').value,
     projeto: document.getElementById('fProjeto').value,
+    bitola: document.getElementById('fBitola').value,
     serie: document.getElementById('fSerie').value,
     status: document.getElementById('fStatusSerie').value,
     ini: document.getElementById('fPeriodoIni').value,
@@ -89,11 +91,12 @@ function calcularSeries(f) {
   const prod = prodBase.filter(r => {
     if (f.fornecedor && r.fornecedor !== f.fornecedor) return false;
     if (f.projeto && r.projeto !== f.projeto) return false;
+    if (f.bitola && U.bitolaDe(r) !== f.bitola) return false;
     if (!dentroPeriodo(r.dataFabricacao, f.ini, f.fim)) return false;
     const serieNorm = normalizarSerie(r.serie, r.projeto);
     if (f.serie && serieNorm !== f.serie) return false;
     if (f.busca) {
-      const blob = `${r.fornecedor} ${r.lote} ${r.projeto} ${r.tipo} ${serieNorm} ${r.status}`.toLowerCase();
+      const blob = `${r.fornecedor} ${r.lote} ${r.projeto} ${r.tipo} ${U.bitolaDe(r)} ${serieNorm} ${r.status}`.toLowerCase();
       if (!blob.includes(f.busca)) return false;
     }
     return true;
@@ -102,6 +105,7 @@ function calcularSeries(f) {
   const reps = repBase.filter(r => {
     if (f.fornecedor && r.fornecedor !== f.fornecedor) return false;
     if (f.projeto && r.projeto !== f.projeto) return false;
+    if (f.bitola && U.bitolaDe(r) !== f.bitola) return false;
     if (!dentroPeriodo(r.dataProducao || r.periodoIni || r.periodoFim, f.ini, f.fim)) return false;
     return true;
   });
@@ -122,6 +126,7 @@ function calcularSeries(f) {
       fornecedor: r.fornecedor || '—',
       projeto: r.projeto || '—',
       grupo,
+      bitola: U.bitolaDe(r),
       serie,
       semSerie: serie.startsWith('Série aberta / sem série'),
       tipo: r.tipo || '—',
@@ -364,15 +369,7 @@ function codigoProjeto(projeto) {
 }
 
 function grupoProjetoBitola(r) {
-  const b = detectarBitola(`${r.tipo || ''} ${r.projeto || ''}`);
-  return `${r.projeto || 'Sem projeto'} • ${b}`;
-}
-
-function detectarBitola(txt) {
-  const k = norm(txt);
-  if (k.includes('BITOLA MISTA') || /(^|\s)BM($|\s)/.test(k)) return 'BM';
-  if (k.includes('BITOLA LARGA') || /(^|\s)BL($|\s)/.test(k)) return 'BL';
-  return 'SB';
+  return `${r.projeto || 'Sem projeto'} • ${U.bitolaCodigo(r)}`;
 }
 
 function prioridade(s) {
@@ -400,14 +397,5 @@ function norm(v) {
 function periodoUltimaProducao() {
   const datas = Store.listar('producao').map(r => r.dataFabricacao).filter(Boolean).sort();
   const ultima = datas.pop();
-  if (!ultima) return null;
-  const d = new Date(ultima + 'T00:00:00');
-  const day = (d.getDay() + 6) % 7;
-  const ini = new Date(d.valueOf()); ini.setDate(d.getDate() - day);
-  const fim = new Date(ini.valueOf()); fim.setDate(ini.getDate() + 6);
-  return { ini: isoLocal(ini), fim: isoLocal(fim) };
-}
-
-function isoLocal(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return ultima ? U.periodoSemanaOperacional(ultima) : null;
 }

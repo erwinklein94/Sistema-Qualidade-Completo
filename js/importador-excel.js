@@ -72,6 +72,8 @@ const ExcelImportador = (() => {
       reprovadosCavan(linhas(wb, 'REPROVADOS_CAVAN')),
       reprovadosConprem(linhas(wb, 'REPROVADOS_CONPREM'))
     );
+    producao.forEach(r => { r.bitola = bitola(r); });
+    reprovados.forEach(r => { r.bitola = bitola(r); });
 
     let semanal = indicadorSemanal(linhas(wb, 'INDICADOR SEMANAL'));
     if (!semanal.length && producao.length) {
@@ -207,13 +209,13 @@ const ExcelImportador = (() => {
       if (semana === '') continue;
       const base = { semana, data: dataISO(r[3]), periodoIni: dataISO(r[4]), periodoFim: dataISO(r[5]) };
       if (tem(r, 6, 12)) out.push(obj(Object.assign({
-        id: id('sem'), fornecedor: 'Cavan SP', produzidos: inteiro(r[6]),
+        id: id('sem'), fornecedor: 'Cavan SP', projeto: '', bitola: '', produzidos: inteiro(r[6]),
         ensaiosReal: inteiro(r[7]), ensaiosAprov: inteiro(r[8]), ensaiosRec: inteiro(r[9]),
         dormRecusados: inteiro(r[11]) !== '' ? inteiro(r[11]) : inteiro(r[10]),
         previsto: inteiro(r[12]),
       }, base)));
       if (tem(r, 13, 18)) out.push(obj(Object.assign({
-        id: id('sem'), fornecedor: 'Conprem MG', produzidos: inteiro(r[13]),
+        id: id('sem'), fornecedor: 'Conprem MG', projeto: '', bitola: '', produzidos: inteiro(r[13]),
         ensaiosReal: inteiro(r[14]), ensaiosAprov: inteiro(r[15]), ensaiosRec: inteiro(r[16]),
         dormRecusados: inteiro(r[17]), previsto: inteiro(r[18]),
       }, base)));
@@ -223,16 +225,18 @@ const ExcelImportador = (() => {
 
   function gerarSemanal(prod, reps) {
     const mapa = {};
-    const nova = (sem, forn, data) => ({
-      id: id('sem'), semana: sem, fornecedor: forn || '—', data,
-      periodoIni: data, periodoFim: data, produzidos: 0, previsto: 0,
+    const nova = (info, forn, projeto, bitolaNome, data) => ({
+      id: id('sem'), semana: info.semana, anoSemana: info.ano, fornecedor: forn || '—', projeto: projeto || '', bitola: bitolaNome || '', data,
+      periodoIni: info.ini, periodoFim: info.fim, produzidos: 0, previsto: 0,
       ensaiosReal: 0, ensaiosAprov: 0, ensaiosRec: 0, dormRecusados: 0,
     });
     prod.forEach(r => {
       if (!r.dataFabricacao) return;
-      const sem = semanaISO(r.dataFabricacao);
-      const k = `${sem}|${r.fornecedor || '—'}`;
-      if (!mapa[k]) mapa[k] = nova(sem, r.fornecedor, r.dataFabricacao);
+      const info = semanaOperacional(r.dataFabricacao);
+      const projetoNome = r.projeto || '';
+      const bitolaNome = bitola(r);
+      const k = `${info.ano}|${info.semana}|${r.fornecedor || '—'}|${projetoNome}|${bitolaNome}`;
+      if (!mapa[k]) mapa[k] = nova(info, r.fornecedor, projetoNome, bitolaNome, r.dataFabricacao);
       mapa[k].produzidos += inteiro(r.total) || 0;
       mapa[k].ensaiosReal += inteiro(r.ensaiados) || 0;
       mapa[k].ensaiosRec += inteiro(r.reprovados) || 0;
@@ -241,10 +245,13 @@ const ExcelImportador = (() => {
       if (r.dataFabricacao > mapa[k].periodoFim) mapa[k].periodoFim = r.dataFabricacao;
     });
     reps.forEach(r => {
-      if (!r.dataProducao) return;
-      const sem = r.semana || semanaISO(r.dataProducao);
-      const k = `${sem}|${r.fornecedor || '—'}`;
-      if (!mapa[k]) mapa[k] = nova(sem, r.fornecedor, r.dataProducao);
+      const data = r.dataProducao || r.periodoIni || r.periodoFim;
+      if (!data) return;
+      const info = semanaOperacional(data);
+      const projetoNome = r.projeto || '';
+      const bitolaNome = bitola(r);
+      const k = `${info.ano}|${info.semana}|${r.fornecedor || '—'}|${projetoNome}|${bitolaNome}`;
+      if (!mapa[k]) mapa[k] = nova(info, r.fornecedor, projetoNome, bitolaNome, data);
       mapa[k].dormRecusados += inteiro(r.totalRefugos) || 1;
     });
     return Object.values(mapa);
@@ -280,15 +287,8 @@ const ExcelImportador = (() => {
     if (m) return `${m[3].length === 2 ? '20' + m[3] : m[3]}-${pad(m[2])}-${pad(m[1])}`;
     return '';
   }
-  function semanaISO(iso) {
-    const d = new Date(`${iso}T00:00:00`);
-    const t = new Date(d.valueOf());
-    const dayNr = (d.getDay() + 6) % 7;
-    t.setDate(t.getDate() - dayNr + 3);
-    const firstThursday = t.valueOf();
-    t.setMonth(0, 1);
-    if (t.getDay() !== 4) t.setMonth(0, 1 + ((4 - t.getDay()) + 7) % 7);
-    return 1 + Math.ceil((firstThursday - t) / 604800000);
+  function semanaOperacional(iso) {
+    return U.semanaOperacionalInfo(iso);
   }
   function simNao(v) {
     const s = norm(texto(v));
@@ -310,6 +310,14 @@ const ExcelImportador = (() => {
   function projeto(v) {
     const m = { MP: 'MALHA PAULISTA', 'MALHA PAULISTA': 'MALHA PAULISTA', FMT: 'FMT', FN: 'FERRO NORTE', 'FERRO NORTE': 'FERRO NORTE', 'MALHA CENTRAL': 'MALHA CENTRAL' };
     return m[norm(texto(v))] || texto(v);
+  }
+  function bitola(registroOuTexto) {
+    if (typeof U !== 'undefined' && U.bitolaDe) return U.bitolaDe(registroOuTexto);
+    const textoBitola = typeof registroOuTexto === 'string' ? registroOuTexto : `${registroOuTexto?.bitola || ''} ${registroOuTexto?.tipo || ''} ${registroOuTexto?.projeto || ''}`;
+    const s = norm(textoBitola);
+    if (s.includes('BITOLA MISTA') || /(^|\s)BM($|\s)/.test(s)) return 'Bitola Mista';
+    if (s.includes('BITOLA LARGA') || /(^|\s)BL($|\s)/.test(s)) return 'Bitola Larga';
+    return 'Sem bitola definida';
   }
   function motivoIndicador(v) {
     const s = norm(texto(v));

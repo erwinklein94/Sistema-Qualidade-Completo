@@ -19,9 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // filtros
   sel('fFornecedor', CFG.listas.fornecedores, 'Todos');
   sel('fProjeto', CFG.listas.projetos, 'Todos');
+  sel('fBitola', CFG.listas.bitolas, 'Todas');
   sel('fStatus', CFG.listas.status, 'Todos');
 
-  ['busca', 'fFornecedor', 'fProjeto', 'fStatus'].forEach(id =>
+  ['busca', 'fFornecedor', 'fProjeto', 'fBitola', 'fStatus'].forEach(id =>
     document.getElementById(id).addEventListener('input', render));
 
   render();
@@ -34,14 +35,16 @@ function render() {
   const q = document.getElementById('busca').value.toLowerCase().trim();
   const ff = document.getElementById('fFornecedor').value;
   const fp = document.getElementById('fProjeto').value;
+  const fb = document.getElementById('fBitola').value;
   const fs = document.getElementById('fStatus').value;
 
   const lista = todos.filter(r => {
     if (ff && r.fornecedor !== ff) return false;
     if (fp && r.projeto !== fp) return false;
+    if (fb && U.bitolaDe(r) !== fb) return false;
     if (fs && r.status !== fs) return false;
     if (q) {
-      const blob = `${r.lote} ${r.projeto} ${r.tipo} ${r.serie} ${r.pedido} ${r.status}`.toLowerCase();
+      const blob = `${r.lote} ${r.projeto} ${r.tipo} ${U.bitolaDe(r)} ${r.serie} ${r.pedido} ${r.status}`.toLowerCase();
       if (!blob.includes(q)) return false;
     }
     return true;
@@ -62,6 +65,7 @@ function render() {
       <td>${U.dataBR(r.dataFabricacao)}</td>
       <td><strong>${U.esc(r.lote)}</strong></td>
       <td>${U.badgeProjeto(r.projeto)}</td>
+      <td>${U.badgeBitola(r)}</td>
       <td>${U.esc(r.tipo)}</td>
       <td class="right">${U.esc(r.total)}</td>
       <td class="right">${U.esc(r.reprovados || 0)}</td>
@@ -78,7 +82,7 @@ function render() {
 
   cont.innerHTML = `<div class="tabela-wrap"><table class="tabela">
     <thead><tr>
-      <th>Fabricação</th><th>Lote</th><th>Projeto</th><th>Tipo</th>
+      <th>Fabricação</th><th>Lote</th><th>Projeto</th><th>Bitola</th><th>Tipo</th>
       <th class="right">Produção</th><th class="right">Reprov.</th><th class="right">Aprovado</th>
       <th>Série</th><th>Status</th><th>Ações</th>
     </tr></thead><tbody>${linhas}</tbody></table></div>`;
@@ -141,7 +145,7 @@ function ver(id) {
     <div class="detalhe-secao">Identificação</div>
     <div class="detalhe-grid">
       ${item('Fornecedor', r.fornecedor)}${item('Pista', r.pista)}${item('N° Pedido', r.pedido)}
-      ${item('Lote', r.lote)}${item('Projeto', r.projeto)}${item('Tipo', r.tipo)}${item('Total Produção', r.total)}
+      ${item('Lote', r.lote)}${item('Projeto', r.projeto)}${item('Bitola', U.bitolaDe(r))}${item('Tipo', r.tipo)}${item('Total Produção', r.total)}
     </div>
     <div class="detalhe-secao">Datas e Cura</div>
     <div class="detalhe-grid">

@@ -13,11 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('fFornecedor').innerHTML = U.opcoes(CFG.listas.fornecedores, '', 'Todos');
   document.getElementById('fProjeto').innerHTML = U.opcoes(CFG.listas.projetos, '', 'Todos');
+  document.getElementById('fBitola').innerHTML = U.opcoes(CFG.listas.bitolas, '', 'Todas');
 
   Dashboard.periodoPadrao = periodoUltimaSemanaDisponivel();
   aplicarPeriodo(Dashboard.periodoPadrao);
 
-  ['fFornecedor', 'fProjeto', 'fPeriodoIni', 'fPeriodoFim'].forEach(id => {
+  ['fFornecedor', 'fProjeto', 'fBitola', 'fPeriodoIni', 'fPeriodoFim'].forEach(id => {
     document.getElementById(id).addEventListener('change', render);
   });
   document.getElementById('btnUltimaSemana').addEventListener('click', () => {
@@ -39,6 +40,7 @@ function filtrosAtuais() {
   return {
     fornecedor: document.getElementById('fFornecedor').value,
     projeto: document.getElementById('fProjeto').value,
+    bitola: document.getElementById('fBitola').value,
     ini: document.getElementById('fPeriodoIni').value,
     fim: document.getElementById('fPeriodoFim').value,
   };
@@ -46,13 +48,19 @@ function filtrosAtuais() {
 
 function dados() {
   const f = filtrosAtuais();
-  const filtraBase = r => (!f.fornecedor || r.fornecedor === f.fornecedor) && (!f.projeto || r.projeto === f.projeto);
-  const filtraFornecedor = r => !f.fornecedor || r.fornecedor === f.fornecedor;
+  const filtraBase = r =>
+    (!f.fornecedor || r.fornecedor === f.fornecedor) &&
+    (!f.projeto || r.projeto === f.projeto) &&
+    (!f.bitola || U.bitolaDe(r) === f.bitola);
+  const filtraSemanal = r =>
+    (!f.fornecedor || r.fornecedor === f.fornecedor) &&
+    (!f.projeto || !r.projeto || r.projeto === f.projeto) &&
+    (!f.bitola || U.bitolaDe(r) === f.bitola);
 
   return {
     prod: Store.listar('producao').filter(r => filtraBase(r) && dentroPeriodoData(r.dataFabricacao, f.ini, f.fim)),
     rep: Store.listar('reprovados').filter(r => filtraBase(r) && dentroPeriodoReprova(r, f.ini, f.fim)),
-    sem: Store.listar('semanal').filter(r => filtraFornecedor(r) && dentroPeriodoIntervalo(r.periodoIni, r.periodoFim, r.data, f.ini, f.fim)),
+    sem: Store.listar('semanal').filter(r => filtraSemanal(r) && dentroPeriodoIntervalo(r.periodoIni, r.periodoFim, r.data, f.ini, f.fim)),
     filtros: f,
   };
 }
@@ -99,13 +107,17 @@ function desenharGraficos(prod, rep, sem, filtros) {
 
   // 1. Produção por projeto (barras)
   const porProj = {};
-  prod.forEach(r => { porProj[r.projeto || '—'] = (porProj[r.projeto || '—'] || 0) + U.int(r.total); });
+  prod.forEach(r => {
+    const base = r.projeto || '—';
+    const k = filtros.bitola ? base : `${base} · ${U.bitolaCodigo(r)}`;
+    porProj[k] = (porProj[k] || 0) + U.int(r.total);
+  });
   charts.proj = new Chart(document.getElementById('chartProjeto'), {
     type: 'bar',
     data: {
       labels: Object.keys(porProj),
       datasets: [{ data: Object.values(porProj),
-        backgroundColor: Object.keys(porProj).map(p => C.projetos[p] || C.azulClaro), borderRadius: 6 }]
+        backgroundColor: Object.keys(porProj).map(p => C.projetos[String(p).split(' · ')[0]] || C.azulClaro), borderRadius: 6 }]
     },
     options: baseOpt({ legend: false })
   });
@@ -131,19 +143,19 @@ function desenharGraficos(prod, rep, sem, filtros) {
     percentuais: semanalProjeto.percentuais,
     detalhes: semanalProjeto.detalhes,
     pluginId: 'rotuloPctSemanalProjeto',
-    tituloTooltip: (label, detalhe) => `${label}${detalhe && detalhe.projeto ? ' · ' + detalhe.projeto : ''}`,
+    tituloTooltip: (label, detalhe) => `${label}${detalhe?.projeto ? ' · ' + detalhe.projeto : ''}${detalhe?.bitola ? ' · ' + detalhe.bitola : ''}${detalhe?.ini ? ' · ' + U.dataBR(detalhe.ini) + ' a ' + U.dataBR(detalhe.fim) : ''}`,
   });
 
   // 4. Produção × Reprova por lote (barras de produzidos/refugos + linha de % reprova)
   const porLote = {};
   prod.forEach(r => {
     const k = (r.lote || '—').toString();
-    if (!porLote[k]) porLote[k] = { prod: 0, rep: 0, projeto: r.projeto || '—' };
+    if (!porLote[k]) porLote[k] = { prod: 0, rep: 0, projeto: r.projeto || '—', bitola: U.bitolaCodigo(r) };
     porLote[k].prod += U.int(r.total);
   });
   rep.forEach(r => {
     const k = (r.lote || '—').toString();
-    if (!porLote[k]) porLote[k] = { prod: 0, rep: 0, projeto: r.projeto || '—' };
+    if (!porLote[k]) porLote[k] = { prod: 0, rep: 0, projeto: r.projeto || '—', bitola: U.bitolaCodigo(r) };
     porLote[k].rep += U.int(r.totalRefugos || 1);
     if (!porLote[k].projeto || porLote[k].projeto === '—') porLote[k].projeto = r.projeto || '—';
   });
@@ -158,9 +170,9 @@ function desenharGraficos(prod, rep, sem, filtros) {
     produzidos: lotesOrd.map(k => porLote[k].prod),
     refugos: lotesOrd.map(k => porLote[k].rep),
     percentuais: lotesOrd.map(k => porLote[k].prod ? (porLote[k].rep / porLote[k].prod) * 100 : 0),
-    detalhes: lotesOrd.map(k => ({ projeto: porLote[k].projeto })),
+    detalhes: lotesOrd.map(k => ({ projeto: porLote[k].projeto, bitola: porLote[k].bitola })),
     pluginId: 'rotuloPctLote',
-    tituloTooltip: (label, detalhe) => 'Lote ' + label + ' · ' + (detalhe?.projeto || '—'),
+    tituloTooltip: (label, detalhe) => 'Lote ' + label + ' · ' + (detalhe?.projeto || '—') + (detalhe?.bitola ? ' · ' + detalhe.bitola : ''),
   });
 
   // 5. Status dos lotes (pizza)
@@ -251,33 +263,39 @@ function graficoComparativo({ canvasId, labels, produzidos, refugos, percentuais
 
 function agregarSemanalProjeto(prod, rep, filtros) {
   const mapa = {};
-  const add = (sem, projeto, campo, valor) => {
-    const proj = projeto || '—';
-    const key = `${sem.ano}-${String(sem.semana).padStart(2, '0')}|${proj}`;
-    if (!mapa[key]) mapa[key] = { ano: sem.ano, semana: sem.semana, projeto: proj, prod: 0, rep: 0 };
+  const add = (sem, registro, campo, valor) => {
+    const projeto = registro.projeto || '—';
+    const bitola = U.bitolaCodigo(registro);
+    const key = `${sem.ano}-${String(sem.semana).padStart(2, '0')}|${projeto}|${bitola}`;
+    if (!mapa[key]) mapa[key] = { ano: sem.ano, semana: sem.semana, ini: sem.ini, fim: sem.fim, projeto, bitola, prod: 0, rep: 0 };
     mapa[key][campo] += U.int(valor);
   };
 
   prod.forEach(r => {
     if (!r.dataFabricacao) return;
-    add(anoSemanaISO(r.dataFabricacao), r.projeto, 'prod', r.total);
+    add(U.semanaOperacionalInfo(r.dataFabricacao), r, 'prod', r.total);
   });
   rep.forEach(r => {
     const data = dataReprova(r);
     if (!data) return;
-    add(anoSemanaISO(data), r.projeto, 'rep', r.totalRefugos || 1);
+    add(U.semanaOperacionalInfo(data), r, 'rep', r.totalRefugos || 1);
   });
 
   const itens = Object.values(mapa).sort((a, b) =>
-    (a.ano - b.ano) || (a.semana - b.semana) || a.projeto.localeCompare(b.projeto)
+    (a.ano - b.ano) || (a.semana - b.semana) || a.projeto.localeCompare(b.projeto) || a.bitola.localeCompare(b.bitola)
   );
 
   return {
-    labels: itens.map(i => filtros.projeto ? `Sem. ${String(i.semana).padStart(2, '0')}/${i.ano}` : `Sem. ${String(i.semana).padStart(2, '0')}/${i.ano} · ${i.projeto}`),
+    labels: itens.map(i => {
+      const base = `Sem. ${String(i.semana).padStart(2, '0')}/${i.ano}`;
+      const proj = filtros.projeto ? '' : ` · ${i.projeto}`;
+      const bit = filtros.bitola ? '' : ` · ${i.bitola}`;
+      return base + proj + bit;
+    }),
     produzidos: itens.map(i => i.prod),
     refugos: itens.map(i => i.rep),
     percentuais: itens.map(i => i.prod ? (i.rep / i.prod) * 100 : 0),
-    detalhes: itens.map(i => ({ projeto: i.projeto, ano: i.ano, semana: i.semana })),
+    detalhes: itens.map(i => ({ projeto: i.projeto, bitola: i.bitola, ano: i.ano, semana: i.semana, ini: i.ini, fim: i.fim })),
   };
 }
 
@@ -295,6 +313,7 @@ function baseOpt({ legend }) {
 function limparFiltrosDashboard() {
   document.getElementById('fFornecedor').value = '';
   document.getElementById('fProjeto').value = '';
+  document.getElementById('fBitola').value = '';
   document.getElementById('fPeriodoIni').value = '';
   document.getElementById('fPeriodoFim').value = '';
   render();
@@ -315,8 +334,7 @@ function periodoUltimaSemanaDisponivel() {
 
   if (semanaConsolidada) {
     const fim = dataFimRegistro(semanaConsolidada);
-    const ini = semanaConsolidada.periodoIni || deslocarDias(fim, -6);
-    return { ini, fim };
+    return U.periodoSemanaOperacional(fim);
   }
 
   const datas = [];
@@ -325,12 +343,9 @@ function periodoUltimaSemanaDisponivel() {
     [r.dataProducao, r.periodoIni, r.periodoFim].forEach(d => { if (d) datas.push(d); });
   });
   const ultima = datas.sort(compararData).pop();
-  if (ultima) return semanaCalendarioISO(ultima);
+  if (ultima) return U.periodoSemanaOperacional(ultima);
 
-  const hoje = new Date();
-  const fim = isoLocal(hoje);
-  const ini = isoLocal(new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 6));
-  return { ini, fim };
+  return U.periodoSemanaOperacional(U.isoLocal(new Date()));
 }
 
 function garantirGradeGraficos() {
@@ -340,7 +355,7 @@ function garantirGradeGraficos() {
     <div class="grid-graficos">
       <div class="card"><div class="card-titulo"><span class="acento">Produção por projeto</span></div><div class="chart-box"><canvas id="chartProjeto"></canvas></div></div>
       <div class="card"><div class="card-titulo"><span class="acento">Motivos de reprova</span></div><div class="chart-box"><canvas id="chartMotivos"></canvas></div></div>
-      <div class="card span2"><div class="card-titulo"><span class="acento">Produção × Reprova semanal por projeto</span><span class="card-sub">Total produzido, refugos e % de reprova por semana/projeto</span></div><div class="chart-box alto"><canvas id="chartSemanalProjeto"></canvas></div></div>
+      <div class="card span2"><div class="card-titulo"><span class="acento">Produção × Reprova semanal por projeto</span><span class="card-sub">Total produzido, refugos e % de reprova por semana operacional, projeto e bitola</span></div><div class="chart-box alto"><canvas id="chartSemanalProjeto"></canvas></div></div>
       <div class="card span2"><div class="card-titulo"><span class="acento">Produção × Reprova por lote</span><span class="card-sub">Total produzido, refugos e % de reprova de cada lote</span></div><div class="chart-box alto"><canvas id="chartLote"></canvas></div></div>
       <div class="card"><div class="card-titulo"><span class="acento">Status dos lotes</span></div><div class="chart-box"><canvas id="chartStatus"></canvas></div></div>
       <div class="card"><div class="card-titulo"><span class="acento">Ensaios: aprovados × recusados</span></div><div class="chart-box"><canvas id="chartEnsaios"></canvas></div></div>
@@ -373,34 +388,3 @@ function dentroPeriodoIntervalo(regIni, regFim, dataUnica, filtroIni, filtroFim)
 function dataReprova(r) { return r.dataProducao || r.periodoIni || r.periodoFim || ''; }
 function dataFimRegistro(r) { return r.periodoFim || r.data || r.periodoIni || ''; }
 function compararData(a, b) { return String(a || '').localeCompare(String(b || '')); }
-
-function anoSemanaISO(iso) {
-  const d = new Date(iso + 'T00:00:00');
-  const target = new Date(d.valueOf());
-  const dayNr = (d.getDay() + 6) % 7;
-  target.setDate(target.getDate() - dayNr + 3);
-  const ano = target.getFullYear();
-  const firstThursday = new Date(ano, 0, 4);
-  const firstDayNr = (firstThursday.getDay() + 6) % 7;
-  firstThursday.setDate(firstThursday.getDate() - firstDayNr + 3);
-  const semana = 1 + Math.round((target - firstThursday) / 604800000);
-  return { ano, semana };
-}
-
-function semanaCalendarioISO(iso) {
-  const d = new Date(iso + 'T00:00:00');
-  const dayNr = (d.getDay() + 6) % 7; // segunda=0
-  const ini = new Date(d.valueOf()); ini.setDate(d.getDate() - dayNr);
-  const fim = new Date(ini.valueOf()); fim.setDate(ini.getDate() + 6);
-  return { ini: isoLocal(ini), fim: isoLocal(fim) };
-}
-
-function deslocarDias(iso, dias) {
-  const d = new Date(iso + 'T00:00:00');
-  d.setDate(d.getDate() + dias);
-  return isoLocal(d);
-}
-
-function isoLocal(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}

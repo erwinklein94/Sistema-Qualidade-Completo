@@ -15,9 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   sel('fFornecedor', CFG.listas.fornecedores, 'Todos');
   sel('fProjeto', CFG.listas.projetos, 'Todos');
+  sel('fBitola', CFG.listas.bitolas, 'Todas');
   sel('fMotivo', CFG.listas.motivosIndicador, 'Todos');
 
-  ['busca', 'fFornecedor', 'fProjeto', 'fMotivo'].forEach(id =>
+  ['busca', 'fFornecedor', 'fProjeto', 'fBitola', 'fMotivo'].forEach(id =>
     document.getElementById(id).addEventListener('input', render));
 
   // auto-preencher semana ao escolher data
@@ -36,14 +37,16 @@ function render() {
   const q = document.getElementById('busca').value.toLowerCase().trim();
   const ff = document.getElementById('fFornecedor').value;
   const fp = document.getElementById('fProjeto').value;
+  const fb = document.getElementById('fBitola').value;
   const fm = document.getElementById('fMotivo').value;
 
   const lista = todos.filter(r => {
     if (ff && r.fornecedor !== ff) return false;
     if (fp && r.projeto !== fp) return false;
+    if (fb && U.bitolaDe(r) !== fb) return false;
     if (fm && r.motivoIndicador !== fm) return false;
     if (q) {
-      const blob = `${r.lote} ${r.molde} ${r.cavidade} ${r.motivoDetalhado} ${r.motivoIndicador} ${r.projeto}`.toLowerCase();
+      const blob = `${r.lote} ${r.molde} ${r.cavidade} ${r.motivoDetalhado} ${r.motivoIndicador} ${r.projeto} ${r.tipo} ${U.bitolaDe(r)}`.toLowerCase();
       if (!blob.includes(q)) return false;
     }
     return true;
@@ -66,6 +69,7 @@ function render() {
       <td>${U.dataBR(r.dataProducao)}</td>
       <td><strong>${U.esc(r.lote)}</strong></td>
       <td>${U.badgeProjeto(r.projeto)}</td>
+      <td>${U.badgeBitola(r)}</td>
       <td>${U.esc(r.molde || '—')}</td>
       <td>${U.esc(r.cavidade || '—')}</td>
       <td><span class="badge badge-reprovado">${U.esc(r.motivoIndicador || '—')}</span></td>
@@ -80,7 +84,7 @@ function render() {
 
   cont.innerHTML = `<div class="tabela-wrap"><table class="tabela">
     <thead><tr>
-      <th>Sem.</th><th>Data</th><th>Lote</th><th>Projeto</th><th>Molde</th><th>Cavidade</th>
+      <th>Sem.</th><th>Data</th><th>Lote</th><th>Projeto</th><th>Bitola</th><th>Molde</th><th>Cavidade</th>
       <th>Motivo</th><th>Detalhe</th><th class="right">Refugos</th><th>Ações</th>
     </tr></thead><tbody>${linhas}</tbody></table></div>`;
 }

@@ -330,6 +330,9 @@ table.tabela .acoes-cel { display: flex; gap: 6px; }
 .badge-reprovado { background: #ffeaea; color: var(--erro); }
 .badge-projeto { background: var(--azul-escuro); color: #fff; }
 .badge-amarelo { background: #fff6cc; color: #8a7400; }
+.badge-bitola-larga { background: #e0f3fc; color: #0277a8; }
+.badge-bitola-mista { background: #eaf7df; color: #357a14; }
+.badge-bitola-sem { background: #eef0f2; color: #4a5b6b; }
 
 /* ===================== FILTROS ===================== */
 .barra-filtros {
