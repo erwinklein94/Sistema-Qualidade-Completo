@@ -18,7 +18,7 @@
         <div class="card">
           <div class="card-titulo"><span class="acento">Backup e exportação</span></div>
           <p class="txt-cinza" style="margin-bottom:18px;font-size:14px">
-            Os dados ficam salvos <strong>neste navegador</strong>. Faça backup com frequência: exporte para JSON (para guardar / subir ao GitHub no futuro) ou para Excel (compatível com a planilha atual).
+            Os dados ficam salvos <strong>neste navegador</strong>. Faça backup com frequência: exporte para JSON ou Excel. Também é possível importar a planilha original <strong>Indicador Semanal</strong> em formato .xlsx, puxando Produção, Reprovados e Indicador Semanal.
           </p>
           <div class="flex gap12" style="flex-wrap:wrap">
             <button class="btn btn-primario" onclick="Store.exportarExcel()"><span id="bxExcel"></span>Exportar Excel (.xlsx)</button>
@@ -26,6 +26,10 @@
             <label class="btn btn-verde" style="cursor:pointer">
               <span id="bxUp"></span>Importar backup (.json)
               <input type="file" accept=".json" style="display:none" onchange="importar(this)">
+            </label>
+            <label class="btn btn-primario" style="cursor:pointer">
+              <span id="bxPlanilha"></span>Importar planilha (.xlsx)
+              <input type="file" accept=".xlsx,.xls,.xlsm" style="display:none" onchange="importarPlanilha(this)">
             </label>
           </div>
         </div>
@@ -65,5 +69,6 @@
   <script src="js/comum.js"></script>
   <script src="js/demo.js"></script>
   <script src="js/dados.js"></script>
+  <script src="js/importador-excel.js"></script>
 </body>
 </html>

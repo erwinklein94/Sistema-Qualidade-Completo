@@ -14,8 +14,8 @@ Excel. Funciona 100% no navegador (não precisa de servidor) e é compatível co
 - **Produção** — cadastro completo de cada lote produzido (pista, pedido, projeto,
   tipo, ensaios, status etc.).
 - **Reprovados** — registro de refugos de dormentes por motivo.
-- **Dados & Backup** — exportar/importar tudo, gerar Excel e carregar dados de
-  demonstração.
+- **Dados & Backup** — exportar/importar tudo, importar a planilha original
+  `.xlsx`, gerar Excel e carregar dados de demonstração.
 
 ---
 
@@ -32,6 +32,9 @@ Por isso, dois cuidados:
    outro computador), use *Importar JSON*.
 2. Você também pode exportar uma planilha **Excel** a qualquer momento, para
    relatórios ou para guardar uma cópia.
+3. Para trazer dados da planilha original, use **Importar planilha (.xlsx)** na
+   tela **Dados & Backup**. O importador lê as abas de Produção, Reprovados e
+   Indicador Semanal do modelo `Indicador semanal_2026.xlsx`.
 
 > Quando, no futuro, os dados forem para um **banco de dados**, só será preciso
 > trocar o arquivo `js/store.js` — o resto do site continua igual. Ele foi feito
