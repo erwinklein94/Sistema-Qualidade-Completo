@@ -7,12 +7,12 @@
 
 window.SUPABASE_CONFIG = {
   url: 'https://kqtvtjgvscjbxrfsbjfg.supabase.co',
-  publishableKey: 'COLE_AQUI_SUA_PUBLISHABLE_KEY'
+  publishableKey: 'sb_publishable_cJSAgmMMzeycNUAsc-UVtQ_5LksyBuu'
 };
 
 (function inicializarSupabase() {
   const cfg = window.SUPABASE_CONFIG || {};
-  const semChave = !cfg.publishableKey || cfg.publishableKey.includes('COLE_AQUI');
+  const semChave = !cfg.publishableKey || cfg.publishableKey.includes('sb_publishable_cJSAgmMMzeycNUAsc-UVtQ_5LksyBuu');
   if (!window.supabase || !cfg.url || semChave) {
     window.SUPABASE_CLIENTE = null;
     return;
