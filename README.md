@@ -75,3 +75,22 @@ Para evitar conflito:
 - a página de diagnóstico não depende mais de lote fictício fixo.
 
 Os arquivos `js/demo.js` e `js/importador-excel.js` permanecem apenas como neutralizadores, para impedir erro caso algum cache antigo ainda tente chamá-los.
+
+
+## Fase Supabase — Reprovados
+
+A aba **Reprovados** agora lê e grava na tabela `public.reprovados` do Supabase.
+
+Fluxo esperado:
+
+1. O usuário faz login.
+2. Abre **Reprovados**.
+3. Clica em **Novo registro**.
+4. Seleciona um lote já cadastrado em **Produção**.
+5. O sistema preenche fornecedor, lote, projeto, tipo, data, semana e período operacional.
+6. O usuário informa molde, cavidade, motivo e quantidade de refugos.
+7. O registro é salvo no Supabase vinculado ao lote de produção (`producao_lote_id`).
+
+A semana operacional continua seguindo a regra da área: quinta-feira a quarta-feira, com Semana 21/2026 = 14/05/2026 a 20/05/2026.
+
+Opcionalmente, rode o SQL `supabase/2026-05-23-reprovados-indices.sql` para criar índices de consulta na tabela de reprovados.

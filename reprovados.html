@@ -65,6 +65,7 @@
             <div class="campo"><label>Período de Inspeção — Fim</label><input id="periodoFim" type="date"></div>
 
             <div class="form-secao">Dormente</div>
+            <div class="campo full"><label>Lote produzido cadastrado</label><select id="producaoLoteId"></select><small>Ao selecionar, o sistema preenche fornecedor, lote, projeto, tipo, data e semana automaticamente.</small></div>
             <div class="campo"><label>Lote <span class="obrig">*</span></label><input id="lote" type="text" required></div>
             <div class="campo"><label>Projeto <span class="obrig">*</span></label><select id="projeto" required></select></div>
             <div class="campo"><label>Tipo</label><select id="tipo"></select></div>
@@ -92,7 +93,8 @@
   <script>Auth.exigirLogin();</script>
   <script src="js/config.js"></script>
   <script src="js/store.js"></script>
+  <script src="js/store-supabase.js?v=20260523-3"></script>
   <script src="js/comum.js"></script>
-  <script src="js/reprovados.js"></script>
+  <script src="js/reprovados.js?v=20260523-3"></script>
 </body>
 </html>

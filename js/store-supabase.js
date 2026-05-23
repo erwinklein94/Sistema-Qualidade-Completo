@@ -68,11 +68,52 @@ const StoreSupabase = (() => {
   }
 
   async function listarReprovados(filtros = {}) {
-    let q = db().from('reprovados').select('*').order('data_producao', { ascending: false, nullsFirst: false }).limit(filtros.limite || 5000);
+    let q = db()
+      .from('reprovados')
+      .select('*')
+      .order('data_producao', { ascending: false, nullsFirst: false })
+      .order('criado_em', { ascending: false, nullsFirst: false })
+      .limit(filtros.limite || 5000);
+
+    if (filtros.id) q = q.eq('id', filtros.id);
     if (filtros.lote) q = q.eq('lote', filtros.lote);
+    if (filtros.producaoLoteId) q = q.eq('producao_lote_id', filtros.producaoLoteId);
+    if (filtros.fornecedor) q = q.eq('fornecedor', filtros.fornecedor);
+    if (filtros.projeto) q = q.eq('projeto', filtros.projeto);
+    if (filtros.bitola) q = q.eq('bitola', filtros.bitola);
+    if (filtros.motivoIndicador) q = q.eq('motivo_indicador', filtros.motivoIndicador);
+    if (filtros.dataIni) q = q.gte('data_producao', filtros.dataIni);
+    if (filtros.dataFim) q = q.lte('data_producao', filtros.dataFim);
+
     const { data, error } = await q;
     if (error) throw error;
     return data || [];
+  }
+
+  async function salvarReprovado(registro) {
+    const user = await usuarioAtual();
+    const payload = { ...registro, atualizado_por: user?.id || null };
+    const id = payload.id;
+
+    let query;
+    if (id) {
+      delete payload.id;
+      query = db().from('reprovados').update(payload).eq('id', id);
+    } else {
+      delete payload.id;
+      payload.criado_por = user?.id || null;
+      query = db().from('reprovados').insert(payload);
+    }
+
+    const { data, error } = await query.select().single();
+    if (error) throw error;
+    return data;
+  }
+
+  async function removerReprovado(id) {
+    const { error } = await db().from('reprovados').delete().eq('id', id);
+    if (error) throw error;
+    return true;
   }
 
   async function listarEnsaiosLiberacao(filtros = {}) {
@@ -98,6 +139,8 @@ const StoreSupabase = (() => {
     salvarProducao,
     removerProducao,
     listarReprovados,
+    salvarReprovado,
+    removerReprovado,
     listarEnsaiosLiberacao,
     listarConfiguracoes,
   };
