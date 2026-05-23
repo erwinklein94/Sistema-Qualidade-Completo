@@ -468,3 +468,108 @@ table.tabela .acoes-cel { display: flex; gap: 6px; }
 .right { text-align: right; }
 .center { text-align: center; }
 .hidden { display: none !important; }
+
+
+/* ===================== ENSAIOS DE LIBERAÇÃO ===================== */
+.series-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+.serie-card {
+  border: 1px solid var(--cinza-borda);
+  border-radius: var(--raio);
+  padding: 18px;
+  background: #fff;
+  box-shadow: 0 1px 8px rgba(0,53,103,.05);
+}
+.serie-card.obrigatorio { border-left: 5px solid var(--erro); }
+.serie-card.proximo { border-left: 5px solid var(--amarelo); }
+.serie-card.andamento { border-left: 5px solid var(--verde); }
+.serie-card.semserie { border-left: 5px solid var(--cinza-texto-claro); }
+.serie-card-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.serie-card-topo h3 { font-size: 16px; line-height: 1.25; margin-bottom: 4px; }
+.serie-card-topo p { color: var(--cinza-texto); font-size: 12.5px; }
+.status-serie {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: .25px;
+}
+.status-serie.obrigatorio { background: #ffeaea; color: var(--erro); }
+.status-serie.proximo { background: #fff6cc; color: #8a7400; }
+.status-serie.andamento { background: #e3f5ef; color: #137a5f; }
+.status-serie.semserie { background: #eef0f2; color: #4a5b6b; }
+.serie-metricas {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 15px;
+}
+.serie-metricas div {
+  background: var(--cinza-bg);
+  border-radius: 10px;
+  padding: 9px 10px;
+}
+.serie-metricas span { display:block; color: var(--cinza-texto); font-size: 10.5px; text-transform: uppercase; letter-spacing: .25px; font-weight: 700; }
+.serie-metricas strong { display:block; margin-top:3px; font-size: 16px; }
+.serie-progressos { display: grid; gap: 10px; }
+.progress-label { display: flex; justify-content: space-between; gap: 12px; color: var(--cinza-texto); font-size: 12px; font-weight: 700; margin-bottom: 5px; }
+.barra-progresso {
+  width: 100%;
+  height: 10px;
+  background: #edf2f7;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.barra-progresso.pequena { height: 8px; margin-top: 7px; }
+.barra-progresso span { display: block; height: 100%; border-radius: 999px; background: var(--verde); }
+.barra-progresso span.obrigatorio { background: var(--erro); }
+.barra-progresso span.proximo { background: var(--amarelo); }
+.barra-progresso span.andamento { background: var(--verde); }
+.barra-progresso span.semserie { background: var(--cinza-texto-claro); }
+.serie-rodape {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 13px;
+  color: var(--cinza-texto-claro);
+  font-size: 12px;
+}
+.lista-alertas { display: grid; gap: 10px; }
+.alerta-serie {
+  border: 1px solid var(--cinza-borda);
+  border-left: 4px solid var(--azul-claro);
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  gap: 5px;
+  background: #fff;
+}
+.alerta-serie.obrigatorio { border-left-color: var(--erro); background: #fffafa; }
+.alerta-serie.proximo { border-left-color: var(--amarelo); background: #fffdf2; }
+.alerta-serie.semserie { border-left-color: var(--cinza-texto-claro); background: #fbfcfd; }
+.alerta-serie strong { display:block; font-size: 13.5px; }
+.alerta-serie span { display:block; color: var(--cinza-texto); font-size: 12px; margin-top: 2px; }
+.alerta-serie small { color: var(--cinza-texto-claro); font-weight: 700; }
+.rank-simples { display: grid; gap: 13px; }
+.rank-linha { display: grid; gap: 5px; }
+.rank-info { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.rank-info strong { font-size: 18px; }
+.vazio.compacto { padding: 30px 12px; }
+
+@media (max-width: 700px) {
+  .serie-card-topo, .serie-rodape { flex-direction: column; }
+  .serie-metricas { grid-template-columns: repeat(2, 1fr); }
+}

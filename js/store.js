@@ -141,9 +141,87 @@ const Store = (() => {
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(prod), 'Produção');
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rep), 'Reprovados');
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sem), 'Indicador Semanal');
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(_ensaiosLiberacao(d.producao, d.reprovados)), 'Ensaios de Liberação');
       XLSX.writeFile(wb, `dormentes_${_dataArq()}.xlsx`);
     },
   };
+
+
+  function _ensaiosLiberacao(producao, reprovados) {
+    const LIMITE_PECAS = 2000;
+    const LIMITE_LOTES = 10;
+    const PROXIMO_PECAS = 1800;
+    const PROXIMO_LOTES = 9;
+    const mapa = new Map();
+    const reps = new Map();
+    (reprovados || []).forEach(r => {
+      const k = `${r.fornecedor || '—'}|||${r.projeto || '—'}|||${r.lote || '—'}`;
+      reps.set(k, (reps.get(k) || 0) + (_int(r.totalRefugos) || 1));
+    });
+    (producao || []).forEach(r => {
+      const serie = _serie(r.serie, r.projeto);
+      const grupo = _grupo(r);
+      const k = `${r.fornecedor || '—'}|||${grupo}|||${serie}`;
+      const item = mapa.get(k) || { fornecedor: r.fornecedor || '—', projeto: r.projeto || '—', grupo, serie, tipo: r.tipo || '—', total: 0, ensaiados: 0, reprovadosEnsaio: 0, aprovadosEnsaio: 0, lotes: new Set(), dataIni: '', dataFim: '' };
+      item.total += _int(r.total);
+      item.ensaiados += _int(r.ensaiados);
+      item.reprovadosEnsaio += _int(r.reprovados);
+      item.aprovadosEnsaio += _int(r.aprovado);
+      item.lotes.add(String(r.lote || '—'));
+      if (r.dataFabricacao && (!item.dataIni || r.dataFabricacao < item.dataIni)) item.dataIni = r.dataFabricacao;
+      if (r.dataFabricacao && (!item.dataFim || r.dataFabricacao > item.dataFim)) item.dataFim = r.dataFabricacao;
+      mapa.set(k, item);
+    });
+    return Array.from(mapa.values()).map(item => {
+      const loteQtd = item.lotes.size;
+      const lotes = Array.from(item.lotes).filter(v => v !== '—');
+      const refugos = lotes.reduce((s, lote) => s + (reps.get(`${item.fornecedor}|||${item.projeto}|||${lote}`) || 0), 0);
+      let status = 'Em andamento';
+      if (String(item.serie).startsWith('Série aberta / sem série')) status = 'Sem série definida';
+      else if (item.total >= LIMITE_PECAS || loteQtd >= LIMITE_LOTES) status = 'Ensaio obrigatório';
+      else if (item.total >= PROXIMO_PECAS || loteQtd >= PROXIMO_LOTES) status = 'Próximo do ensaio';
+      return {
+        Fornecedor: item.fornecedor,
+        'Projeto / Bitola': item.grupo,
+        Série: item.serie,
+        Status: status,
+        'Produção acumulada': item.total,
+        'Lotes acumulados': loteQtd,
+        'Saldo até 2000 peças': Math.max(0, LIMITE_PECAS - item.total),
+        'Saldo até 10 lotes': Math.max(0, LIMITE_LOTES - loteQtd),
+        'Dormentes ensaiados': item.ensaiados,
+        'Reprovados em ensaio': item.reprovadosEnsaio,
+        'Refugos vinculados': refugos,
+        'Data inicial': item.dataIni,
+        'Data final': item.dataFim,
+        'Lotes vinculados': lotes.sort((a, b) => String(a).localeCompare(String(b), 'pt-BR', { numeric: true })).join(', '),
+      };
+    }).sort((a, b) => {
+      const pr = { 'Ensaio obrigatório': 0, 'Próximo do ensaio': 1, 'Sem série definida': 2, 'Em andamento': 3 };
+      return (pr[a.Status] ?? 9) - (pr[b.Status] ?? 9) || b['Produção acumulada'] - a['Produção acumulada'];
+    });
+  }
+
+  function _serie(valor, projeto) {
+    const raw = String(valor == null ? '' : valor).replace(/\s+/g, ' ').trim();
+    if (!raw || raw === '0' || raw === '-') return `Série aberta / sem série - ${_codigoProjeto(projeto)}`;
+    return raw.replace(/\s*-\s*/g, ' - ').replace(/Série\s+(\d+)/i, (_, n) => `Série ${String(Number(n)).padStart(2, '0')}`).replace(/\s+/g, ' ').trim();
+  }
+  function _codigoProjeto(projeto) {
+    const k = _norm(projeto);
+    if (k.includes('FERRO')) return 'FN';
+    if (k.includes('MALHA PAULISTA')) return 'MP';
+    if (k.includes('FMT')) return 'FMT';
+    if (k.includes('MALHA CENTRAL')) return 'MC';
+    return k.split(' ').map(p => p[0]).join('').slice(0, 4) || 'PRJ';
+  }
+  function _grupo(r) {
+    const k = _norm(`${r.tipo || ''} ${r.projeto || ''}`);
+    const bitola = k.includes('BITOLA MISTA') ? 'BM' : k.includes('BITOLA LARGA') ? 'BL' : 'SB';
+    return `${r.projeto || 'Sem projeto'} • ${bitola}`;
+  }
+  function _norm(v) { return String(v == null ? '' : v).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toUpperCase(); }
+  function _int(v) { const n = parseInt(v, 10); return isNaN(n) ? 0 : n; }
 
   function _baixar(blob, nome) {
     const url = URL.createObjectURL(blob);

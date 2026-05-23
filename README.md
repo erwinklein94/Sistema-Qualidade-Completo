@@ -11,6 +11,8 @@ Excel. Funciona 100% no navegador (não precisa de servidor) e é compatível co
 - **Dashboard** — visão geral com gráficos de produção, reprovas, ensaios e status.
 - **Indicador Semanal** — consolidação por semana e por fábrica (gerada
   automaticamente a partir dos lançamentos de produção e reprovas).
+- **Ensaios de Liberação** — controle automático das séries de ensaio, com alerta
+  para 2.000 peças ou 10 lotes, próximas do limite e sem série cadastrada.
 - **Produção** — cadastro completo de cada lote produzido (pista, pedido, projeto,
   tipo, ensaios, status etc.).
 - **Reprovados** — registro de refugos de dormentes por motivo.
@@ -92,6 +94,7 @@ os arquivos alterados.
 /
 ├── index.html         → Dashboard
 ├── semanal.html       → Indicador Semanal
+├── ensaios.html       → Ensaios de Liberação
 ├── producao.html      → Produção
 ├── reprovados.html    → Reprovados
 ├── dados.html         → Dados & Backup
@@ -104,6 +107,7 @@ os arquivos alterados.
     ├── producao.js    → tela de Produção
     ├── reprovados.js  → tela de Reprovados
     ├── semanal.js     → tela de Indicador Semanal
+    ├── ensaios.js     → controle automático das séries de liberação
     ├── dashboard.js   → gráficos do Dashboard
     ├── dados.js       → backup / importação / demo
     └── demo.js        → dados de exemplo (extraídos da sua planilha)
@@ -146,3 +150,16 @@ Novos recursos adicionados:
   - rótulo percentual sobre cada ponto da linha.
 
 O gráfico semanal por projeto é calculado a partir dos lançamentos de **Produção** e **Reprovados**, porque a aba de Indicador Semanal da planilha é consolidada por fornecedor e não separa os totais por projeto.
+
+
+## Atualização: Ensaios de Liberação
+
+Foi incorporado ao site o controle útil do projeto anexado, baseado na aba de **Ensaios de Liberação** / séries:
+
+- Nova tela **Ensaios de Liberação** no menu lateral.
+- Cálculo automático por **Fornecedor + Projeto/Bitola + Série**.
+- Alerta de **Ensaio obrigatório** ao atingir **2.000 peças** ou **10 lotes**.
+- Alerta de **Próximo do ensaio** a partir de **1.800 peças** ou **9 lotes**.
+- Identificação de produção **sem série definida**, para correção cadastral.
+- Cruzamento com a aba **Reprovados** para mostrar refugos vinculados aos lotes da série.
+- Exportação Excel agora inclui a aba **Ensaios de Liberação** calculada automaticamente.

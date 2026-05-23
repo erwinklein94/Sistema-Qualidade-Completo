@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ensaios de Liberação · Controle de Dormentes Rumo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <main class="conteudo" id="conteudo">
+      <div class="pagina">
+
+        <div class="card">
+          <div class="card-titulo">
+            <span class="acento">Controle automático das séries</span>
+            <span class="card-sub">Regra: ensaio ao atingir 2.000 peças ou 10 lotes</span>
+          </div>
+          <p class="txt-cinza" style="font-size:14px;line-height:1.7">
+            Esta tela cruza os lançamentos da aba <strong>Produção</strong> com as informações de <strong>Série — Ensaio de Liberação</strong>. Ela mostra quais séries já precisam de ensaio, quais estão próximas do limite e quais lotes ainda estão em andamento.
+          </p>
+        </div>
+
+        <div class="barra-filtros">
+          <div class="busca-rapida campo">
+            <label>Buscar</label>
+            <input type="text" id="busca" placeholder="Série, lote, projeto, tipo...">
+          </div>
+          <div class="campo"><label>Fornecedor</label><select id="fFornecedor"></select></div>
+          <div class="campo"><label>Projeto</label><select id="fProjeto"></select></div>
+          <div class="campo"><label>Série</label><select id="fSerie"></select></div>
+          <div class="campo"><label>Status de liberação</label><select id="fStatusSerie"></select></div>
+          <div class="campo"><label>Período inicial</label><input type="date" id="fPeriodoIni"></div>
+          <div class="campo"><label>Período fim</label><input type="date" id="fPeriodoFim"></div>
+        </div>
+
+        <div class="grid-kpi" id="kpis"></div>
+
+        <div class="grid-graficos">
+          <div class="card span2">
+            <div class="card-titulo">
+              <span class="acento">Progresso das séries de liberação</span>
+              <span class="card-sub">Top 15 por criticidade</span>
+            </div>
+            <div class="chart-box alto"><canvas id="chartProgressoSeries"></canvas></div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo"><span class="acento">Alertas de ensaio</span></div>
+            <div id="alertasSeries"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-titulo"><span class="acento">Resumo por status</span></div>
+            <div id="resumoStatus"></div>
+          </div>
+
+          <div class="card span2">
+            <div class="card-titulo">
+              <span class="acento">Séries monitoradas</span>
+              <span class="txt-mini txt-cinza" id="contadorSeries">0 séries</span>
+            </div>
+            <div id="cardsSeries"></div>
+          </div>
+
+          <div class="card span2">
+            <div class="card-titulo"><span class="acento">Detalhamento das séries</span></div>
+            <div id="tabelaSeries"></div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/comum.js"></script>
+  <script src="js/ensaios.js"></script>
+</body>
+</html>
