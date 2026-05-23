@@ -12,7 +12,7 @@ window.SUPABASE_CONFIG = {
 
 (function inicializarSupabase() {
   const cfg = window.SUPABASE_CONFIG || {};
-  const semChave = !cfg.publishableKey || cfg.publishableKey.includes('sb_publishable_cJSAgmMMzeycNUAsc-UVtQ_5LksyBuu');
+  const semChave = !cfg.publishableKey || cfg.publishableKey.includes('COLE_AQUI');
   if (!window.supabase || !cfg.url || semChave) {
     window.SUPABASE_CLIENTE = null;
     return;
