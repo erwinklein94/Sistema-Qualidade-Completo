@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dados & Backup · Controle de Dormentes Rumo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <main class="conteudo" id="conteudo">
+      <div class="pagina">
+
+        <div class="grid-kpi" id="kpis"></div>
+
+        <div class="card">
+          <div class="card-titulo"><span class="acento">Backup e exportação</span></div>
+          <p class="txt-cinza" style="margin-bottom:18px;font-size:14px">
+            Os dados ficam salvos <strong>neste navegador</strong>. Faça backup com frequência: exporte para JSON (para guardar / subir ao GitHub no futuro) ou para Excel (compatível com a planilha atual).
+          </p>
+          <div class="flex gap12" style="flex-wrap:wrap">
+            <button class="btn btn-primario" onclick="Store.exportarExcel()"><span id="bxExcel"></span>Exportar Excel (.xlsx)</button>
+            <button class="btn btn-secundario" onclick="Store.exportarJSON()"><span id="bxJson"></span>Exportar backup (.json)</button>
+            <label class="btn btn-verde" style="cursor:pointer">
+              <span id="bxUp"></span>Importar backup (.json)
+              <input type="file" accept=".json" style="display:none" onchange="importar(this)">
+            </label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-titulo"><span class="acento">Dados de demonstração</span></div>
+          <p class="txt-cinza" style="margin-bottom:18px;font-size:14px">
+            Carregue alguns registros de exemplo para experimentar o sistema e ver os gráficos preenchidos. Isto não afeta seus dados reais se você já tiver lançado algo (será perguntado).
+          </p>
+          <button class="btn btn-secundario" onclick="carregarDemo()">Carregar dados de exemplo</button>
+        </div>
+
+        <div class="card">
+          <div class="card-titulo"><span class="acento" style="color:var(--erro)">Zona de risco</span></div>
+          <p class="txt-cinza" style="margin-bottom:18px;font-size:14px">
+            Apaga <strong>todos</strong> os dados salvos neste navegador. Faça um backup antes. Esta ação não pode ser desfeita.
+          </p>
+          <button class="btn btn-perigo" onclick="limparTudo()">Apagar todos os dados</button>
+        </div>
+
+        <div class="card">
+          <div class="card-titulo"><span class="acento">Como funciona / próximos passos</span></div>
+          <div style="font-size:14px;line-height:1.7;color:var(--cinza-texto)">
+            <p style="margin-bottom:10px"><strong style="color:var(--azul-escuro)">Hoje (GitHub Pages):</strong> o site roda 100% no navegador. Cada pessoa que abre o site tem os seus próprios dados localmente. Para compartilhar, exporte o JSON e a outra pessoa importa.</p>
+            <p style="margin-bottom:10px"><strong style="color:var(--azul-escuro)">Futuro (banco de dados):</strong> quando você tiver um banco, basta trocar o arquivo <code>js/store.js</code> para que os métodos <code>listar / salvar / remover</code> conversem com sua API. Todo o restante do site continua igual.</p>
+            <p><strong style="color:var(--azul-escuro)">Para publicar:</strong> suba a pasta inteira para um repositório no GitHub e ative o GitHub Pages em Settings → Pages → branch <code>main</code>.</p>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/comum.js"></script>
+  <script src="js/demo.js"></script>
+  <script src="js/dados.js"></script>
+</body>
+</html>

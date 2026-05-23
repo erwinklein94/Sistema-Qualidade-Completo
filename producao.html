@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Produção · Controle de Dormentes Rumo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <main class="conteudo" id="conteudo">
+      <div class="pagina">
+
+        <!-- barra de filtros + busca -->
+        <div class="barra-filtros">
+          <div class="busca-rapida campo">
+            <label>Buscar (lote, projeto, série...)</label>
+            <input type="text" id="busca" placeholder="Digite para filtrar...">
+          </div>
+          <div class="campo">
+            <label>Fornecedor</label>
+            <select id="fFornecedor"></select>
+          </div>
+          <div class="campo">
+            <label>Projeto</label>
+            <select id="fProjeto"></select>
+          </div>
+          <div class="campo">
+            <label>Status</label>
+            <select id="fStatus"></select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-titulo">
+            <span class="acento">Registros de Produção</span>
+            <span class="txt-mini txt-cinza" id="contador">0 registros</span>
+          </div>
+          <div id="lista"></div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL FORMULÁRIO -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-cab">
+        <h2 id="modalTitulo">Novo lançamento de produção</h2>
+        <button class="fechar-modal" onclick="fecharModal()">⨯</button>
+      </div>
+      <div class="modal-corpo">
+        <form id="form" onsubmit="return false">
+          <input type="hidden" id="id">
+          <div class="form-grid">
+
+            <div class="form-secao">Identificação</div>
+            <div class="campo">
+              <label>Fornecedor <span class="obrig">*</span></label>
+              <select id="fornecedor" required></select>
+            </div>
+            <div class="campo"><label>Pista</label><input id="pista" type="text"></div>
+            <div class="campo"><label>N° Pedido</label><select id="pedido"></select></div>
+            <div class="campo"><label>Lote <span class="obrig">*</span></label><input id="lote" type="text" required></div>
+            <div class="campo"><label>Projeto <span class="obrig">*</span></label><select id="projeto" required></select></div>
+            <div class="campo"><label>Tipo de Dormente <span class="obrig">*</span></label><select id="tipo" required></select></div>
+            <div class="campo"><label>Total da Produção <span class="obrig">*</span></label><input id="total" type="number" min="0" required></div>
+
+            <div class="form-secao">Datas e Cura</div>
+            <div class="campo"><label>Data de Fabricação <span class="obrig">*</span></label><input id="dataFabricacao" type="date" required></div>
+            <div class="campo"><label>Cura 14 dias</label><input id="cura14" type="date"></div>
+            <div class="campo"><label>Cura 28 dias</label><input id="cura28" type="date"></div>
+            <div class="campo"><label>Tempo de Cura <span class="dica">(horas)</span></label><input id="tempoCura" type="text" placeholder="ex.: 14,5"></div>
+
+            <div class="form-secao">USP e Ombreiras</div>
+            <div class="campo"><label>Com USP</label><select id="comUsp"></select></div>
+            <div class="campo"><label>USP (Lote)</label><input id="uspLote" type="text"></div>
+            <div class="campo"><label>Tipo de Ombreiras</label><select id="ombreira"></select></div>
+            <div class="campo"><label>Lote Ombreiras</label><input id="loteOmbreira" type="text"></div>
+
+            <div class="form-secao">Temperatura (°C)</div>
+            <div class="campo"><label>Inicial</label><input id="tempIni" type="text"></div>
+            <div class="campo"><label>Meio</label><input id="tempMeio" type="text"></div>
+            <div class="campo"><label>Final</label><input id="tempFim" type="text"></div>
+
+            <div class="form-secao">Slump Test (mm) — Abatimento (230 ±30) / Espalhamento</div>
+            <div class="campo"><label>Início — Abatimento</label><input id="slumpIniA" type="text"></div>
+            <div class="campo"><label>Início — Espalhamento</label><input id="slumpIniE" type="text"></div>
+            <div class="campo"><label>Meio — Abatimento</label><input id="slumpMeioA" type="text"></div>
+            <div class="campo"><label>Meio — Espalhamento</label><input id="slumpMeioE" type="text"></div>
+            <div class="campo"><label>Fim — Abatimento</label><input id="slumpFimA" type="text"></div>
+            <div class="campo"><label>Fim — Espalhamento</label><input id="slumpFimE" type="text"></div>
+
+            <div class="form-secao">Despronteção</div>
+            <div class="campo"><label>Início Pista</label><input id="desproIni" type="text"></div>
+            <div class="campo"><label>Meio Pista</label><input id="desproMeio" type="text"></div>
+            <div class="campo"><label>Fim Pista</label><input id="desproFim" type="text"></div>
+
+            <div class="form-secao">Resistências — Compressão Axial (MPa) e Tração na Flexão</div>
+            <div class="campo"><label>Comp. Axial 7 dias</label><input id="comp7" type="text" placeholder="ex.: 64,22 / 60,26"></div>
+            <div class="campo"><label>Comp. Axial 14 dias</label><input id="comp14" type="text"></div>
+            <div class="campo"><label>Tração Flexão 14 dias</label><input id="tracao14" type="text"></div>
+            <div class="campo"><label>Comp. Axial 28 dias</label><input id="comp28" type="text"></div>
+            <div class="campo"><label>Tração Flexão 28 dias</label><input id="tracao28" type="text"></div>
+
+            <div class="form-secao">Ensaio de Liberação</div>
+            <div class="campo"><label>Série — Ensaio de Liberação</label><input id="serie" type="text" placeholder="ex.: Série 01 - FMT"></div>
+            <div class="campo full"><label>Ensaio no iAuditor <span class="dica">(link/arquivo/observação)</span></label><input id="iauditor" type="text"></div>
+
+            <div class="form-secao">Resultado e Status</div>
+            <div class="campo"><label>Dormentes Ensaiados</label><input id="ensaiados" type="number" min="0"></div>
+            <div class="campo"><label>Dormentes a Analisar</label><input id="aAnalisar" type="text"></div>
+            <div class="campo"><label>Dormentes Reprovados</label><input id="reprovados" type="number" min="0"></div>
+            <div class="campo"><label>Total Produção Aprovado</label><input id="aprovado" type="number" min="0"></div>
+            <div class="campo"><label>Status <span class="obrig">*</span></label><select id="status" required></select></div>
+            <div class="campo full"><label>Motivo / Especificação <span class="dica">(refugados, observações)</span></label><textarea id="motivo"></textarea></div>
+
+          </div>
+          <div class="form-acoes">
+            <button type="button" class="btn btn-secundario" onclick="fecharModal()">Cancelar</button>
+            <button type="button" class="btn btn-primario" onclick="salvar()">Salvar lançamento</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL VISUALIZAÇÃO -->
+  <div class="modal-overlay" id="modalVer">
+    <div class="modal">
+      <div class="modal-cab">
+        <h2 id="verTitulo">Detalhe</h2>
+        <button class="fechar-modal" onclick="fecharVer()">⨯</button>
+      </div>
+      <div class="modal-corpo" id="verCorpo"></div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/comum.js"></script>
+  <script src="js/producao.js"></script>
+</body>
+</html>

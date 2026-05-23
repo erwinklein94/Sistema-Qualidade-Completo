@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Indicador Semanal · Controle de Dormentes Rumo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <main class="conteudo" id="conteudo">
+      <div class="pagina">
+
+        <div class="grid-kpi" id="kpis"></div>
+
+        <div class="card">
+          <div class="card-titulo">
+            <span class="acento">Indicador Semanal de Fabricação</span>
+            <span class="txt-mini txt-cinza" id="contador"></span>
+          </div>
+          <div id="lista"></div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-cab">
+        <h2 id="modalTitulo">Nova semana</h2>
+        <button class="fechar-modal" onclick="fecharModal()">⨯</button>
+      </div>
+      <div class="modal-corpo">
+        <form id="form" onsubmit="return false">
+          <input type="hidden" id="id">
+          <div class="form-grid">
+            <div class="form-secao">Período</div>
+            <div class="campo"><label>Semana <span class="obrig">*</span></label><input id="semana" type="number" min="1" max="53" required></div>
+            <div class="campo"><label>Data <span class="dica">(referência)</span></label><input id="data" type="date"></div>
+            <div class="campo"><label>Período — Início</label><input id="periodoIni" type="date"></div>
+            <div class="campo"><label>Período — Fim</label><input id="periodoFim" type="date"></div>
+            <div class="campo"><label>Fornecedor <span class="obrig">*</span></label><select id="fornecedor" required></select></div>
+
+            <div class="form-secao">Produção</div>
+            <div class="campo"><label>Produzidos</label><input id="produzidos" type="number" min="0"></div>
+            <div class="campo"><label>Previsto</label><input id="previsto" type="number" min="0"></div>
+
+            <div class="form-secao">Ensaios</div>
+            <div class="campo"><label>Ensaios Realizados</label><input id="ensaiosReal" type="number" min="0"></div>
+            <div class="campo"><label>Ensaios Aprovados</label><input id="ensaiosAprov" type="number" min="0"></div>
+            <div class="campo"><label>Ensaios Recusados</label><input id="ensaiosRec" type="number" min="0"></div>
+
+            <div class="form-secao">Recusas</div>
+            <div class="campo"><label>Dormentes Recusados</label><input id="dormRecusados" type="number" min="0"></div>
+          </div>
+          <div class="form-acoes">
+            <button type="button" class="btn btn-secundario" onclick="fecharModal()">Cancelar</button>
+            <button type="button" class="btn btn-primario" onclick="salvar()">Salvar semana</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/comum.js"></script>
+  <script src="js/semanal.js"></script>
+</body>
+</html>

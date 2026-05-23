@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reprovados · Controle de Dormentes Rumo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <main class="conteudo" id="conteudo">
+      <div class="pagina">
+
+        <div class="barra-filtros">
+          <div class="busca-rapida campo">
+            <label>Buscar (lote, molde, motivo...)</label>
+            <input type="text" id="busca" placeholder="Digite para filtrar...">
+          </div>
+          <div class="campo"><label>Fornecedor</label><select id="fFornecedor"></select></div>
+          <div class="campo"><label>Projeto</label><select id="fProjeto"></select></div>
+          <div class="campo"><label>Motivo (Indicador)</label><select id="fMotivo"></select></div>
+        </div>
+
+        <div class="card">
+          <div class="card-titulo">
+            <span class="acento">Dormentes Reprovados</span>
+            <span class="txt-mini txt-cinza" id="contador">0 registros</span>
+          </div>
+          <div id="lista"></div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-cab">
+        <h2 id="modalTitulo">Novo registro de reprova</h2>
+        <button class="fechar-modal" onclick="fecharModal()">⨯</button>
+      </div>
+      <div class="modal-corpo">
+        <form id="form" onsubmit="return false">
+          <input type="hidden" id="id">
+          <div class="form-grid">
+            <div class="form-secao">Identificação</div>
+            <div class="campo"><label>Fornecedor <span class="obrig">*</span></label><select id="fornecedor" required></select></div>
+            <div class="campo"><label>Semana</label><input id="semana" type="number" min="1" max="53"></div>
+            <div class="campo"><label>Data de Produção <span class="obrig">*</span></label><input id="dataProducao" type="date" required></div>
+            <div class="campo"><label>Período de Inspeção — Início</label><input id="periodoIni" type="date"></div>
+            <div class="campo"><label>Período de Inspeção — Fim</label><input id="periodoFim" type="date"></div>
+
+            <div class="form-secao">Dormente</div>
+            <div class="campo"><label>Lote <span class="obrig">*</span></label><input id="lote" type="text" required></div>
+            <div class="campo"><label>Projeto <span class="obrig">*</span></label><select id="projeto" required></select></div>
+            <div class="campo"><label>Tipo</label><select id="tipo"></select></div>
+            <div class="campo"><label>Molde</label><input id="molde" type="text"></div>
+            <div class="campo"><label>Cavidade</label><input id="cavidade" type="text"></div>
+
+            <div class="form-secao">Motivo da Reprova</div>
+            <div class="campo full"><label>Motivo Detalhado</label><select id="motivoDetalhado"></select></div>
+            <div class="campo"><label>Motivo (Indicador) <span class="obrig">*</span></label><select id="motivoIndicador" required></select></div>
+            <div class="campo"><label>Total de Refugos <span class="dica">(qtde)</span></label><input id="totalRefugos" type="number" min="0"></div>
+          </div>
+          <div class="form-acoes">
+            <button type="button" class="btn btn-secundario" onclick="fecharModal()">Cancelar</button>
+            <button type="button" class="btn btn-primario" onclick="salvar()">Salvar reprova</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/comum.js"></script>
+  <script src="js/reprovados.js"></script>
+</body>
+</html>

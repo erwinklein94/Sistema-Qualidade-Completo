@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard · Controle de Dormentes Rumo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <main class="conteudo" id="conteudo">
+      <div class="pagina">
+
+        <div class="barra-filtros">
+          <div class="campo"><label>Fornecedor</label><select id="fFornecedor"></select></div>
+          <div class="campo"><label>Projeto</label><select id="fProjeto"></select></div>
+        </div>
+
+        <div class="grid-kpi" id="kpis"></div>
+
+        <div id="conteudoDash">
+          <div class="grid-graficos">
+            <div class="card">
+              <div class="card-titulo"><span class="acento">Produção por projeto</span></div>
+              <div class="chart-box"><canvas id="chartProjeto"></canvas></div>
+            </div>
+            <div class="card">
+              <div class="card-titulo"><span class="acento">Motivos de reprova</span></div>
+              <div class="chart-box"><canvas id="chartMotivos"></canvas></div>
+            </div>
+            <div class="card span2">
+              <div class="card-titulo"><span class="acento">Produção semanal × Previsto</span></div>
+              <div class="chart-box alto"><canvas id="chartSemanal"></canvas></div>
+            </div>
+            <div class="card">
+              <div class="card-titulo"><span class="acento">Status dos lotes</span></div>
+              <div class="chart-box"><canvas id="chartStatus"></canvas></div>
+            </div>
+            <div class="card">
+              <div class="card-titulo"><span class="acento">Ensaios: aprovados × recusados</span></div>
+              <div class="chart-box"><canvas id="chartEnsaios"></canvas></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/comum.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
