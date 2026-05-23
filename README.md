@@ -306,3 +306,59 @@ A exportação Excel também foi atualizada:
 
 - **Ensaios Realizados**: lançamentos manuais dos ensaios executados;
 - **Painel de Séries**: visão calculada automaticamente das séries, gatilhos e saldos.
+
+
+---
+
+## Integração Supabase — fase 1
+
+Esta versão já vem preparada para o primeiro teste com Supabase.
+
+### Arquivos adicionados
+
+- `login.html`: tela de login com e-mail e senha.
+- `banco.html`: tela de diagnóstico da conexão com o banco.
+- `js/supabase-config.js`: local onde deve ser colada a **Publishable key**.
+- `js/auth.js`: controle de sessão, login, logout e proteção das páginas.
+- `js/store-supabase.js`: primeira camada de acesso ao banco Supabase.
+- `js/banco-teste.js`: consulta de teste no lote `TESTE-001`.
+
+### Configuração obrigatória
+
+Abra o arquivo:
+
+```text
+js/supabase-config.js
+```
+
+E troque:
+
+```js
+publishableKey: 'COLE_AQUI_SUA_PUBLISHABLE_KEY'
+```
+
+pela Publishable key do seu projeto Supabase.
+
+Use somente a **Publishable key**. Não coloque no site:
+
+- service_role;
+- secret key;
+- senha do banco;
+- connection string;
+- JWT secret.
+
+### Teste inicial
+
+Depois de publicar no GitHub Pages:
+
+1. Acesse `login.html`.
+2. Entre com o usuário criado no Supabase.
+3. Abra `banco.html` pelo menu **Sistema → Teste Supabase**.
+4. A tela deve mostrar:
+   - seu perfil vindo de `usuarios_app`;
+   - o lote fictício `TESTE-001` vindo de `producao_lotes`;
+   - resumo das listas vindas de `listas_configuracao`.
+
+### Importante
+
+Nesta fase, as telas principais ainda usam `localStorage`. O Supabase foi conectado primeiro para validar login, RLS e leitura segura do banco. Depois que o teste passar, a próxima fase é migrar `Produção`, `Reprovados` e `Ensaios de Liberação` para gravar diretamente no banco.

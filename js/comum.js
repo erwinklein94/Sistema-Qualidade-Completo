@@ -15,6 +15,7 @@ const App = {
       { k: 'ensaiosLiberacao', t: 'Ensaios de Liberação', ic: ICN.check, href: 'ensaios-liberacao.html' },
       { k: 'reprovados', t: 'Reprovados', ic: ICN.reprova, href: 'reprovados.html' },
       { sec: 'Sistema' },
+      { k: 'banco', t: 'Teste Supabase', ic: ICN.config, href: 'banco.html' },
       { k: 'dados', t: 'Dados & Backup', ic: ICN.config, href: 'dados.html' },
     ];
 
@@ -46,6 +47,7 @@ const App = {
         </div>
         <div class="topo-acoes">
           <button class="btn btn-secundario btn-sm tema-toggle" id="botaoTema" type="button" onclick="App.alternarTema()" aria-pressed="false" title="Alternar tema">${ICN.tema}<span>Tema escuro</span></button>
+          <div class="usuario-auth" id="areaUsuario"></div>
           <div class="topo-acoes" id="topoAcoes"></div>
         </div>
       </header>`;
@@ -53,6 +55,7 @@ const App = {
     document.getElementById('app').insertAdjacentHTML('afterbegin', sidebar);
     document.getElementById('conteudo').insertAdjacentHTML('afterbegin', topo);
     this.aplicarTemaInicial();
+    setTimeout(() => { if (window.Auth && typeof Auth.montarStatusUsuario === 'function') Auth.montarStatusUsuario(); }, 0);
 
     if (!this._atalhoMenuConfigurado) {
       document.addEventListener('keydown', (ev) => {

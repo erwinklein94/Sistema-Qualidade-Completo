@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste Supabase · Controle de Dormentes Rumo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <main class="conteudo" id="conteudo">
+      <div class="pagina">
+        <div id="statusBanco"></div>
+
+        <div class="card">
+          <div class="card-titulo"><span class="acento">Usuário autenticado</span></div>
+          <div id="perfilBanco"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-titulo">
+            <span class="acento">Leitura do banco: lote TESTE-001</span>
+            <span class="card-sub">Tabela producao_lotes</span>
+          </div>
+          <div class="tabela-wrap" id="loteBanco"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-titulo">
+            <span class="acento">Listas de configuração</span>
+            <span class="card-sub">Tabela listas_configuracao</span>
+          </div>
+          <div id="listasBanco"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script>Auth.exigirLogin();</script>
+  <script src="js/config.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/store-supabase.js"></script>
+  <script src="js/comum.js"></script>
+  <script src="js/banco-teste.js"></script>
+</body>
+</html>
