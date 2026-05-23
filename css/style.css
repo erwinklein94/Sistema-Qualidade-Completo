@@ -60,11 +60,16 @@ body {
   color: var(--branco);
   display: flex;
   flex-direction: column;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: -280px;
   height: 100vh;
   flex-shrink: 0;
+  z-index: 100;
+  transition: left 0.25s ease;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
 }
+.sidebar.aberta { left: 0; }
 
 .sidebar-logo {
   padding: 26px 24px 22px;
@@ -426,27 +431,30 @@ table.tabela .acoes-cel { display: flex; gap: 6px; }
 .detalhe-secao:first-child { margin-top: 0; }
 
 /* ===================== RESPONSIVO ===================== */
-.menu-toggle { display: none; }
+.menu-toggle {
+  display: inline-flex;
+  position: relative;
+  z-index: 30;
+}
+
+.backdrop-mobile {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,38,77,0.4);
+  z-index: 90;
+}
+.backdrop-mobile.ativo { display: block; }
+
 @media (max-width: 980px) {
   .grid-graficos { grid-template-columns: 1fr; }
 }
 @media (max-width: 768px) {
-  .sidebar {
-    position: fixed;
-    left: -260px;
-    z-index: 100;
-    transition: left 0.25s ease;
-    box-shadow: 4px 0 24px rgba(0,0,0,0.2);
-  }
-  .sidebar.aberta { left: 0; }
-  .menu-toggle { display: inline-flex; }
   .topo { padding: 14px 18px; }
   .pagina { padding: 18px 16px 50px; }
   .topo h1 { font-size: 17px; }
   .form-acoes { flex-direction: column; }
   .form-acoes .btn { width: 100%; justify-content: center; }
-  .backdrop-mobile { display: none; position: fixed; inset: 0; background: rgba(0,38,77,0.4); z-index: 90; }
-  .backdrop-mobile.ativo { display: block; }
 }
 
 /* utilitários */

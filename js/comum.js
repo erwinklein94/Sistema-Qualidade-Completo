@@ -19,7 +19,7 @@ const App = {
     let nav = '';
     menu.forEach(m => {
       if (m.sec) { nav += `<div class="nav-section-label">${m.sec}</div>`; return; }
-      nav += `<a href="${m.href}" class="${m.k === paginaAtiva ? 'ativo' : ''}">${m.ic}<span>${m.t}</span></a>`;
+      nav += `<a href="${m.href}" class="${m.k === paginaAtiva ? 'ativo' : ''}" onclick="App.fecharMenu()">${m.ic}<span>${m.t}</span></a>`;
     });
 
     const sidebar = `
@@ -36,7 +36,7 @@ const App = {
     const topo = `
       <header class="topo">
         <div class="flex" style="align-items:center;gap:14px;">
-          <button class="btn btn-secundario btn-sm menu-toggle" onclick="App.abrirMenu()">${ICN.menu}</button>
+          <button class="btn btn-secundario btn-sm menu-toggle" id="botaoMenu" onclick="App.alternarMenu()" aria-controls="sidebar" aria-expanded="false">${ICN.menu}<span>Menu</span></button>
           <div>
             <h1>${titulo}</h1>
             ${subtitulo ? `<div class="subtitulo">${subtitulo}</div>` : ''}
@@ -47,12 +47,34 @@ const App = {
 
     document.getElementById('app').insertAdjacentHTML('afterbegin', sidebar);
     document.getElementById('conteudo').insertAdjacentHTML('afterbegin', topo);
+
+    if (!this._atalhoMenuConfigurado) {
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape') App.fecharMenu();
+      });
+      this._atalhoMenuConfigurado = true;
+    }
   },
 
   acoesTopo(html) { document.getElementById('topoAcoes').innerHTML = html; },
 
-  abrirMenu() { document.getElementById('sidebar').classList.add('aberta'); document.getElementById('backdrop').classList.add('ativo'); },
-  fecharMenu() { document.getElementById('sidebar').classList.remove('aberta'); document.getElementById('backdrop').classList.remove('ativo'); },
+  alternarMenu() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar && sidebar.classList.contains('aberta')) this.fecharMenu();
+    else this.abrirMenu();
+  },
+
+  abrirMenu() {
+    document.getElementById('sidebar')?.classList.add('aberta');
+    document.getElementById('backdrop')?.classList.add('ativo');
+    document.getElementById('botaoMenu')?.setAttribute('aria-expanded', 'true');
+  },
+
+  fecharMenu() {
+    document.getElementById('sidebar')?.classList.remove('aberta');
+    document.getElementById('backdrop')?.classList.remove('ativo');
+    document.getElementById('botaoMenu')?.setAttribute('aria-expanded', 'false');
+  },
 
   toast(msg, tipo = 'sucesso') {
     let wrap = document.querySelector('.toast-wrap');

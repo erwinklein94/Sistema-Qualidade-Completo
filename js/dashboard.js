@@ -1,7 +1,11 @@
 /* =====================================================================
-   DASHBOARD.JS — KPIs e gráficos (Chart.js)
+   DASHBOARD.JS — KPIs, filtros e gráficos (Chart.js)
    ===================================================================== */
 let charts = {};
+
+const Dashboard = {
+  periodoPadrao: null,
+};
 
 document.addEventListener('DOMContentLoaded', () => {
   App.montarLayout('dashboard', 'Dashboard', 'Visão geral da produção de dormentes de concreto');
@@ -9,7 +13,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('fFornecedor').innerHTML = U.opcoes(CFG.listas.fornecedores, '', 'Todos');
   document.getElementById('fProjeto').innerHTML = U.opcoes(CFG.listas.projetos, '', 'Todos');
-  ['fFornecedor', 'fProjeto'].forEach(id => document.getElementById(id).addEventListener('change', render));
+
+  Dashboard.periodoPadrao = periodoUltimaSemanaDisponivel();
+  aplicarPeriodo(Dashboard.periodoPadrao);
+
+  ['fFornecedor', 'fProjeto', 'fPeriodoIni', 'fPeriodoFim'].forEach(id => {
+    document.getElementById(id).addEventListener('change', render);
+  });
+  document.getElementById('btnUltimaSemana').addEventListener('click', () => {
+    Dashboard.periodoPadrao = periodoUltimaSemanaDisponivel();
+    aplicarPeriodo(Dashboard.periodoPadrao);
+    render();
+  });
 
   // estilo global Chart.js
   if (window.Chart) {
@@ -20,56 +35,71 @@ document.addEventListener('DOMContentLoaded', () => {
   render();
 });
 
-function dados() {
-  const ff = document.getElementById('fFornecedor').value;
-  const fp = document.getElementById('fProjeto').value;
-  const filtraP = r => (!ff || r.fornecedor === ff) && (!fp || r.projeto === fp);
+function filtrosAtuais() {
   return {
-    prod: Store.listar('producao').filter(filtraP),
-    rep: Store.listar('reprovados').filter(filtraP),
-    sem: Store.listar('semanal').filter(r => !ff || r.fornecedor === ff),
+    fornecedor: document.getElementById('fFornecedor').value,
+    projeto: document.getElementById('fProjeto').value,
+    ini: document.getElementById('fPeriodoIni').value,
+    fim: document.getElementById('fPeriodoFim').value,
+  };
+}
+
+function dados() {
+  const f = filtrosAtuais();
+  const filtraBase = r => (!f.fornecedor || r.fornecedor === f.fornecedor) && (!f.projeto || r.projeto === f.projeto);
+  const filtraFornecedor = r => !f.fornecedor || r.fornecedor === f.fornecedor;
+
+  return {
+    prod: Store.listar('producao').filter(r => filtraBase(r) && dentroPeriodoData(r.dataFabricacao, f.ini, f.fim)),
+    rep: Store.listar('reprovados').filter(r => filtraBase(r) && dentroPeriodoReprova(r, f.ini, f.fim)),
+    sem: Store.listar('semanal').filter(r => filtraFornecedor(r) && dentroPeriodoIntervalo(r.periodoIni, r.periodoFim, r.data, f.ini, f.fim)),
+    filtros: f,
   };
 }
 
 function render() {
-  const { prod, rep, sem } = dados();
+  const { prod, rep, sem, filtros } = dados();
 
   if (!prod.length && !rep.length && !sem.length) {
     document.getElementById('kpis').innerHTML = '';
     document.getElementById('conteudoDash').innerHTML =
-      `<div class="card"><div class="vazio">${ICN.vazioBox}<h3>Sem dados ainda</h3>
-       <p>Comece lançando produção e reprovas. Os gráficos aparecem aqui automaticamente.</p>
-       <div style="margin-top:18px"><a class="btn btn-primario" href="producao.html" style="text-decoration:none">${ICN.add}Lançar produção</a></div>
+      `<div class="card"><div class="vazio">${ICN.vazioBox}<h3>Sem dados para os filtros atuais</h3>
+       <p>Ajuste o projeto ou o período. Por padrão, o Dashboard abre com a última semana encontrada nos dados.</p>
+       <div style="margin-top:18px"><button class="btn btn-primario" onclick="limparFiltrosDashboard()">Ver todos os dados</button></div>
        </div></div>`;
+    destruir();
     return;
   }
 
+  garantirGradeGraficos();
+
   // KPIs
   const totalProd = prod.reduce((s, r) => s + U.int(r.total), 0);
-  const totalAprov = prod.reduce((s, r) => s + (U.int(r.aprovado) || (U.int(r.total) - U.int(r.reprovados))), 0);
+  const totalAprov = prod.reduce((s, r) => s + (U.int(r.aprovado) || Math.max(0, U.int(r.total) - U.int(r.reprovados))), 0);
   const totalReprovProd = prod.reduce((s, r) => s + U.int(r.reprovados), 0);
   const totalRefugos = rep.reduce((s, r) => s + U.int(r.totalRefugos || 1), 0);
-  const taxaReprova = totalProd ? ((totalReprovProd / totalProd) * 100).toFixed(1) : '0,0';
-  const lotes = prod.length;
+  const reprovadosKpi = totalRefugos || totalReprovProd;
+  const taxaReprova = totalProd ? ((reprovadosKpi / totalProd) * 100).toFixed(1) : '0,0';
+  const periodoTxt = filtros.ini && filtros.fim ? `${U.dataBR(filtros.ini)} a ${U.dataBR(filtros.fim)}` : 'período completo';
 
   document.getElementById('kpis').innerHTML = `
-    <div class="kpi escuro"><div class="rotulo">Produção total</div><div class="valor">${totalProd.toLocaleString('pt-BR')}</div><div class="extra">${lotes} lotes lançados</div></div>
+    <div class="kpi escuro"><div class="rotulo">Produção total</div><div class="valor">${totalProd.toLocaleString('pt-BR')}</div><div class="extra">${prod.length} lotes · ${periodoTxt}</div></div>
     <div class="kpi verde"><div class="rotulo">Aprovados</div><div class="valor">${totalAprov.toLocaleString('pt-BR')}</div><div class="extra">liberados / em cura</div></div>
-    <div class="kpi vermelho"><div class="rotulo">Reprovados (refugos)</div><div class="valor">${totalRefugos.toLocaleString('pt-BR')}</div><div class="extra">${rep.length} ocorrências</div></div>
-    <div class="kpi amarelo"><div class="rotulo">Taxa de reprova</div><div class="valor">${String(taxaReprova).replace('.', ',')}%</div><div class="extra">sobre produção total</div></div>`;
+    <div class="kpi vermelho"><div class="rotulo">Reprovados (refugos)</div><div class="valor">${reprovadosKpi.toLocaleString('pt-BR')}</div><div class="extra">${rep.length} ocorrências lançadas</div></div>
+    <div class="kpi amarelo"><div class="rotulo">Taxa de reprova</div><div class="valor">${String(taxaReprova).replace('.', ',')}%</div><div class="extra">sobre produção do filtro</div></div>`;
 
-  desenharGraficos(prod, rep, sem);
+  desenharGraficos(prod, rep, sem, filtros);
 }
 
 function destruir() { Object.values(charts).forEach(c => c && c.destroy()); charts = {}; }
 
-function desenharGraficos(prod, rep, sem) {
+function desenharGraficos(prod, rep, sem, filtros) {
   destruir();
   const C = CFG.cores;
 
   // 1. Produção por projeto (barras)
   const porProj = {};
-  prod.forEach(r => { porProj[r.projeto] = (porProj[r.projeto] || 0) + U.int(r.total); });
+  prod.forEach(r => { porProj[r.projeto || '—'] = (porProj[r.projeto || '—'] || 0) + U.int(r.total); });
   charts.proj = new Chart(document.getElementById('chartProjeto'), {
     type: 'bar',
     data: {
@@ -86,13 +116,25 @@ function desenharGraficos(prod, rep, sem) {
   const mLabels = Object.keys(porMotivo);
   charts.mot = new Chart(document.getElementById('chartMotivos'), {
     type: 'doughnut',
-    data: { labels: mLabels, datasets: [{ data: Object.values(porMotivo),
-      backgroundColor: mLabels.map((_, i) => C.paleta[i % C.paleta.length]), borderWidth: 2, borderColor: '#fff' }] },
+    data: { labels: mLabels.length ? mLabels : ['Sem reprovas'], datasets: [{ data: mLabels.length ? Object.values(porMotivo) : [1],
+      backgroundColor: mLabels.length ? mLabels.map((_, i) => C.paleta[i % C.paleta.length]) : ['#eef0f2'], borderWidth: 2, borderColor: '#fff' }] },
     options: baseOpt({ legend: 'right' })
   });
 
-  // 3. Produção × Reprova por lote (barras de produzidos/refugos + linha de % reprova)
-  // cruza os mesmos lotes: total produzido vs. refugos registrados, com o % de cada lote
+  // 3. Produção × Reprova semanal por projeto
+  const semanalProjeto = agregarSemanalProjeto(prod, rep, filtros);
+  charts.semanalProjeto = graficoComparativo({
+    canvasId: 'chartSemanalProjeto',
+    labels: semanalProjeto.labels,
+    produzidos: semanalProjeto.produzidos,
+    refugos: semanalProjeto.refugos,
+    percentuais: semanalProjeto.percentuais,
+    detalhes: semanalProjeto.detalhes,
+    pluginId: 'rotuloPctSemanalProjeto',
+    tituloTooltip: (label, detalhe) => `${label}${detalhe && detalhe.projeto ? ' · ' + detalhe.projeto : ''}`,
+  });
+
+  // 4. Produção × Reprova por lote (barras de produzidos/refugos + linha de % reprova)
   const porLote = {};
   prod.forEach(r => {
     const k = (r.lote || '—').toString();
@@ -103,22 +145,56 @@ function desenharGraficos(prod, rep, sem) {
     const k = (r.lote || '—').toString();
     if (!porLote[k]) porLote[k] = { prod: 0, rep: 0, projeto: r.projeto || '—' };
     porLote[k].rep += U.int(r.totalRefugos || 1);
+    if (!porLote[k].projeto || porLote[k].projeto === '—') porLote[k].projeto = r.projeto || '—';
   });
-  // ordena por lote e mantém só quem teve produção (lotes sem produção entram no fim)
   const lotesOrd = Object.keys(porLote).sort((a, b) => {
     const na = parseInt(a, 10), nb = parseInt(b, 10);
     if (!isNaN(na) && !isNaN(nb)) return na - nb;
     return a.localeCompare(b);
   });
-  const loteLabels = lotesOrd;
-  const loteProd = lotesOrd.map(k => porLote[k].prod);
-  const loteRep = lotesOrd.map(k => porLote[k].rep);
-  const lotePct = lotesOrd.map(k => porLote[k].prod ? (porLote[k].rep / porLote[k].prod) * 100 : 0);
-  const loteProj = lotesOrd.map(k => porLote[k].projeto);
+  charts.lote = graficoComparativo({
+    canvasId: 'chartLote',
+    labels: lotesOrd,
+    produzidos: lotesOrd.map(k => porLote[k].prod),
+    refugos: lotesOrd.map(k => porLote[k].rep),
+    percentuais: lotesOrd.map(k => porLote[k].prod ? (porLote[k].rep / porLote[k].prod) * 100 : 0),
+    detalhes: lotesOrd.map(k => ({ projeto: porLote[k].projeto })),
+    pluginId: 'rotuloPctLote',
+    tituloTooltip: (label, detalhe) => 'Lote ' + label + ' · ' + (detalhe?.projeto || '—'),
+  });
 
-  // plugin leve para escrever o % pequeno acima de cada ponto da linha
+  // 5. Status dos lotes (pizza)
+  const porStatus = {};
+  prod.forEach(r => { const s = r.status || '—'; porStatus[s] = (porStatus[s] || 0) + 1; });
+  const sLabels = Object.keys(porStatus);
+  const corStatus = { 'Liberado para transporte': C.verde, 'Em processo de cura': C.azulClaro, 'Entregue': C.cinza, 'Bloqueado': C.erro, 'Reprovado': '#c0392b' };
+  charts.stat = new Chart(document.getElementById('chartStatus'), {
+    type: 'pie',
+    data: { labels: sLabels.length ? sLabels : ['Sem lotes'], datasets: [{ data: sLabels.length ? Object.values(porStatus) : [1],
+      backgroundColor: sLabels.length ? sLabels.map((s, i) => corStatus[s] || C.paleta[i % C.paleta.length]) : ['#eef0f2'], borderWidth: 2, borderColor: '#fff' }] },
+    options: baseOpt({ legend: 'right' })
+  });
+
+  // 6. Ensaios aprovados × recusados (rosca)
+  let aprov = 0, recus = 0;
+  if (sem.length && !filtros.projeto) {
+    sem.forEach(r => { aprov += U.int(r.ensaiosAprov); recus += U.int(r.ensaiosRec); });
+  } else {
+    prod.forEach(r => { aprov += Math.max(0, U.int(r.ensaiados) - U.int(r.reprovados)); recus += U.int(r.reprovados); });
+  }
+  charts.ens = new Chart(document.getElementById('chartEnsaios'), {
+    type: 'doughnut',
+    data: { labels: ['Aprovados', 'Recusados'], datasets: [{ data: [Math.max(0, aprov), Math.max(0, recus)],
+      backgroundColor: [C.verde, C.erro], borderWidth: 2, borderColor: '#fff' }] },
+    options: baseOpt({ legend: 'bottom' })
+  });
+}
+
+function graficoComparativo({ canvasId, labels, produzidos, refugos, percentuais, detalhes, pluginId, tituloTooltip }) {
+  const C = CFG.cores;
+  const pct = percentuais || [];
   const rotuloPct = {
-    id: 'rotuloPct',
+    id: pluginId,
     afterDatasetsDraw(chart) {
       const meta = chart.getDatasetMeta(2); // dataset da linha de %
       if (!meta || meta.hidden) return;
@@ -128,20 +204,20 @@ function desenharGraficos(prod, rep, sem) {
       ctx.fillStyle = '#7a5c00';
       ctx.textAlign = 'center';
       meta.data.forEach((pt, i) => {
-        const v = lotePct[i];
+        const v = pct[i];
         if (v > 0) ctx.fillText(v.toFixed(1).replace('.', ',') + '%', pt.x, pt.y - 8);
       });
       ctx.restore();
     }
   };
 
-  charts.lote = new Chart(document.getElementById('chartLote'), {
+  return new Chart(document.getElementById(canvasId), {
     data: {
-      labels: loteLabels,
+      labels,
       datasets: [
-        { type: 'bar', label: 'Produzidos', data: loteProd, backgroundColor: C.azulEscuro, borderRadius: 5, yAxisID: 'y', order: 3 },
-        { type: 'bar', label: 'Refugos', data: loteRep, backgroundColor: C.erro, borderRadius: 5, yAxisID: 'y', order: 2 },
-        { type: 'line', label: '% de reprova', data: lotePct, borderColor: C.amarelo, backgroundColor: C.amarelo,
+        { type: 'bar', label: 'Produzidos', data: produzidos, backgroundColor: C.azulEscuro, borderRadius: 5, yAxisID: 'y', order: 3 },
+        { type: 'bar', label: 'Refugos', data: refugos, backgroundColor: C.erro, borderRadius: 5, yAxisID: 'y', order: 2 },
+        { type: 'line', label: '% de reprova', data: pct, borderColor: C.amarelo, backgroundColor: C.amarelo,
           borderWidth: 2.5, tension: 0.3, pointRadius: 3, pointBackgroundColor: C.amarelo, yAxisID: 'y1', order: 1 }
       ]
     },
@@ -154,7 +230,7 @@ function desenharGraficos(prod, rep, sem) {
         tooltip: {
           backgroundColor: '#003567', padding: 10, cornerRadius: 8, titleFont: { weight: '700' },
           callbacks: {
-            title: items => 'Lote ' + items[0].label + ' · ' + (loteProj[items[0].dataIndex] || '—'),
+            title: items => tituloTooltip(items[0].label, detalhes?.[items[0].dataIndex]),
             label: item => {
               if (item.dataset.label === '% de reprova') return '% de reprova: ' + Number(item.raw).toFixed(1).replace('.', ',') + '%';
               return item.dataset.label + ': ' + U.int(item.raw).toLocaleString('pt-BR');
@@ -163,6 +239,7 @@ function desenharGraficos(prod, rep, sem) {
         }
       },
       scales: {
+        x: { ticks: { maxRotation: 45, minRotation: 0 } },
         y: { beginAtZero: true, title: { display: true, text: 'Dormentes', font: { size: 11 } } },
         y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false },
           title: { display: true, text: '% reprova', font: { size: 11 } },
@@ -170,29 +247,38 @@ function desenharGraficos(prod, rep, sem) {
       }
     }
   });
+}
 
-  // 4. Status dos lotes (pizza)
-  const porStatus = {};
-  prod.forEach(r => { const s = r.status || '—'; porStatus[s] = (porStatus[s] || 0) + 1; });
-  const sLabels = Object.keys(porStatus);
-  const corStatus = { 'Liberado para transporte': C.verde, 'Em processo de cura': C.azulClaro, 'Entregue': C.cinza, 'Bloqueado': C.erro, 'Reprovado': '#c0392b' };
-  charts.stat = new Chart(document.getElementById('chartStatus'), {
-    type: 'pie',
-    data: { labels: sLabels, datasets: [{ data: Object.values(porStatus),
-      backgroundColor: sLabels.map((s, i) => corStatus[s] || C.paleta[i % C.paleta.length]), borderWidth: 2, borderColor: '#fff' }] },
-    options: baseOpt({ legend: 'right' })
+function agregarSemanalProjeto(prod, rep, filtros) {
+  const mapa = {};
+  const add = (sem, projeto, campo, valor) => {
+    const proj = projeto || '—';
+    const key = `${sem.ano}-${String(sem.semana).padStart(2, '0')}|${proj}`;
+    if (!mapa[key]) mapa[key] = { ano: sem.ano, semana: sem.semana, projeto: proj, prod: 0, rep: 0 };
+    mapa[key][campo] += U.int(valor);
+  };
+
+  prod.forEach(r => {
+    if (!r.dataFabricacao) return;
+    add(anoSemanaISO(r.dataFabricacao), r.projeto, 'prod', r.total);
+  });
+  rep.forEach(r => {
+    const data = dataReprova(r);
+    if (!data) return;
+    add(anoSemanaISO(data), r.projeto, 'rep', r.totalRefugos || 1);
   });
 
-  // 5. Ensaios aprovados × recusados (rosca) — usa semanal se houver, senão agrega produção
-  let aprov = 0, recus = 0;
-  if (sem.length) { sem.forEach(r => { aprov += U.int(r.ensaiosAprov); recus += U.int(r.ensaiosRec); }); }
-  else { prod.forEach(r => { aprov += U.int(r.ensaiados) - U.int(r.reprovados); recus += U.int(r.reprovados); }); }
-  charts.ens = new Chart(document.getElementById('chartEnsaios'), {
-    type: 'doughnut',
-    data: { labels: ['Aprovados', 'Recusados'], datasets: [{ data: [Math.max(0, aprov), Math.max(0, recus)],
-      backgroundColor: [C.verde, C.erro], borderWidth: 2, borderColor: '#fff' }] },
-    options: baseOpt({ legend: 'bottom' })
-  });
+  const itens = Object.values(mapa).sort((a, b) =>
+    (a.ano - b.ano) || (a.semana - b.semana) || a.projeto.localeCompare(b.projeto)
+  );
+
+  return {
+    labels: itens.map(i => filtros.projeto ? `Sem. ${String(i.semana).padStart(2, '0')}/${i.ano}` : `Sem. ${String(i.semana).padStart(2, '0')}/${i.ano} · ${i.projeto}`),
+    produzidos: itens.map(i => i.prod),
+    refugos: itens.map(i => i.rep),
+    percentuais: itens.map(i => i.prod ? (i.rep / i.prod) * 100 : 0),
+    detalhes: itens.map(i => ({ projeto: i.projeto, ano: i.ano, semana: i.semana })),
+  };
 }
 
 function baseOpt({ legend }) {
@@ -204,4 +290,117 @@ function baseOpt({ legend }) {
     },
     scales: undefined,
   };
+}
+
+function limparFiltrosDashboard() {
+  document.getElementById('fFornecedor').value = '';
+  document.getElementById('fProjeto').value = '';
+  document.getElementById('fPeriodoIni').value = '';
+  document.getElementById('fPeriodoFim').value = '';
+  render();
+}
+
+function aplicarPeriodo(p) {
+  if (!p) return;
+  document.getElementById('fPeriodoIni').value = p.ini || '';
+  document.getElementById('fPeriodoFim').value = p.fim || '';
+}
+
+function periodoUltimaSemanaDisponivel() {
+  const dados = Store.tudo();
+  const semanaConsolidada = (dados.semanal || [])
+    .filter(r => r.periodoIni || r.periodoFim || r.data)
+    .sort((a, b) => compararData(dataFimRegistro(a), dataFimRegistro(b)))
+    .pop();
+
+  if (semanaConsolidada) {
+    const fim = dataFimRegistro(semanaConsolidada);
+    const ini = semanaConsolidada.periodoIni || deslocarDias(fim, -6);
+    return { ini, fim };
+  }
+
+  const datas = [];
+  (dados.producao || []).forEach(r => { if (r.dataFabricacao) datas.push(r.dataFabricacao); });
+  (dados.reprovados || []).forEach(r => {
+    [r.dataProducao, r.periodoIni, r.periodoFim].forEach(d => { if (d) datas.push(d); });
+  });
+  const ultima = datas.sort(compararData).pop();
+  if (ultima) return semanaCalendarioISO(ultima);
+
+  const hoje = new Date();
+  const fim = isoLocal(hoje);
+  const ini = isoLocal(new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 6));
+  return { ini, fim };
+}
+
+function garantirGradeGraficos() {
+  const c = document.getElementById('conteudoDash');
+  if (document.getElementById('chartSemanalProjeto')) return;
+  c.innerHTML = `
+    <div class="grid-graficos">
+      <div class="card"><div class="card-titulo"><span class="acento">Produção por projeto</span></div><div class="chart-box"><canvas id="chartProjeto"></canvas></div></div>
+      <div class="card"><div class="card-titulo"><span class="acento">Motivos de reprova</span></div><div class="chart-box"><canvas id="chartMotivos"></canvas></div></div>
+      <div class="card span2"><div class="card-titulo"><span class="acento">Produção × Reprova semanal por projeto</span><span class="card-sub">Total produzido, refugos e % de reprova por semana/projeto</span></div><div class="chart-box alto"><canvas id="chartSemanalProjeto"></canvas></div></div>
+      <div class="card span2"><div class="card-titulo"><span class="acento">Produção × Reprova por lote</span><span class="card-sub">Total produzido, refugos e % de reprova de cada lote</span></div><div class="chart-box alto"><canvas id="chartLote"></canvas></div></div>
+      <div class="card"><div class="card-titulo"><span class="acento">Status dos lotes</span></div><div class="chart-box"><canvas id="chartStatus"></canvas></div></div>
+      <div class="card"><div class="card-titulo"><span class="acento">Ensaios: aprovados × recusados</span></div><div class="chart-box"><canvas id="chartEnsaios"></canvas></div></div>
+    </div>`;
+}
+
+function dentroPeriodoData(iso, ini, fim) {
+  if (!ini && !fim) return true;
+  if (!iso) return false;
+  if (ini && iso < ini) return false;
+  if (fim && iso > fim) return false;
+  return true;
+}
+
+function dentroPeriodoReprova(r, ini, fim) {
+  if (!ini && !fim) return true;
+  return dentroPeriodoIntervalo(r.periodoIni, r.periodoFim, r.dataProducao, ini, fim);
+}
+
+function dentroPeriodoIntervalo(regIni, regFim, dataUnica, filtroIni, filtroFim) {
+  if (!filtroIni && !filtroFim) return true;
+  const a = regIni || dataUnica || regFim;
+  const b = regFim || dataUnica || regIni;
+  if (!a && !b) return false;
+  if (filtroIni && b && b < filtroIni) return false;
+  if (filtroFim && a && a > filtroFim) return false;
+  return true;
+}
+
+function dataReprova(r) { return r.dataProducao || r.periodoIni || r.periodoFim || ''; }
+function dataFimRegistro(r) { return r.periodoFim || r.data || r.periodoIni || ''; }
+function compararData(a, b) { return String(a || '').localeCompare(String(b || '')); }
+
+function anoSemanaISO(iso) {
+  const d = new Date(iso + 'T00:00:00');
+  const target = new Date(d.valueOf());
+  const dayNr = (d.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNr + 3);
+  const ano = target.getFullYear();
+  const firstThursday = new Date(ano, 0, 4);
+  const firstDayNr = (firstThursday.getDay() + 6) % 7;
+  firstThursday.setDate(firstThursday.getDate() - firstDayNr + 3);
+  const semana = 1 + Math.round((target - firstThursday) / 604800000);
+  return { ano, semana };
+}
+
+function semanaCalendarioISO(iso) {
+  const d = new Date(iso + 'T00:00:00');
+  const dayNr = (d.getDay() + 6) % 7; // segunda=0
+  const ini = new Date(d.valueOf()); ini.setDate(d.getDate() - dayNr);
+  const fim = new Date(ini.valueOf()); fim.setDate(ini.getDate() + 6);
+  return { ini: isoLocal(ini), fim: isoLocal(fim) };
+}
+
+function deslocarDias(iso, dias) {
+  const d = new Date(iso + 'T00:00:00');
+  d.setDate(d.getDate() + dias);
+  return isoLocal(d);
+}
+
+function isoLocal(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }

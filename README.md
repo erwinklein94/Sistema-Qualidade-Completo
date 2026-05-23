@@ -16,6 +16,8 @@ Excel. Funciona 100% no navegador (não precisa de servidor) e é compatível co
 - **Reprovados** — registro de refugos de dormentes por motivo.
 - **Dados & Backup** — exportar/importar tudo, importar a planilha original
   `.xlsx`, gerar Excel e carregar dados de demonstração.
+- **Menu lateral recolhido** — o menu da esquerda fica oculto por padrão e abre
+  pelo botão **Menu** no canto superior esquerdo.
 
 ---
 
@@ -127,3 +129,20 @@ Tudo o que aparece nos menus suspensos (fábricas, projetos, tipos de dormente,
 status, motivos de reprova) está no arquivo **`js/config.js`**. Para adicionar uma
 nova fábrica, por exemplo, basta incluí-la na lista `fornecedores`. Não precisa
 mexer em mais nada.
+
+## Atualização: Dashboard com filtro semanal por projeto
+
+A tela **Dashboard** agora abre com o período preenchido automaticamente pela última semana encontrada nos dados importados. Quando não há indicador semanal consolidado, o sistema usa a semana da data mais recente de produção ou reprova.
+
+Novos recursos adicionados:
+
+- Filtro por **Projeto** já existente mantido na Dashboard.
+- Novos filtros de **Período inicial** e **Período fim**.
+- Botão **Última semana** para voltar rapidamente ao período semanal mais recente dos dados.
+- Novo gráfico **Produção × Reprova semanal por projeto**, com:
+  - barras de dormentes produzidos;
+  - barras de refugos/reprovas;
+  - linha de **% de reprova**;
+  - rótulo percentual sobre cada ponto da linha.
+
+O gráfico semanal por projeto é calculado a partir dos lançamentos de **Produção** e **Reprovados**, porque a aba de Indicador Semanal da planilha é consolidada por fornecedor e não separa os totais por projeto.
