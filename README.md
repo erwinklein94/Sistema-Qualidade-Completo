@@ -128,3 +128,11 @@ supabase/2026-05-23-painel-series-indices.sql
 ```
 
 Esse arquivo cria índices para acelerar os filtros e cruzamentos do painel quando a base crescer.
+
+## Atualização Supabase — Dashboard e Indicador Semanal
+
+- O Dashboard passou a ler diretamente do Supabase as tabelas `producao_lotes`, `reprovados` e `ensaios_liberacao`.
+- O Indicador Semanal passou a ser consolidado automaticamente a partir dessas mesmas tabelas, usando a semana operacional de quinta-feira a quarta-feira.
+- A aba Indicador Semanal não depende mais de importação de planilha nem de registros locais no navegador.
+- Os filtros de fornecedor, projeto, bitola, semana e período continuam funcionando sobre os dados do Supabase.
+
