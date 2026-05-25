@@ -319,16 +319,7 @@ async function salvar() {
 
   try {
     const payloadCompleto = mapProducaoParaBanco(reg, { compatibilidade: false });
-    const payloadCompat = mapProducaoParaBanco(reg, { compatibilidade: true });
-    let salvo;
-    try {
-      salvo = await StoreSupabase.salvarProducao(payloadCompleto);
-    } catch (err) {
-      if (!erroPermiteFallback(err)) throw err;
-      console.warn('Salvando produção em modo compatível com o schema inicial do Supabase:', err);
-      salvo = await StoreSupabase.salvarProducao(payloadCompat);
-      App.toast('Salvo no Supabase. Alguns campos complementares exigem a migração SQL para persistirem integralmente.', 'aviso');
-    }
+    const salvo = await StoreSupabase.salvarProducao(payloadCompleto);
 
     const convertido = mapProducaoDoBanco(salvo);
     const idx = PRODUCAO_REGISTROS.findIndex(x => x.id === convertido.id);
@@ -591,12 +582,6 @@ function boolParaSimNao(v) {
   if (v === false) return 'NÃO';
   return v == null ? '' : String(v);
 }
-
-function erroPermiteFallback(err) {
-  const msg = `${err?.message || ''} ${err?.details || ''} ${err?.hint || ''} ${err?.code || ''}`.toLowerCase();
-  return msg.includes('column') || msg.includes('schema cache') || msg.includes('numeric') || msg.includes('invalid input') || msg.includes('pgrst204') || msg.includes('22p02');
-}
-
 function mensagemErroBanco(err, padrao) {
   const msg = err?.message || err?.details || '';
   if (!msg) return padrao;
