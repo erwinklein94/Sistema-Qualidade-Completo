@@ -4,31 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login · Controle de Dormentes Rumo</title>
-  <link rel="stylesheet" href="css/style.css?v=20260526-rumo-brand-v2">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <main class="login-page login-page--brand">
-    <section class="login-shell">
-      <aside class="login-brand-panel" aria-label="Identidade Rumo">
-        <img class="login-brand-logo" src="assets/rumo/logotipo-tagline-negative.png" alt="Rumo - Somos o Brasil em movimento">
-        <div class="login-brand-copy">
-          <span class="login-eyebrow">HUB de Qualidade</span>
-          <h2>Controle de dormentes com padrão Rumo.</h2>
-          <p>Produção, ensaios, reprovas e indicadores em uma experiência visual alinhada à marca.</p>
-        </div>
-        <div class="login-brand-tags">
-          <span>Qualidade</span>
-          <span>Movimento</span>
-          <span>Segurança</span>
-        </div>
-      </aside>
+  <main class="login-page">
+    <section class="login-card">
+      <img class="login-marca-logo" src="assets/rumo/rumo-logo-azul.png" alt="Rumo" width="150" height="35">
+      <h1>Controle de Dormentes</h1>
+      <p>Entre com seu usuário autorizado para acessar os dados do sistema.</p>
 
-      <section class="login-card">
-        <div class="login-marca"><img class="rumo-logo rumo-logo--login rumo-logo--azul" src="assets/rumo/logotipo-blue.png" alt="Rumo"><img class="rumo-logo rumo-logo--login rumo-logo--branco" src="assets/rumo/logotipo-white.png" alt="Rumo"></div>
-        <h1>Controle de Dormentes</h1>
-        <p>Entre com seu usuário autorizado para acessar os dados do sistema.</p>
-
-        <form id="formLogin" class="login-form">
+      <form id="formLogin" class="login-form">
         <div class="campo">
           <label for="email">E-mail</label>
           <input type="email" id="email" autocomplete="email" required placeholder="seu.email@empresa.com">
@@ -42,17 +27,16 @@
 
       <div id="loginMensagem" class="login-msg"></div>
 
-        <div class="login-nota">
-          A criação de usuários está bloqueada. Apenas usuários criados no Supabase e cadastrados em <strong>usuarios_app</strong> conseguem entrar.
-        </div>
-      </section>
+      <div class="login-nota">
+        A criação de usuários está bloqueada. Apenas usuários criados no Supabase e cadastrados em <strong>usuarios_app</strong> conseguem entrar.
+      </div>
     </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');}</script>
   <script src="js/supabase-config.js?v=20260523-2"></script>
-  <script src="js/auth.js?v=20260526-rumo-brand-v2"></script>
-  <script src="js/login.js?v=20260526-rumo-brand-v2"></script>
+  <script src="js/auth.js?v=20260523-2"></script>
+  <script src="js/login.js?v=20260523-2"></script>
 </body>
 </html>

@@ -27,20 +27,18 @@ const CFG = {
     motivosIndicador: ['Trincas', 'Vazios', 'Ombreiras', 'Quebras', 'USP', 'Falha Operacional', 'Outros'],
   },
 
-  // Cores para gráficos (paleta Rumo)
+  // Cores para gráficos (paleta oficial Rumo)
   cores: {
     azulEscuro: '#003865',
     azulClaro: '#32A6E6',
     verde: '#1E9F7F',
     verdeClaro: '#7FE06C',
     amarelo: '#FBD300',
-    laranja: '#F78344',
-    roxo: '#9F4BB9',
     erro: '#D84545',
-    cinza: '#BDCCD4',
+    cinza: '#6F838E',
     // paleta cíclica para projetos
     projetos: { 'MALHA PAULISTA': '#003865', 'FMT': '#32A6E6', 'FERRO NORTE': '#1E9F7F', 'MALHA CENTRAL': '#FBD300' },
-    paleta: ['#003865', '#32A6E6', '#1E9F7F', '#7FE06C', '#FBD300', '#F78344', '#9F4BB9', '#BDCCD4'],
+    paleta: ['#003865', '#32A6E6', '#1E9F7F', '#7FE06C', '#FBD300', '#F78344', '#6F838E', '#9F4BB9'],
   },
 
   // Mapa de classe CSS por status

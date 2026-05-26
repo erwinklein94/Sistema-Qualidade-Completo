@@ -301,7 +301,7 @@ function graficoComparativo({ canvasId, labels, produzidos, refugos, percentuais
       if (!meta || meta.hidden) return;
       const ctx = chart.ctx;
       ctx.save();
-      ctx.font = '700 10px Verdana, Geneva, Tahoma, sans-serif';
+      ctx.font = '700 10px Inter, sans-serif';
       ctx.fillStyle = App.cssVar('--amarelo-texto', '#7a5c00');
       ctx.textAlign = 'center';
       meta.data.forEach((pt, i) => {

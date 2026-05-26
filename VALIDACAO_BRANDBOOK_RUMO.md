@@ -1,35 +1,77 @@
-# Validação — Aplicação do Brandbook Rumo
+# Validação — Identidade Visual Rumo
 
-Esta versão aplica a identidade visual da Rumo no sistema de Controle de Dormentes.
+Aplicação do brand book oficial da Rumo (https://brandbook.rumolog.com/) ao
+**Sistema de Controle de Dormentes de Concreto**. A estratégia foi a recomendada
+pelo manual: **centralizar a marca em tokens** e religar o que o projeto já usava,
+em vez de trocar cor por cor — baixo risco e fácil de manter.
 
-## Base usada
+## O que foi aplicado
 
-- Brandbook oficial: https://brandbook.rumolog.com/
-- Logotipo: https://brandbook.rumolog.com/logotipo.html
-- Paleta cromática: https://brandbook.rumolog.com/paleta.html
-- Tipografia: https://brandbook.rumolog.com/tipografia.html
-- Central de downloads: https://brandbook.rumolog.com/downloads.html
+### 1. Tokens oficiais da marca (`css/style.css`, `:root`)
+Os tons antes eram *aproximados*. Agora usam os HEX **canônicos** do manual:
 
-## Ajustes aplicados
+| Token | Antes | Agora (oficial) |
+|---|---|---|
+| Azul (âncora) | `#003567` | **`#003865`** |
+| Azul claro | `#00A8E9` | **`#32A6E6`** |
+| Verde | `#1E9F80` | **`#1E9F7F`** |
+| Verde claro | `#8DC63F` | **`#7FE06C`** |
+| Amarelo | `#FFD401` | **`#FBD300`** |
 
-- Substituição do logo digitado/imitado pelo logotipo oficial da Rumo nas telas de login, bloqueio de configuração e menu lateral.
-- Inclusão das versões oficial azul e branca do logo em `assets/rumo/`.
-- Troca dos tokens de cor para a paleta oficial:
-  - Azul `#003865`
-  - Azul-claro `#32A6E6`
-  - Verde `#1E9F7F`
-  - Verde-claro `#7FE06C`
-  - Amarelo `#FBD300`
-  - Laranja `#F78344`
-  - Roxo `#9F4BB9`
-  - Cinza `#BDCCD4`
-  - Cinzas de apoio `#F2F5F6`, `#E5EBEE`, `#D7E0E5`, `#CAD6DD`
-- Atualização dos gráficos para usar a paleta oficial.
-- Remoção do Google Font Inter.
-- Uso de Verdana/Geneva/Tahoma como fonte de sistema, seguindo a recomendação do brandbook para materiais HTML quando a fonte institucional não estiver disponível.
-- Ajustes globais de sidebar, topo, cards, KPIs, botões, formulários, tabelas, badges, login e tema escuro.
-- Atualização dos parâmetros `?v=` dos arquivos CSS/JS para evitar cache antigo no GitHub Pages.
+Foram adicionados também os derivados oficiais (azul-profundo `#002B4D`,
+azul-noite `#001E36`), a secundária (laranja `#F78344`, roxo `#9F4BB9` — usado
+quase nada, é cor da Raízen) e os cinzas de interface (`#F2F5F6`…`#CAD6DD`,
+texto `#4D626F`).
 
-## Observação
+### 2. Aliases de compatibilidade
+As variáveis que o projeto já usava (`--azul-escuro`, `--azul-claro`, `--verde`,
+`--cinza-bg`, etc.) agora **apontam para os tokens Rumo**. Assim a marca foi
+corrigida no site inteiro de uma vez, sem caçar cor por cor.
 
-A fonte institucional Cera Pro não foi embutida no projeto porque arquivos de fonte não devem ser redistribuídos sem licença adequada. Por isso foi usada a fonte de sistema indicada pelo próprio brandbook para HTML.
+### 3. Tipografia
+- Fonte trocada de **Inter** para o stack oficial:
+  `"Cera Pro", Verdana, Geneva, Tahoma, sans-serif`.
+- ⚠️ **A Cera Pro NÃO foi embutida** — é paga e não pode ser redistribuída.
+  Quem tiver a fonte licenciada/instalada vê a Cera Pro; os demais veem
+  **Verdana**, que é o fallback oficial indicado pelo próprio manual.
+- Os `<link>` da Inter (Google Fonts) foram removidos de todas as páginas HTML.
+
+### 4. Logo oficial
+- Logos oficiais copiados para `assets/rumo/` (branco, azul e PB).
+- Substituído o logo desenhado em CSS (`rum` + círculo) pelos **PNGs oficiais**:
+  - **Sidebar** (fundo azul) → `rumo-logo-branco.png` (`js/comum.js`).
+  - **Login / tela de bloqueio** (card branco) → `rumo-logo-azul.png`
+    (`login.html`, `js/auth.js`).
+- Largura renderizada (~150–162px) acima da **redução mínima de 70px** do manual,
+  sem distorção, recoloração ou sombra.
+
+### 5. Forma, sombra e movimento
+- Raio ajustado para o **chanfro sutil** do grafismo: `--raio: 14px`,
+  `--raio-sm: 10px`.
+- Sombras **tingidas no azul institucional**: `rgba(0, 56, 101, …)`.
+
+### 6. Gráficos (Chart.js)
+Paleta das séries atualizada para os HEX oficiais em `js/config.js` e na
+variação de tema escuro em `js/comum.js`.
+
+### 7. Tema escuro
+Alinhado à regra do manual: fundos **azul/verde profundos** (azul-noite
+`#001E36`), logo/texto **branco** e acento em **verde-claro**.
+
+## Checklist do brand book
+- [x] Azul `#003865` é a cor dominante; secundária só em toques.
+- [x] Roxo praticamente ausente (cor da Raízen).
+- [x] Logo na versão certa pro fundo, sem distorção e ≥ 70px.
+- [x] Fonte Cera Pro com fallback Verdana — **sem embutir Cera Pro**.
+- [x] Contraste AA/AAA (branco/verde-claro sobre azul; amarelo só em badge).
+- [x] Cantos com chanfro sutil; sombras tingidas no azul.
+- [x] Gráficos com a paleta institucional.
+
+## Arquivos alterados
+- `css/style.css` — tokens, aliases, tema escuro, logo, sombras/raio.
+- `js/comum.js` — logo da sidebar + paleta de gráficos (tema escuro).
+- `js/config.js` — paleta de gráficos (tema claro).
+- `js/auth.js` — logo da tela de bloqueio.
+- `login.html` — logo do login + remoção da fonte Inter.
+- `*.html` — remoção dos `<link>` da fonte Inter.
+- `assets/rumo/` — logos oficiais (novo).

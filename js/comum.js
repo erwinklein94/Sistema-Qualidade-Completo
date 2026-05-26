@@ -75,8 +75,8 @@ const App = {
     const sidebar = `
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-          <img class="rumo-logo rumo-logo--sidebar rumo-logo--tagline" src="assets/rumo/logotipo-tagline-negative.png" alt="Rumo - Somos o Brasil em movimento">
-          <div class="sub">Controle de Qualidade · Dormentes</div>
+          <img class="marca-logo" src="assets/rumo/rumo-logo-branco.png" alt="Rumo" width="162" height="38">
+          <div class="sub">Somos o Brasil em movimento</div>
         </div>
         <nav class="nav">${nav}</nav>
         <div class="sidebar-rodape">Controle de Dormentes<br>de Concreto</div>
@@ -167,7 +167,7 @@ const App = {
   aplicarPadraoGraficos() {
     if (!window.Chart) return;
     const escuro = this.temaAtual() === 'escuro';
-    Chart.defaults.font.family = "Verdana, Geneva, Tahoma, sans-serif";
+    Chart.defaults.font.family = "'Inter', sans-serif";
     Chart.defaults.font.size = 12;
     Chart.defaults.color = escuro ? '#d9e8f7' : '#5a6b7b';
     Chart.defaults.borderColor = escuro ? 'rgba(255,255,255,.14)' : '#e2e8f0';
@@ -181,16 +181,16 @@ const App = {
       azulEscuro: '#7FE06C',
       azulClaro: '#ffffff',
       verde: '#7FE06C',
-      verdeClaro: '#7FE06C',
+      verdeClaro: '#A9E59A',
       amarelo: '#FBD300',
-      cinza: '#b8c7d8',
+      cinza: '#BDCCD4',
       projetos: {
         'MALHA PAULISTA': '#7FE06C',
         'FMT': '#ffffff',
-        'FERRO NORTE': '#32A6E6',
+        'FERRO NORTE': '#A9E59A',
         'MALHA CENTRAL': '#FBD300'
       },
-      paleta: ['#7FE06C', '#ffffff', '#FBD300', '#32A6E6', '#1E9F7F', '#F78344', '#BDCCD4', '#9F4BB9']
+      paleta: ['#7FE06C', '#ffffff', '#FBD300', '#32A6E6', '#A9E59A', '#ff6b6b', '#BDCCD4', '#8FD4F2']
     };
   },
 
