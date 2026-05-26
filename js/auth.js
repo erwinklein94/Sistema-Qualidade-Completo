@@ -161,7 +161,7 @@ var Auth = (() => {
     const html = `
       <div class="auth-bloqueio">
         <div class="login-card">
-          <div class="login-marca">rum<span class="o-circ"></span></div>
+          <div class="login-marca"><img class="rumo-logo rumo-logo--login rumo-logo--azul" src="assets/rumo/logotipo-blue.png" alt="Rumo"><img class="rumo-logo rumo-logo--login rumo-logo--branco" src="assets/rumo/logotipo-white.png" alt="Rumo"></div>
           <h1>Configuração pendente</h1>
           <p>${erroConfiguracao()}</p>
           <div class="aviso-info" style="margin-top:16px">
