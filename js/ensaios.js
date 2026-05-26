@@ -355,7 +355,7 @@ function renderGrafico(series) {
       plugins: {
         legend: { position: 'top', labels: { color: corTexto, usePointStyle: true } },
         tooltip: {
-          backgroundColor: App.cssVar('--azul-escuro', '#003865'), padding: 10, cornerRadius: 8,
+          backgroundColor: App.cssVar('--azul-escuro', '#003567'), padding: 10, cornerRadius: 8,
           callbacks: {
             title: items => labels[items[0].dataIndex],
             label: item => {

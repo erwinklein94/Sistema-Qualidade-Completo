@@ -328,7 +328,7 @@ function graficoComparativo({ canvasId, labels, produzidos, refugos, percentuais
       plugins: {
         legend: { position: 'top', labels: { color: corTexto, usePointStyle: true, padding: 14, font: { size: 12 } } },
         tooltip: {
-          backgroundColor: App.cssVar('--azul-escuro', '#003865'), padding: 10, cornerRadius: 8, titleFont: { weight: '700' },
+          backgroundColor: App.cssVar('--azul-escuro', '#003567'), padding: 10, cornerRadius: 8, titleFont: { weight: '700' },
           callbacks: {
             title: items => tituloTooltip(items[0].label, detalhes?.[items[0].dataIndex]),
             label: item => item.dataset.label === '% de reprova'
@@ -381,7 +381,7 @@ function baseOpt({ legend }) {
     responsive: true, maintainAspectRatio: false,
     plugins: {
       legend: legend ? { position: legend === true ? 'top' : legend, labels: { color: corTexto, usePointStyle: true, padding: 14, font: { size: 12 } } } : { display: false },
-      tooltip: { backgroundColor: App.cssVar('--azul-escuro', '#003865'), padding: 10, cornerRadius: 8, titleFont: { weight: '700' } }
+      tooltip: { backgroundColor: App.cssVar('--azul-escuro', '#003567'), padding: 10, cornerRadius: 8, titleFont: { weight: '700' } }
     },
     scales: undefined,
   };

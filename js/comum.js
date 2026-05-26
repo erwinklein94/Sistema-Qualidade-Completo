@@ -75,7 +75,7 @@ const App = {
     const sidebar = `
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-          <img class="marca-logo" src="assets/rumo/rumo-logo-branco.png" alt="Rumo" width="162" height="38">
+          <div class="marca">rum<span class="o-circ"></span></div>
           <div class="sub">Somos o Brasil em movimento</div>
         </div>
         <nav class="nav">${nav}</nav>
@@ -178,19 +178,19 @@ const App = {
     if (this.temaAtual() !== 'escuro') return base;
     return {
       ...base,
-      azulEscuro: '#7FE06C',
+      azulEscuro: '#8DC63F',
       azulClaro: '#ffffff',
-      verde: '#7FE06C',
-      verdeClaro: '#A9E59A',
-      amarelo: '#FBD300',
-      cinza: '#BDCCD4',
+      verde: '#8DC63F',
+      verdeClaro: '#A9E56D',
+      amarelo: '#FFD401',
+      cinza: '#b8c7d8',
       projetos: {
-        'MALHA PAULISTA': '#7FE06C',
+        'MALHA PAULISTA': '#8DC63F',
         'FMT': '#ffffff',
-        'FERRO NORTE': '#A9E59A',
-        'MALHA CENTRAL': '#FBD300'
+        'FERRO NORTE': '#A9E56D',
+        'MALHA CENTRAL': '#FFD401'
       },
-      paleta: ['#7FE06C', '#ffffff', '#FBD300', '#32A6E6', '#A9E59A', '#ff6b6b', '#BDCCD4', '#8FD4F2']
+      paleta: ['#8DC63F', '#ffffff', '#FFD401', '#00A8E9', '#A9E56D', '#ff6b6b', '#b8c7d8', '#6dd6ff']
     };
   },
 
