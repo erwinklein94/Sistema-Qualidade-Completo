@@ -5,6 +5,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!await Auth.exigirLogin()) return;
   App.montarLayout('dados', 'Dados do Sistema', 'Administração, resumo e limpeza de dados locais legados');
 
+  const perfil = window.USUARIO_ATUAL?.perfil || await Auth.perfilAtual().catch(() => null);
+  if (!Auth.pode('gerenciarSistema', perfil)) {
+    document.querySelector('.pagina').innerHTML = `
+      <div class="card aviso-erro">
+        <div class="card-titulo"><span class="acento">Acesso restrito</span></div>
+        <p>Somente usuários com perfil <strong>admin</strong> podem acessar Dados do Sistema.</p>
+      </div>`;
+    const topoAcoes = document.getElementById('topoAcoes');
+    if (topoAcoes) topoAcoes.innerHTML = '';
+    return;
+  }
+
   const bxProducao = document.getElementById('bxProducao');
   const bxReprovados = document.getElementById('bxReprovados');
   const bxEnsaios = document.getElementById('bxEnsaios');

@@ -14,10 +14,10 @@ const App = {
       { k: 'ensaiosLiberacao', t: 'Ensaios de Liberação', ic: ICN.check, href: 'ensaios-liberacao.html' },
       { k: 'reprovados', t: 'Reprovados', ic: ICN.reprova, href: 'reprovados.html' },
       { sec: 'Sistema' },
-      { k: 'banco', t: 'Conexão Supabase', ic: ICN.config, href: 'banco.html' },
+      { k: 'banco', t: 'Conexão Supabase', ic: ICN.config, href: 'banco.html', adminOnly: true },
       { k: 'usuarios', t: 'Usuários', ic: ICN.config, href: 'usuarios.html', adminOnly: true },
       { k: 'auditoria', t: 'Auditoria', ic: ICN.config, href: 'auditoria.html', adminOnly: true },
-      { k: 'dados', t: 'Dados do Sistema', ic: ICN.config, href: 'dados.html' },
+      { k: 'dados', t: 'Dados do Sistema', ic: ICN.config, href: 'dados.html', adminOnly: true },
     ];
   },
 
@@ -29,8 +29,9 @@ const App = {
       const atual = base[i];
       if (atual.adminOnly && !podeAdmin) continue;
       if (atual.sec) {
-        const proximos = base.slice(i + 1);
-        const temItemVisivel = proximos.some(x => !x.sec && (!x.adminOnly || podeAdmin));
+        const proximosDaSecao = [];
+        for (let j = i + 1; j < base.length && !base[j].sec; j++) proximosDaSecao.push(base[j]);
+        const temItemVisivel = proximosDaSecao.some(x => !x.adminOnly || podeAdmin);
         if (temItemVisivel) itens.push(atual);
         continue;
       }

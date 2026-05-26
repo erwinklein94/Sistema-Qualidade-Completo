@@ -2,11 +2,11 @@
 
 ## Regra aplicada
 
-| Perfil | Visualizar | Criar | Editar | Excluir | Usuários | Auditoria |
-|---|---:|---:|---:|---:|---:|---:|
-| Admin | Sim | Sim | Sim | Sim | Sim | Sim |
-| Fiscalização | Sim | Sim | Sim | Não | Não | Não |
-| Consulta | Sim | Não | Não | Não | Não | Não |
+| Perfil | Visualizar áreas operacionais | Criar | Editar | Excluir | Conexão Supabase | Dados do Sistema | Usuários | Auditoria |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Admin | Sim | Sim | Sim | Sim | Sim | Sim | Sim | Sim |
+| Fiscalização | Sim | Sim | Sim | Não | Não | Não | Não | Não |
+| Consulta | Sim | Não | Não | Não | Não | Não | Não | Não |
 
 ## Frontend
 
@@ -15,7 +15,7 @@
   - `qualidade` ou `fiscalizacao` → Fiscalização
   - qualquer outro valor → Consulta
 - `js/comum.js` agora filtra o menu lateral:
-  - Usuários e Auditoria aparecem somente para Admin.
+  - Conexão Supabase, Dados do Sistema, Usuários e Auditoria aparecem somente para Admin.
 - `js/producao.js`, `js/reprovados.js` e `js/ensaios-liberacao.js` agora:
   - escondem botões de criar para Consulta;
   - escondem botões de editar para Consulta;
@@ -26,10 +26,11 @@
 
 ## Supabase
 
-Arquivo novo:
+Arquivos novos:
 
 ```text
 supabase/2026-05-26-perfis-e-rls.sql
+supabase/2026-05-26-abas-sistema-admin-only.sql
 ```
 
 Esse SQL:
@@ -45,3 +46,23 @@ Esse SQL:
 ## Observação importante
 
 Se ainda não existir nenhum usuário Admin em `usuarios_app`, o primeiro Admin precisa ser criado pelo SQL Editor do Supabase. Depois disso, a tela Sistema → Usuários pode administrar os demais perfis normalmente.
+
+
+## Atualização — abas administrativas restritas ao Admin
+
+As abas abaixo agora são exclusivas do perfil **Admin**:
+
+- Conexão Supabase
+- Dados do Sistema
+- Usuários
+- Auditoria
+
+Com isso:
+
+| Perfil | Conexão Supabase | Dados do Sistema | Usuários | Auditoria |
+|---|---:|---:|---:|---:|
+| Admin | Sim | Sim | Sim | Sim |
+| Fiscalização | Não | Não | Não | Não |
+| Consulta | Não | Não | Não | Não |
+
+Além de esconder os itens no menu, as páginas também bloqueiam acesso direto por URL.

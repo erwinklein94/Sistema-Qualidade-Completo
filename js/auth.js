@@ -127,6 +127,7 @@ var Auth = (() => {
       podeExcluir: admin,
       podeGerenciarUsuarios: admin,
       podeVerAuditoria: admin,
+      podeGerenciarSistema: admin,
     };
   }
 
@@ -143,6 +144,7 @@ var Auth = (() => {
       excluir: p.podeExcluir,
       gerenciarUsuarios: p.podeGerenciarUsuarios,
       verAuditoria: p.podeVerAuditoria,
+      gerenciarSistema: p.podeGerenciarSistema,
     };
     return !!mapa[acao];
   }

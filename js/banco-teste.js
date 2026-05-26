@@ -5,6 +5,19 @@
 document.addEventListener('DOMContentLoaded', async () => {
   if (!await Auth.exigirLogin()) return;
   App.montarLayout('banco', 'Conexão Supabase', 'Validação de login, perfil e leitura do banco');
+
+  const perfil = window.USUARIO_ATUAL?.perfil || await Auth.perfilAtual().catch(() => null);
+  if (!Auth.pode('gerenciarSistema', perfil)) {
+    document.querySelector('.pagina').innerHTML = `
+      <div class="card aviso-erro">
+        <div class="card-titulo"><span class="acento">Acesso restrito</span></div>
+        <p>Somente usuários com perfil <strong>admin</strong> podem acessar Conexão Supabase.</p>
+      </div>`;
+    const topoAcoes = document.getElementById('topoAcoes');
+    if (topoAcoes) topoAcoes.innerHTML = '';
+    return;
+  }
+
   App.acoesTopo(`<button class="btn btn-primario" onclick="testarBanco()">Testar conexão</button>`);
   testarBanco();
 });

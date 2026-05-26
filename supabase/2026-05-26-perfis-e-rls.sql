@@ -6,8 +6,8 @@
    e aplica as permissões reais do sistema:
 
    - admin: visualiza, cria, edita, exclui, administra usuários e vê auditoria.
-   - fiscalizacao: visualiza, cria e edita; não exclui; não vê usuários/auditoria.
-   - consulta: apenas visualiza; não cria, não edita e não exclui.
+   - fiscalizacao: visualiza, cria e edita; não exclui; não vê usuários/auditoria/áreas administrativas.
+   - consulta: apenas visualiza áreas operacionais; não cria, não edita, não exclui e não vê áreas administrativas.
    ===================================================================== */
 
 create extension if not exists "pgcrypto";
@@ -455,12 +455,12 @@ for delete
 to authenticated
 using (public.eh_admin());
 
-/* Listas de configuração: leitura para usuários ativos; manutenção só admin. */
-create policy "listas_configuracao_select_usuarios_ativos"
+/* Listas de configuração: área administrativa; leitura e manutenção só admin. */
+create policy "listas_configuracao_select_admin"
 on public.listas_configuracao
 for select
 to authenticated
-using (public.usuario_ativo());
+using (public.eh_admin());
 
 create policy "listas_configuracao_insert_admin"
 on public.listas_configuracao
