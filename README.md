@@ -214,3 +214,21 @@ Sistema → Auditoria
 ```
 
 Ela registra criação, alteração e exclusão em Produção, Reprovados e Ensaios de Liberação, com usuário, data/hora, tabela, registro e resumo dos campos alterados.
+
+## Integração do leitor iAuditor em Ensaios de Liberação
+
+A página `ensaios-liberacao.html` agora possui um importador de PDF iAuditor integrado à identidade visual do sistema.
+
+- O usuário pode arrastar ou selecionar um PDF do iAuditor na própria aba de Ensaios de Liberação.
+- O leitor extrai lote do dormente, projeto, fornecedor, bitola, data, tipo do relatório e leituras encontradas.
+- Somente relatórios classificados como ensaio estrutural de liberação, com momentos/cargas do dormente, habilitam o botão de registro automático.
+- Relatórios de inspeção de pista, concretagem, bitola e ensaios complementares são exibidos como leitura de apoio, sem liberar lote nessa aba.
+- A opção de cadastro manual permanece disponível no botão “Novo ensaio manual”.
+- Como a tabela existente `ensaios_liberacao` não possui uma coluna específica para “tipo de ensaio”, o tipo do relatório e o resumo das leituras importadas são gravados no campo `observacoes`.
+
+Arquivos adicionados/alterados nesta integração:
+
+- `js/iauditor-parser.js`
+- `js/ensaios-liberacao.js`
+- `ensaios-liberacao.html`
+- `css/style.css`

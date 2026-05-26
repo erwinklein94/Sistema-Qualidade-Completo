@@ -1577,3 +1577,106 @@ body[data-tema="escuro"] .usuario-perfil {
     height: 220px;
   }
 }
+
+
+/* ===================== LEITOR IAUDITOR EM ENSAIOS DE LIBERAÇÃO ===================== */
+.iauditor-card { border-top: 4px solid var(--azul-claro); }
+.iauditor-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.2fr) minmax(240px, .8fr);
+  gap: 18px;
+  align-items: stretch;
+}
+.iauditor-drop {
+  border: 2px dashed var(--cinza-borda);
+  background: linear-gradient(135deg, rgba(0,168,233,.08), rgba(141,198,63,.08));
+  border-radius: var(--raio);
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 58px 1fr;
+  gap: 16px;
+  cursor: pointer;
+  transition: var(--transicao);
+  min-height: 150px;
+}
+.iauditor-drop:hover,
+.iauditor-drop.arrastando,
+.iauditor-drop:focus {
+  border-color: var(--azul-claro);
+  box-shadow: 0 0 0 4px rgba(0,168,233,.12);
+  outline: none;
+}
+.iauditor-drop-icone {
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--azul-escuro);
+  color: var(--branco);
+}
+.iauditor-drop-icone .ic { width: 28px; height: 28px; }
+.iauditor-drop strong { display: block; font-size: 16px; color: var(--azul-escuro); margin-bottom: 6px; }
+.iauditor-drop p,
+.iauditor-orientacao p { color: var(--cinza-texto); font-size: 13.5px; line-height: 1.65; margin-bottom: 12px; }
+.iauditor-orientacao {
+  border: 1px solid var(--cinza-borda);
+  border-radius: var(--raio);
+  padding: 18px;
+  background: var(--cinza-bg);
+}
+.iauditor-orientacao h3 { font-size: 15px; margin-bottom: 8px; }
+.iauditor-resultado { margin-top: 18px; }
+.iauditor-status {
+  border: 1px solid var(--cinza-borda);
+  border-radius: var(--raio);
+  padding: 16px;
+  background: var(--branco);
+}
+.iauditor-status.ok { border-color: rgba(30,159,128,.35); background: rgba(30,159,128,.06); }
+.iauditor-status.aviso { border-color: rgba(255,212,1,.55); background: rgba(255,212,1,.12); }
+.iauditor-status.erro { border-color: rgba(226,59,59,.35); background: rgba(226,59,59,.08); }
+.iauditor-status h3 { font-size: 15px; margin-bottom: 6px; }
+.iauditor-status p { color: var(--cinza-texto); font-size: 13.5px; line-height: 1.6; }
+.iauditor-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+.iauditor-meta-item {
+  background: var(--branco);
+  border: 1px solid var(--cinza-borda);
+  border-radius: var(--raio-sm);
+  padding: 10px 12px;
+}
+.iauditor-meta-item .rot { font-size: 11px; color: var(--cinza-texto-claro); text-transform: uppercase; font-weight: 700; letter-spacing: .4px; }
+.iauditor-meta-item .val { margin-top: 3px; color: var(--azul-escuro); font-weight: 700; }
+.iauditor-acoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.iauditor-mini-tabela { margin-top: 14px; }
+.iauditor-mini-tabela table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.iauditor-mini-tabela th,
+.iauditor-mini-tabela td { padding: 8px 9px; border-bottom: 1px solid var(--cinza-borda); text-align: left; vertical-align: top; }
+.iauditor-mini-tabela th { color: var(--azul-escuro); font-size: 11px; text-transform: uppercase; letter-spacing: .3px; }
+.iauditor-mini-tabela td { color: var(--cinza-texto); }
+.iauditor-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  background: var(--cinza-bg);
+  color: var(--azul-escuro);
+  border: 1px solid var(--cinza-borda);
+}
+.iauditor-chip.ok { background: rgba(30,159,128,.12); border-color: rgba(30,159,128,.32); color: var(--ok); }
+.iauditor-chip.aviso { background: rgba(255,212,1,.2); border-color: rgba(255,212,1,.6); color: var(--azul-escuro); }
+.iauditor-chip.erro { background: rgba(226,59,59,.12); border-color: rgba(226,59,59,.34); color: var(--erro); }
+
+@media (max-width: 900px) {
+  .iauditor-grid { grid-template-columns: 1fr; }
+  .iauditor-drop { grid-template-columns: 1fr; }
+}
