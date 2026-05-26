@@ -75,8 +75,8 @@ const App = {
     const sidebar = `
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-          <img class="rumo-logo rumo-logo--sidebar" src="assets/rumo/logotipo-white.png" alt="Rumo">
-          <div class="sub">Somos o Brasil em movimento</div>
+          <img class="rumo-logo rumo-logo--sidebar rumo-logo--tagline" src="assets/rumo/logotipo-tagline-negative.png" alt="Rumo - Somos o Brasil em movimento">
+          <div class="sub">Controle de Qualidade · Dormentes</div>
         </div>
         <nav class="nav">${nav}</nav>
         <div class="sidebar-rodape">Controle de Dormentes<br>de Concreto</div>
