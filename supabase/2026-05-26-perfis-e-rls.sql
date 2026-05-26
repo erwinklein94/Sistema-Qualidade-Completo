@@ -35,7 +35,10 @@ alter table public.usuarios_app
   add column if not exists criado_em timestamptz not null default now(),
   add column if not exists atualizado_em timestamptz not null default now();
 
-/* Normaliza nomes antigos/acentuados no banco. */
+/* Normaliza nomes antigos/acentuados no banco.
+   Importante: alguns bancos antigos criaram usuarios_app.perfil como ENUM
+   perfil_usuario. Por isso todas as leituras usam ::text e, logo abaixo,
+   a coluna é convertida para text antes da migração para fiscalizacao. */
 create or replace function public.normalizar_perfil(valor text)
 returns text
 language sql
@@ -48,11 +51,42 @@ as $$
   end;
 $$;
 
+/* Remove policies antigas antes de alterar o tipo da coluna perfil.
+   Isso evita erro quando alguma policy antiga depende do campo perfil. */
+do $$
+declare
+  p record;
+begin
+  for p in
+    select schemaname, tablename, policyname
+    from pg_policies
+    where schemaname = 'public'
+      and tablename in (
+        'usuarios_app',
+        'producao_lotes',
+        'reprovados',
+        'ensaios_liberacao',
+        'auditoria_alteracoes',
+        'listas_configuracao'
+      )
+  loop
+    execute format('drop policy if exists %I on %I.%I', p.policyname, p.schemaname, p.tablename);
+  end loop;
+end $$;
+
+/* Converte perfil para text caso o banco antigo esteja usando ENUM.
+   Isso libera o novo valor fiscalizacao sem depender de alterar o tipo ENUM antigo. */
+alter table public.usuarios_app drop constraint if exists usuarios_app_perfil_check;
+alter table public.usuarios_app alter column perfil drop default;
+alter table public.usuarios_app
+  alter column perfil type text using public.normalizar_perfil(perfil::text);
+alter table public.usuarios_app alter column perfil set default 'consulta';
+
 update public.usuarios_app
-set perfil = public.normalizar_perfil(perfil),
+set perfil = public.normalizar_perfil(perfil::text),
     ativo = coalesce(ativo, true),
     atualizado_em = now()
-where perfil is distinct from public.normalizar_perfil(perfil)
+where perfil is distinct from public.normalizar_perfil(perfil::text)
    or ativo is null;
 
 alter table public.usuarios_app
@@ -93,7 +127,7 @@ security definer
 set search_path = public
 as $$
   select coalesce((
-    select public.normalizar_perfil(u.perfil)
+    select public.normalizar_perfil(u.perfil::text)
     from public.usuarios_app u
     where u.id = auth.uid()
       and u.ativo is true
