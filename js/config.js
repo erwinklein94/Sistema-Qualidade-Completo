@@ -13,7 +13,7 @@ const CFG = {
     bitolas: ['Bitola Larga', 'Bitola Mista', 'Sem bitola definida'],
     comUsp: ['SIM', 'NÃO'],
     ombreiras: ['Fast Clip', 'E-Clip'],
-    status: ['Liberado para transporte', 'Em processo de cura', 'Entregue', 'Bloqueado', 'Reprovado'],
+    status: ['Em processo de cura (14 dias)', 'Em processo de cura (28 dias)', 'Aguardando ensaio de liberação', 'Liberado para transporte', 'Em análise', 'Reprovado'],
     ensaioRealizado: ['SIM', 'NÃO'],
     resultadosEnsaiosLiberacao: ['Aprovado', 'Reprovado', 'Pendente'],
     // Motivos de reprova
@@ -43,10 +43,11 @@ const CFG = {
 
   // Mapa de classe CSS por status
   statusBadge: {
+    'Em processo de cura (14 dias)': 'badge-cura',
+    'Em processo de cura (28 dias)': 'badge-cura',
+    'Aguardando ensaio de liberação': 'badge-amarelo',
     'Liberado para transporte': 'badge-ok',
-    'Em processo de cura': 'badge-cura',
-    'Entregue': 'badge-entregue',
-    'Bloqueado': 'badge-bloqueado',
+    'Em análise': 'badge-entregue',
     'Reprovado': 'badge-reprovado',
   },
 };

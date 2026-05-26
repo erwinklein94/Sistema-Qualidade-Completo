@@ -800,14 +800,20 @@ const ExcelMigracao = (() => {
     return texto(v).toUpperCase();
   }
   function status(v) {
+    const chave = norm(texto(v)).replace(/[^A-Z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
     const m = {
       'LIBERADO PARA TRANSPORTE': 'Liberado para transporte',
-      'EM PROCESSO DE CURA': 'Em processo de cura',
-      'ENTREGUE': 'Entregue',
-      'BLOQUEADO': 'Bloqueado',
+      'LIBERADO PARA ENTREGA': 'Liberado para transporte',
+      'EM PROCESSO DE CURA': 'Em processo de cura (14 dias)',
+      'EM PROCESSO DE CURA 14 DIAS': 'Em processo de cura (14 dias)',
+      'EM PROCESSO DE CURA 28 DIAS': 'Em processo de cura (28 dias)',
+      'AGUARDANDO ENSAIO DE LIBERACAO': 'Aguardando ensaio de liberação',
+      'EM ANALISE': 'Em análise',
+      'ENTREGUE': 'Liberado para transporte',
+      'BLOQUEADO': 'Em análise',
       'REPROVADO': 'Reprovado',
     };
-    return m[norm(texto(v))] || texto(v);
+    return m[chave] || texto(v);
   }
   function projeto(v) {
     const m = { MP: 'MALHA PAULISTA', 'MALHA PAULISTA': 'MALHA PAULISTA', FMT: 'FMT', FN: 'FERRO NORTE', 'FERRO NORTE': 'FERRO NORTE', 'MALHA CENTRAL': 'MALHA CENTRAL' };

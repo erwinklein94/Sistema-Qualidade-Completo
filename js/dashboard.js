@@ -271,7 +271,7 @@ function desenharGraficos(prod, rep, ens, filtros) {
   const porStatus = {};
   prod.forEach(r => { const s = r.status || '—'; porStatus[s] = (porStatus[s] || 0) + 1; });
   const sLabels = Object.keys(porStatus);
-  const corStatus = { 'Liberado para transporte': C.verde, 'Em processo de cura': C.azulClaro, 'Entregue': C.cinza, 'Bloqueado': C.erro, 'Reprovado': '#c0392b' };
+  const corStatus = { 'Em processo de cura (14 dias)': C.azulClaro, 'Em processo de cura (28 dias)': C.azulEscuro, 'Aguardando ensaio de liberação': C.amarelo, 'Liberado para transporte': C.verde, 'Em análise': C.cinza, 'Reprovado': '#c0392b' };
   charts.stat = new Chart(document.getElementById('chartStatus'), {
     type: 'pie',
     data: { labels: sLabels.length ? sLabels : ['Sem lotes'], datasets: [{ data: sLabels.length ? Object.values(porStatus) : [1], backgroundColor: sLabels.length ? sLabels.map((s, i) => corStatus[s] || C.paleta[i % C.paleta.length]) : ['#eef0f2'], borderWidth: 2, borderColor: App.cssVar('--chart-borda', '#fff') }] },
@@ -457,6 +457,23 @@ function dentroPeriodoIntervalo(regIni, regFim, dataUnica, filtroIni, filtroFim)
   return true;
 }
 
+function normalizarStatusDashboard(status) {
+  const chave = U.norm(status).replace(/[^A-Z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const mapa = {
+    'LIBERADO PARA TRANSPORTE': 'Liberado para transporte',
+    'LIBERADO PARA ENTREGA': 'Liberado para transporte',
+    'ENTREGUE': 'Liberado para transporte',
+    'EM PROCESSO DE CURA': 'Em processo de cura (14 dias)',
+    'EM PROCESSO DE CURA 14 DIAS': 'Em processo de cura (14 dias)',
+    'EM PROCESSO DE CURA 28 DIAS': 'Em processo de cura (28 dias)',
+    'AGUARDANDO ENSAIO DE LIBERACAO': 'Aguardando ensaio de liberação',
+    'EM ANALISE': 'Em análise',
+    'BLOQUEADO': 'Em análise',
+    'REPROVADO': 'Reprovado',
+  };
+  return mapa[chave] || status || '';
+}
+
 function mapProducao(r) {
   return {
     id: r.id,
@@ -470,7 +487,7 @@ function mapProducao(r) {
     ensaiados: valorBanco(r.dorm_ensaiados),
     reprovados: valorBanco(r.dorm_reprovados),
     aprovado: valorBanco(r.total_aprovado),
-    status: r.status || '',
+    status: normalizarStatusDashboard(r.status || ''),
     serie: r.serie || '',
     semana: r.semana || '',
     ano: r.ano || '',

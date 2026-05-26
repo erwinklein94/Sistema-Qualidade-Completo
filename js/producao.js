@@ -58,6 +58,22 @@ const CAMPOS = ['fornecedor','pista','pedido','lote','projeto','tipo','total','d
   'desproIni','desproMeio','desproFim','comp7','comp14','tracao14','comp28','tracao28',
   'serie','iauditor','ensaiados','aAnalisar','reprovados','aprovado','status','motivo'];
 
+const STATUS_LOTE = Object.freeze({
+  CURA_14: 'Em processo de cura (14 dias)',
+  CURA_28: 'Em processo de cura (28 dias)',
+  AGUARDANDO_ENSAIO: 'Aguardando ensaio de liberação',
+  LIBERADO: 'Liberado para transporte',
+  ANALISE: 'Em análise',
+  REPROVADO: 'Reprovado',
+});
+
+const CAMPOS_STATUS_AUTOMATICO = [
+  'dataFabricacao', 'cura14', 'cura28', 'comp14', 'tracao14', 'comp28', 'tracao28',
+  'serie', 'iauditor', 'ensaiados', 'aAnalisar', 'reprovados', 'aprovado', 'status'
+];
+
+let PRODUCAO_ENSAIOS_LIBERACAO = [];
+
 document.addEventListener('DOMContentLoaded', async () => {
   App.montarLayout('producao', 'Produção de Dormentes', 'Lançamento e controle de fabricação por lote');
   App.acoesTopo(`<button class="btn btn-primario" onclick="abrirNovo()">${ICN.add}Novo lançamento</button>`);
@@ -82,11 +98,144 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (el) el.addEventListener('change', render);
   });
 
+  CAMPOS_STATUS_AUTOMATICO.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', () => aplicarStatusAutomaticoFormulario());
+    el.addEventListener('change', () => aplicarStatusAutomaticoFormulario());
+  });
+  document.getElementById('dataFabricacao')?.addEventListener('change', atualizarCurasPelaFabricacao);
+
   render();
   await carregarProducao();
 });
 
 function sel(id, arr, ph) { document.getElementById(id).innerHTML = U.opcoes(arr, '', ph); }
+
+function chaveStatus(status) {
+  return U.norm(status).replace(/[^A-Z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function normalizarStatusProducao(status) {
+  const chave = chaveStatus(status);
+  const mapa = {
+    'TODOS': '',
+    'LIBERADO PARA TRANSPORTE': STATUS_LOTE.LIBERADO,
+    'LIBERADO PARA ENTREGA': STATUS_LOTE.LIBERADO,
+    'ENTREGUE': STATUS_LOTE.LIBERADO,
+    'EM PROCESSO DE CURA': STATUS_LOTE.CURA_14,
+    'EM PROCESSO DE CURA 14 DIAS': STATUS_LOTE.CURA_14,
+    'CURA 14 DIAS': STATUS_LOTE.CURA_14,
+    'EM PROCESSO DE CURA 28 DIAS': STATUS_LOTE.CURA_28,
+    'CURA 28 DIAS': STATUS_LOTE.CURA_28,
+    'AGUARDANDO ENSAIO DE LIBERACAO': STATUS_LOTE.AGUARDANDO_ENSAIO,
+    'AGUARDANDO ENSAIO LIBERACAO': STATUS_LOTE.AGUARDANDO_ENSAIO,
+    'AGUARDANDO LIBERACAO': STATUS_LOTE.AGUARDANDO_ENSAIO,
+    'EM ANALISE': STATUS_LOTE.ANALISE,
+    'BLOQUEADO': STATUS_LOTE.ANALISE,
+    'REPROVADO': STATUS_LOTE.REPROVADO,
+  };
+  return mapa[chave] != null ? mapa[chave] : (status || '');
+}
+
+function dataISOAdicionarDias(iso, dias) {
+  const base = String(iso || '').slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(base)) return '';
+  const [ano, mes, dia] = base.split('-').map(Number);
+  const d = new Date(ano, mes - 1, dia);
+  d.setDate(d.getDate() + Number(dias || 0));
+  return U.isoLocal(d);
+}
+
+function dataCura(reg, dias) {
+  const campo = dias === 14 ? reg.cura14 : reg.cura28;
+  return dataOuNull(campo) || dataISOAdicionarDias(reg.dataFabricacao, dias);
+}
+
+function ultimoEnsaioLiberacao(ensaios) {
+  return (ensaios || []).slice().sort((a, b) =>
+    String(b.dataEnsaio || '').localeCompare(String(a.dataEnsaio || '')) ||
+    String(b.criadoEm || '').localeCompare(String(a.criadoEm || ''))
+  )[0] || null;
+}
+
+function statusAutomaticoDoLote(reg, ensaios = []) {
+  const statusAtual = normalizarStatusProducao(reg.status);
+  const cura14 = dataCura(reg, 14);
+  const cura28 = dataCura(reg, 28);
+  const hoje = U.isoLocal(new Date());
+  const total = inteiroOuZero(reg.total);
+  const aprovado = inteiroOuZero(reg.aprovado);
+  const reprovados = inteiroOuZero(reg.reprovados);
+  const aAnalisar = inteiroOuZero(reg.aAnalisar);
+  const ultimoEnsaio = ultimoEnsaioLiberacao(ensaios);
+
+  if (ultimoEnsaio?.resultado === 'Aprovado') return STATUS_LOTE.LIBERADO;
+  if (ultimoEnsaio?.resultado === 'Pendente') return STATUS_LOTE.ANALISE;
+  if (ultimoEnsaio?.resultado === 'Reprovado') {
+    if (cura28 && ultimoEnsaio.dataEnsaio && ultimoEnsaio.dataEnsaio >= cura28) return STATUS_LOTE.REPROVADO;
+    if (cura28 && hoje < cura28) return STATUS_LOTE.CURA_28;
+    return STATUS_LOTE.AGUARDANDO_ENSAIO;
+  }
+
+  if (aAnalisar > 0) return STATUS_LOTE.ANALISE;
+  if (aprovado > 0) return STATUS_LOTE.LIBERADO;
+  if (statusAtual === STATUS_LOTE.LIBERADO || statusAtual === STATUS_LOTE.REPROVADO || statusAtual === STATUS_LOTE.ANALISE) return statusAtual;
+  if (reprovados > 0) {
+    if (cura28 && hoje < cura28) return STATUS_LOTE.CURA_28;
+    return STATUS_LOTE.AGUARDANDO_ENSAIO;
+  }
+  if (reg.dataFabricacao) {
+    if (cura14 && hoje < cura14) return STATUS_LOTE.CURA_14;
+    return STATUS_LOTE.AGUARDANDO_ENSAIO;
+  }
+  return statusAtual || '';
+}
+
+function ensaiosDoLoteProducao(reg, ensaios = PRODUCAO_ENSAIOS_LIBERACAO) {
+  const lote = U.norm(reg?.lote);
+  const fornecedor = U.norm(reg?.fornecedor);
+  const projeto = U.norm(reg?.projeto);
+  const bitola = U.norm(U.bitolaDe(reg || {}));
+  return (ensaios || []).filter(e => {
+    if (reg?.id && e.producaoLoteId && String(e.producaoLoteId) === String(reg.id)) return true;
+    if (!lote || U.norm(e.lote) !== lote) return false;
+    if (fornecedor && e.fornecedor && U.norm(e.fornecedor) !== fornecedor) return false;
+    if (projeto && e.projeto && U.norm(e.projeto) !== projeto) return false;
+    if (bitola && e.bitola && U.norm(e.bitola) !== bitola) return false;
+    return true;
+  });
+}
+
+function registroDoFormulario() {
+  const reg = { id: document.getElementById('id')?.value || undefined };
+  CAMPOS.forEach(c => {
+    const el = document.getElementById(c);
+    if (el) reg[c] = el.value;
+  });
+  return reg;
+}
+
+function aplicarStatusAutomaticoFormulario() {
+  const el = document.getElementById('status');
+  if (!el) return '';
+  const reg = registroDoFormulario();
+  const ensaios = ensaiosDoLoteProducao(reg);
+  const status = statusAutomaticoDoLote(reg, ensaios);
+  if (status && el.value !== status) el.value = status;
+  return el.value;
+}
+
+function atualizarCurasPelaFabricacao() {
+  const data = document.getElementById('dataFabricacao')?.value;
+  if (!data) return aplicarStatusAutomaticoFormulario();
+  const cura14 = document.getElementById('cura14');
+  const cura28 = document.getElementById('cura28');
+  if (cura14 && !cura14.value) cura14.value = dataISOAdicionarDias(data, 14);
+  if (cura28 && !cura28.value) cura28.value = dataISOAdicionarDias(data, 28);
+  return aplicarStatusAutomaticoFormulario();
+}
+
 
 async function carregarProducao() {
   PRODUCAO_CARREGANDO = true;
@@ -94,8 +243,12 @@ async function carregarProducao() {
   render();
   try {
     await Auth.exigirLogin();
-    const linhas = await StoreSupabase.listarProducao({ limite: 5000 });
-    PRODUCAO_REGISTROS = linhas.map(mapProducaoDoBanco);
+    const [linhas, ensaiosLiberacao] = await Promise.all([
+      StoreSupabase.listarProducao({ limite: 5000 }),
+      StoreSupabase.listarEnsaiosLiberacao({ limite: 5000 }),
+    ]);
+    PRODUCAO_ENSAIOS_LIBERACAO = (ensaiosLiberacao || []).map(mapEnsaioLiberacaoDoBancoSimples);
+    PRODUCAO_REGISTROS = linhas.map(r => mapProducaoDoBanco(r, PRODUCAO_ENSAIOS_LIBERACAO));
     PRODUCAO_CARREGANDO = false;
     atualizarFiltroSemanaProducao();
     render();
@@ -282,6 +435,7 @@ function renderAlertasPreenchimento(lista) {
 function abrirNovo() {
   document.getElementById('form').reset();
   document.getElementById('id').value = '';
+  aplicarStatusAutomaticoFormulario();
   document.getElementById('modalTitulo').textContent = 'Novo lançamento de produção';
   document.getElementById('modal').classList.add('aberto');
 }
@@ -295,11 +449,15 @@ function editar(id) {
   if (!r) return;
   document.getElementById('id').value = r.id;
   CAMPOS.forEach(c => { const el = document.getElementById(c); if (el) el.value = r[c] != null ? r[c] : ''; });
+  const statusCalculado = statusAutomaticoDoLote(r, ensaiosDoLoteProducao(r));
+  if (statusCalculado) document.getElementById('status').value = statusCalculado;
   document.getElementById('modalTitulo').textContent = `Editar lote ${r.lote}`;
   document.getElementById('modal').classList.add('aberto');
 }
 
 async function salvar() {
+  atualizarCurasPelaFabricacao();
+  aplicarStatusAutomaticoFormulario();
   const lote = document.getElementById('lote').value.trim();
   const projeto = document.getElementById('projeto').value;
   const tipo = document.getElementById('tipo').value;
@@ -310,8 +468,8 @@ async function salvar() {
     App.toast('Preencha os campos obrigatórios (*).', 'aviso'); return;
   }
 
-  const reg = { id: document.getElementById('id').value || undefined };
-  CAMPOS.forEach(c => { const el = document.getElementById(c); if (el) reg[c] = el.value; });
+  const reg = registroDoFormulario();
+  reg.status = status;
 
   const btn = document.querySelector('.form-acoes .btn-primario');
   const textoOriginal = btn?.innerHTML;
@@ -429,8 +587,8 @@ function dentroPeriodoData(iso, ini, fim) {
   return true;
 }
 
-function mapProducaoDoBanco(r) {
-  return {
+function mapProducaoDoBanco(r, ensaios = PRODUCAO_ENSAIOS_LIBERACAO) {
+  const reg = {
     id: r.id,
     fornecedor: r.fornecedor || '',
     pista: r.pista || '',
@@ -471,12 +629,28 @@ function mapProducaoDoBanco(r) {
     aAnalisar: valorBanco(r.dorm_a_analisar),
     reprovados: valorBanco(r.dorm_reprovados),
     aprovado: valorBanco(r.total_aprovado),
-    status: r.status || '',
+    status: normalizarStatusProducao(r.status || ''),
     motivo: r.motivo || '',
     semana: r.semana || '',
     ano: r.ano || '',
     periodoIni: dataBanco(r.periodo_inicio),
     periodoFim: dataBanco(r.periodo_fim),
+  };
+  reg.status = statusAutomaticoDoLote(reg, ensaiosDoLoteProducao(reg, ensaios));
+  return reg;
+}
+
+function mapEnsaioLiberacaoDoBancoSimples(r) {
+  return {
+    id: r.id,
+    producaoLoteId: r.producao_lote_id || '',
+    dataEnsaio: dataBanco(r.data_ensaio),
+    fornecedor: r.fornecedor || '',
+    projeto: r.projeto || '',
+    bitola: r.bitola || '',
+    lote: r.lote_ensaiado || '',
+    resultado: r.resultado || '',
+    criadoEm: r.criado_em || '',
   };
 }
 
@@ -505,7 +679,7 @@ function mapProducaoParaBanco(reg, { compatibilidade = false } = {}) {
     dorm_a_analisar: inteiroOuZero(reg.aAnalisar),
     dorm_reprovados: inteiroOuZero(reg.reprovados),
     total_aprovado: inteiroOuZero(reg.aprovado),
-    status: textoOuNull(reg.status),
+    status: textoOuNull(normalizarStatusProducao(reg.status)),
     motivo: textoOuNull(reg.motivo),
     semana: info.semana || null,
     ano: info.ano || null,
