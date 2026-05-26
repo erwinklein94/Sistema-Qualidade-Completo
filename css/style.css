@@ -2820,3 +2820,727 @@ body[data-tema="escuro"] table.tabela tbody tr:hover { background: rgba(127,224,
   .login-card { padding: 32px 24px; border-radius: 24px; }
   .login-marca img { width: 148px; }
 }
+
+
+/* =====================================================================
+   AJUSTE GLOBAL DE DENSIDADE / ZOOM OUT — RUMO CONCRETO
+   Compacta a interface inteira mantendo o padrão visual Rumo, para que
+   filtros, KPIs, gráficos, formulários e tabelas caibam melhor na tela.
+   ===================================================================== */
+html {
+  font-size: 14px;
+}
+
+body {
+  font-size: 13.4px;
+  line-height: 1.42;
+}
+
+:root {
+  --raio: 18px;
+  --raio-sm: 12px;
+  --sombra: 0 12px 32px rgba(0, 56, 101, 0.08);
+  --sombra-hover: 0 18px 52px rgba(0, 56, 101, 0.14);
+}
+
+/* Estrutura principal */
+.sidebar {
+  width: 260px;
+  left: -288px;
+}
+.sidebar-logo {
+  padding: 22px 22px 18px;
+}
+.sidebar-logo .logo-rumo {
+  width: 132px;
+}
+.sidebar-logo .sub {
+  margin-top: 9px;
+  font-size: 9.5px;
+  letter-spacing: .75px;
+}
+.nav {
+  padding: 12px 10px;
+}
+.nav-section-label {
+  padding: 13px 12px 5px;
+  font-size: 9.5px;
+}
+.nav a {
+  min-height: 38px;
+  padding: 9px 12px;
+  gap: 9px;
+  border-radius: 13px;
+  font-size: 12.6px;
+}
+.nav a .ic {
+  width: 17px;
+  height: 17px;
+}
+.sidebar-rodape {
+  padding: 12px 16px;
+}
+.sidebar-rodape strong {
+  font-size: 12px;
+}
+.sidebar-rodape small {
+  font-size: 10.5px;
+}
+
+.topo {
+  margin: 12px 24px 0 !important;
+  padding: 13px 22px !important;
+  border-radius: 20px !important;
+  gap: 12px;
+}
+.topo::after {
+  height: 4px;
+}
+.topo > .flex {
+  gap: 11px !important;
+  min-width: 280px;
+}
+.topo-identidade {
+  gap: 1px;
+}
+.topo-kicker {
+  font-size: 9.2px;
+  letter-spacing: .82px;
+}
+.topo h1 {
+  font-size: clamp(18px, 1.55vw, 23px) !important;
+  line-height: 1.08;
+  letter-spacing: -.55px;
+}
+.topo .subtitulo {
+  font-size: 12.2px;
+  line-height: 1.34;
+  max-width: 680px;
+}
+.topo-acoes {
+  gap: 7px;
+}
+#topoAcoes {
+  gap: 7px;
+}
+.usuario-auth,
+.usuario-pill {
+  max-width: 180px;
+}
+.usuario-pill {
+  padding: 4px 9px;
+}
+.usuario-nome {
+  font-size: 11.3px;
+}
+.usuario-perfil {
+  font-size: 9.2px;
+}
+
+.pagina {
+  width: 100%;
+  max-width: 1540px;
+  padding: 19px 24px 54px !important;
+}
+
+/* Botões e campos */
+.btn {
+  min-height: 34px !important;
+  padding: 7px 13px !important;
+  font-size: 12.2px !important;
+  gap: 6px;
+  border-radius: 999px;
+}
+.btn-sm {
+  min-height: 31px !important;
+  padding: 6px 11px !important;
+  font-size: 11.8px !important;
+}
+.btn .ic {
+  width: 15px;
+  height: 15px;
+}
+
+.campo {
+  gap: 4px;
+}
+.campo label {
+  font-size: 11.2px;
+  line-height: 1.18;
+}
+.campo input,
+.campo select,
+.campo textarea {
+  min-height: 34px !important;
+  padding: 7px 10px !important;
+  font-size: 12.8px !important;
+  border-radius: 11px !important;
+}
+.campo textarea {
+  min-height: 56px;
+}
+.form-grid {
+  grid-template-columns: repeat(auto-fill, minmax(188px, 1fr));
+  gap: 12px 14px;
+}
+.form-secao {
+  font-size: 11.8px;
+  margin-top: 9px;
+  padding-top: 11px;
+}
+.form-acoes {
+  gap: 9px;
+  margin-top: 16px;
+  padding-top: 14px;
+}
+
+/* Filtros */
+.barra-filtros {
+  padding: 15px 16px 14px !important;
+  gap: 10px !important;
+  margin-bottom: 15px !important;
+  border-radius: 18px !important;
+  align-items: end;
+}
+.barra-filtros::before {
+  top: -10px;
+  left: 16px;
+  padding: 3px 10px;
+  font-size: 9.2px;
+  letter-spacing: .45px;
+}
+.barra-filtros .campo {
+  min-width: 136px;
+  flex: 1 1 136px;
+}
+.barra-filtros .busca-rapida {
+  min-width: 180px;
+}
+.barra-filtros input,
+.barra-filtros select {
+  min-width: 0 !important;
+  width: 100%;
+}
+.barra-filtros > .btn {
+  align-self: end;
+}
+
+/* KPIs */
+.grid-kpi {
+  grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+  align-items: stretch;
+}
+#kpis.grid-kpi {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+.kpi,
+.grid-kpi-compacto .kpi {
+  min-width: 0;
+  min-height: 108px;
+  padding: 15px 16px 14px !important;
+  border-radius: 17px !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+.kpi::after {
+  right: -34px;
+  top: -38px;
+  width: 86px;
+  height: 86px;
+}
+.kpi .rotulo,
+.kpi-label {
+  font-size: 10.2px !important;
+  line-height: 1.18;
+  letter-spacing: .48px;
+  min-height: 22px;
+  max-width: 100%;
+}
+.kpi .valor,
+.kpi-valor {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-top: 6px !important;
+  font-size: clamp(21px, 2vw, 29px) !important;
+  line-height: 1 !important;
+  letter-spacing: -.75px !important;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  font-variant-numeric: tabular-nums;
+}
+.kpi .extra {
+  margin-top: 5px;
+  font-size: 11px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.grid-kpi-compacto {
+  gap: 11px;
+}
+.grid-kpi-compacto .kpi {
+  min-height: 98px;
+}
+.grid-kpi-compacto .kpi .valor {
+  font-size: clamp(20px, 1.8vw, 26px) !important;
+}
+
+/* Cards e gráficos */
+.grid-graficos {
+  gap: 15px;
+}
+.card {
+  padding: 17px !important;
+  margin-bottom: 17px !important;
+  border-radius: 18px !important;
+}
+.card::before {
+  height: 3px;
+}
+.card-titulo {
+  font-size: 14.3px !important;
+  line-height: 1.22;
+  margin-bottom: 13px !important;
+  padding-bottom: 9px !important;
+  gap: 9px;
+}
+.card-titulo .acento {
+  gap: 8px;
+}
+.card-titulo .acento::before {
+  width: 8px;
+  height: 8px;
+  box-shadow: 0 0 0 5px rgba(127,224,108,.14);
+}
+.card-titulo .card-sub,
+.card-sub {
+  font-size: 11.2px !important;
+  line-height: 1.24;
+}
+.chart-box {
+  height: 255px !important;
+}
+.chart-box.alto {
+  height: 315px !important;
+}
+.legenda-mini {
+  gap: 10px;
+  margin-top: 8px;
+  font-size: 11.2px;
+}
+.legenda-mini .pt {
+  width: 9px;
+  height: 9px;
+}
+
+/* Tabelas e badges */
+.tabela-wrap {
+  border-radius: 14px;
+}
+table.tabela,
+.tabela {
+  font-size: 12px !important;
+  min-width: 940px;
+}
+table.tabela thead th,
+.tabela th {
+  padding: 8px 10px !important;
+  font-size: 10.4px !important;
+  letter-spacing: .25px;
+}
+table.tabela tbody td,
+.tabela td {
+  padding: 8px 10px !important;
+}
+.badge {
+  min-height: 20px;
+  padding: 3px 8px;
+  font-size: 10.2px !important;
+  line-height: 1.2;
+}
+.icone-btn {
+  width: 28px;
+  height: 28px;
+  padding: 4px;
+  border-radius: 7px;
+}
+.icone-btn .ic {
+  width: 15px;
+  height: 15px;
+}
+
+/* Séries, ensaios e blocos auxiliares */
+.series-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 13px;
+}
+.serie-card {
+  padding: 15px !important;
+  border-radius: 17px !important;
+}
+.serie-card-topo h3 {
+  font-size: 14.2px;
+}
+.serie-card-topo p {
+  font-size: 11.6px;
+}
+.status-serie {
+  font-size: 10.5px;
+  padding: 4px 8px;
+}
+.serie-metricas {
+  gap: 8px;
+}
+.serie-metricas div {
+  padding: 9px;
+  border-radius: 11px;
+}
+.serie-metricas span {
+  font-size: 9.6px;
+}
+.serie-metricas strong {
+  font-size: 14.5px;
+}
+.detalhe-grid {
+  grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
+  gap: 11px 18px;
+}
+.detalhe-item .rot {
+  font-size: 10px;
+}
+.detalhe-item .val {
+  font-size: 12.8px;
+}
+.detalhe-secao {
+  font-size: 11.8px;
+  margin: 17px 0 8px;
+}
+.aviso-info,
+.usuarios-alerta {
+  padding: 10px 12px;
+  font-size: 12.2px;
+}
+
+/* iAuditor */
+.iauditor-grid {
+  grid-template-columns: minmax(260px, 1.15fr) minmax(220px, .85fr);
+  gap: 14px;
+}
+.iauditor-drop {
+  min-height: 128px;
+  padding: 16px;
+  grid-template-columns: 48px 1fr;
+  gap: 13px;
+  border-radius: 17px;
+}
+.iauditor-drop-icone {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+}
+.iauditor-drop-icone .ic {
+  width: 24px;
+  height: 24px;
+}
+.iauditor-drop strong {
+  font-size: 14.4px;
+}
+.iauditor-drop p,
+.iauditor-orientacao p,
+.iauditor-status p {
+  font-size: 12.2px;
+  line-height: 1.5;
+}
+.iauditor-orientacao,
+.iauditor-status {
+  padding: 14px;
+  border-radius: 16px;
+}
+.iauditor-meta-grid {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+.iauditor-meta-item {
+  padding: 8px 10px;
+}
+.iauditor-chip {
+  font-size: 10.5px;
+  padding: 4px 8px;
+}
+
+/* Usuários e auditoria */
+.usuarios-page,
+.auditoria-page {
+  gap: 14px;
+}
+.usuarios-hero,
+.auditoria-hero {
+  gap: 16px;
+}
+.usuarios-hero h2,
+.auditoria-hero h2 {
+  font-size: clamp(20px, 2.1vw, 24px) !important;
+}
+.usuarios-hero p,
+.auditoria-hero p {
+  font-size: 12.8px;
+  line-height: 1.55;
+}
+.usuarios-resumo-grid,
+.auditoria-resumo-grid {
+  gap: 11px;
+}
+.usuarios-kpi {
+  padding: 14px !important;
+}
+.usuarios-kpi span {
+  font-size: 10.5px;
+}
+.usuarios-kpi strong {
+  font-size: 27px;
+  margin: 7px 0 3px;
+}
+.usuarios-layout {
+  gap: 14px;
+}
+.usuarios-perfil-card {
+  padding: 13px;
+  border-radius: 16px;
+}
+.auditoria-filtros,
+.auditoria-lista-topo {
+  gap: 10px;
+}
+.auditoria-campo {
+  padding: 10px 12px;
+}
+
+/* Modal, toast, vazio */
+.modal {
+  max-width: 880px;
+  border-radius: 19px !important;
+}
+.modal-cab {
+  padding: 14px 17px !important;
+}
+.modal-cab h2 {
+  font-size: 15.5px;
+}
+.modal-corpo {
+  padding: 17px !important;
+}
+.fechar-modal .ic {
+  width: 19px;
+  height: 19px;
+}
+.toast-wrap {
+  bottom: 18px;
+  right: 18px;
+}
+.toast {
+  padding: 11px 14px;
+  font-size: 12.4px;
+  max-width: 320px;
+}
+.vazio {
+  padding: 44px 18px;
+}
+.vazio .ic {
+  width: 44px;
+  height: 44px;
+}
+.vazio h3 {
+  font-size: 14.5px;
+}
+.vazio p {
+  font-size: 12.5px;
+}
+
+/* Login também mais proporcional */
+.login-page {
+  padding: 20px;
+}
+.login-card {
+  width: min(100%, 430px);
+  padding: 30px !important;
+  border-radius: 24px !important;
+}
+.login-card::before {
+  height: 6px;
+}
+.login-marca {
+  margin-bottom: 14px;
+}
+.login-marca img {
+  width: 150px;
+}
+.login-kicker {
+  font-size: 9.8px;
+  margin-bottom: 8px;
+}
+.login-card h1 {
+  font-size: 26px !important;
+}
+.login-card > p {
+  margin: 8px 0 18px;
+  font-size: 12.8px;
+}
+.login-form {
+  gap: 11px;
+}
+.login-nota {
+  margin-top: 14px;
+  padding: 11px 12px;
+  border-radius: 14px;
+  font-size: 12.2px;
+}
+
+@media (min-width: 1180px) {
+  .topo {
+    margin-left: 24px !important;
+    margin-right: 24px !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  #kpis.grid-kpi {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1280px) {
+  .topo {
+    margin-left: 18px !important;
+    margin-right: 18px !important;
+  }
+  .pagina {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+  .grid-kpi,
+  #kpis.grid-kpi {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+  .kpi .valor,
+  .kpi-valor {
+    font-size: clamp(20px, 2.35vw, 27px) !important;
+  }
+  .chart-box {
+    height: 242px !important;
+  }
+  .chart-box.alto {
+    height: 295px !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .topo {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .topo > .flex {
+    width: 100%;
+  }
+  .topo-acoes {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .grid-graficos {
+    grid-template-columns: 1fr;
+  }
+  #kpis.grid-kpi,
+  .grid-kpi {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .iauditor-grid,
+  .usuarios-hero,
+  .usuarios-layout,
+  .auditoria-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    font-size: 13.2px;
+  }
+  .topo {
+    margin: 10px 10px 0 !important;
+    padding: 12px !important;
+    border-radius: 18px !important;
+  }
+  .topo h1 {
+    font-size: 18px !important;
+  }
+  .topo .subtitulo {
+    font-size: 12px;
+  }
+  .pagina {
+    padding: 14px 10px 42px !important;
+  }
+  .barra-filtros {
+    padding: 14px !important;
+    gap: 9px !important;
+  }
+  .barra-filtros .campo {
+    min-width: 0;
+  }
+  #kpis.grid-kpi,
+  .grid-kpi,
+  .grid-kpi-compacto,
+  .usuarios-resumo-grid,
+  .auditoria-resumo-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .kpi,
+  .grid-kpi-compacto .kpi {
+    min-height: 98px;
+  }
+  .kpi .valor,
+  .kpi-valor {
+    font-size: clamp(24px, 8vw, 34px) !important;
+  }
+  .card {
+    padding: 14px !important;
+    border-radius: 16px !important;
+  }
+  .chart-box,
+  .chart-box.alto {
+    height: 230px !important;
+  }
+  .login-card {
+    padding: 24px 20px !important;
+    border-radius: 22px !important;
+  }
+  .login-marca img {
+    width: 138px;
+  }
+}
+
+@media (max-width: 460px) {
+  .topo .btn span:not(.sr-only) {
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .topo-acoes .btn {
+    flex: 0 1 auto;
+  }
+  .barra-filtros {
+    grid-template-columns: 1fr;
+  }
+  .kpi .valor,
+  .kpi-valor {
+    font-size: clamp(22px, 9vw, 30px) !important;
+  }
+  table.tabela,
+  .tabela {
+    min-width: 820px;
+  }
+}

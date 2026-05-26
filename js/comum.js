@@ -169,7 +169,7 @@ const App = {
     if (!window.Chart) return;
     const escuro = this.temaAtual() === 'escuro';
     Chart.defaults.font.family = "'Inter', sans-serif";
-    Chart.defaults.font.size = 12;
+    Chart.defaults.font.size = 11;
     Chart.defaults.color = escuro ? '#d9e8f7' : '#5a6b7b';
     Chart.defaults.borderColor = escuro ? 'rgba(255,255,255,.14)' : '#e2e8f0';
   },
