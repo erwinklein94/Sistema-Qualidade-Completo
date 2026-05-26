@@ -15,11 +15,12 @@ const CAMPOS = [
 const RESULTADOS = ['Aprovado', 'Reprovado', 'Pendente'];
 
 document.addEventListener('DOMContentLoaded', async () => {
+  if (!await Auth.exigirLogin()) return;
   App.montarLayout('ensaiosLiberacao', 'Ensaios de Liberação', 'Registro dos lotes ensaiados, série liberada e relatório iAuditor');
   App.acoesTopo(`
     <button class="btn btn-secundario" onclick="location.href='ensaios.html'">${ICN.ensaios}Painel de séries</button>
     <button class="btn btn-secundario" onclick="abrirImportadorIauditor()">${ICN.upload}Importar PDF iAuditor</button>
-    <button class="btn btn-primario" onclick="abrirNovo()">${ICN.add}Novo ensaio manual</button>
+    ${Auth.pode('criar') ? `<button class="btn btn-primario" onclick="abrirNovo()">${ICN.add}Novo ensaio manual</button>` : App.avisoModoConsulta()}
   `);
 
   preencherSelect('fornecedor', CFG.listas.fornecedores, 'Selecione...');
@@ -183,8 +184,8 @@ function renderTabela(lista, total) {
       <td>${linkRelatorio(r)}</td>
       <td class="acoes-cel">
         <button class="icone-btn" title="Ver" onclick="ver('${r.id}')">${ICN.olho}</button>
-        <button class="icone-btn" title="Editar" onclick="editar('${r.id}')">${ICN.edit}</button>
-        <button class="icone-btn del" title="Excluir" onclick="excluir('${r.id}')">${ICN.del}</button>
+        ${Auth.pode('editar') ? `<button class="icone-btn" title="Editar" onclick="editar('${r.id}')">${ICN.edit}</button>` : ''}
+        ${Auth.pode('excluir') ? `<button class="icone-btn del" title="Excluir" onclick="excluir('${r.id}')">${ICN.del}</button>` : ''}
       </td>
     </tr>`).join('')}</tbody>
   </table></div>`;
@@ -221,6 +222,7 @@ function preencherDadosDoLote(id) {
 }
 
 function abrirNovo() {
+  if (!Auth.pode('criar')) { App.toast(Auth.mensagemSemPermissao('criar registros'), 'aviso'); return; }
   document.getElementById('form').reset();
   document.getElementById('id').value = '';
   popularSelectLotes();
@@ -231,6 +233,7 @@ function abrirNovo() {
 }
 
 function editar(id) {
+  if (!Auth.pode('editar')) { App.toast(Auth.mensagemSemPermissao('editar registros'), 'aviso'); return; }
   const r = obterEnsaio(id);
   if (!r) return;
   document.getElementById('form').reset();
@@ -243,6 +246,11 @@ function editar(id) {
 }
 
 async function salvar() {
+  const editando = !!document.getElementById('id')?.value;
+  if (!Auth.pode(editando ? 'editar' : 'criar')) {
+    App.toast(Auth.mensagemSemPermissao(editando ? 'editar registros' : 'criar registros'), 'aviso');
+    return;
+  }
   const dataEnsaio = document.getElementById('dataEnsaio').value;
   const fornecedor = document.getElementById('fornecedor').value;
   const projeto = document.getElementById('projeto').value;
@@ -294,9 +302,8 @@ async function salvar() {
 async function excluir(id) {
   const r = obterEnsaio(id);
   if (!r) return;
-  const perfil = window.USUARIO_ATUAL?.perfil?.perfil;
-  if (perfil !== 'admin') {
-    App.toast('Somente usuários admin podem excluir registros.', 'aviso');
+  if (!Auth.pode('excluir')) {
+    App.toast(Auth.mensagemSemPermissao('excluir registros'), 'aviso');
     return;
   }
   if (!App.confirmar(`Excluir o ensaio do lote ${r.lote || ''}?`)) return;
@@ -330,7 +337,7 @@ function ver(id) {
       ${item('Responsável', U.esc(r.responsavel))}${item('Relatório', linkRelatorio(r))}
     </div>
     ${r.observacoes ? `<div class="detalhe-secao">Observações</div><p style="font-size:13.5px;color:var(--cinza-texto);line-height:1.7">${U.esc(r.observacoes)}</p>` : ''}
-    <div class="form-acoes"><button class="btn btn-secundario" onclick="fecharVer()">Fechar</button><button class="btn btn-primario" onclick="fecharVer(); editar('${r.id}')">Editar</button></div>`;
+    <div class="form-acoes"><button class="btn btn-secundario" onclick="fecharVer()">Fechar</button>${Auth.pode('editar') ? `<button class="btn btn-primario" onclick="fecharVer(); editar('${r.id}')">Editar</button>` : ''}</div>`;
   document.getElementById('modalVer').classList.add('aberto');
 }
 
@@ -564,8 +571,8 @@ function renderLeituraIauditor(item) {
       </div>
       ${faltantes.length ? `<p><span class="iauditor-chip erro">Campos pendentes</span> ${U.esc(faltantes.join(', '))}</p>` : ''}
       <div class="iauditor-acoes">
-        ${c.liberacaoReal ? `<button class="btn btn-primario" type="button" onclick="registrarLeituraIauditor()">${ICN.check}Registrar leitura deste lote</button>` : ''}
-        ${c.liberacaoReal ? `<button class="btn btn-secundario" type="button" onclick="preencherModalComLeituraIauditor()">Editar antes de salvar</button>` : `<button class="btn btn-secundario" type="button" onclick="abrirNovo()">Criar ensaio manual de liberação</button>`}
+        ${Auth.pode('criar') && c.liberacaoReal ? `<button class="btn btn-primario" type="button" onclick="registrarLeituraIauditor()">${ICN.check}Registrar leitura deste lote</button>` : ''}
+        ${Auth.pode('criar') ? (c.liberacaoReal ? `<button class="btn btn-secundario" type="button" onclick="preencherModalComLeituraIauditor()">Editar antes de salvar</button>` : `<button class="btn btn-secundario" type="button" onclick="abrirNovo()">Criar ensaio manual de liberação</button>`) : '<span class="badge badge-amarelo">Modo consulta: leitura sem registro</span>'}
       </div>
       ${linhasMostradas.length ? `<div class="iauditor-mini-tabela"><table><thead><tr><th>Seção</th><th>Campo lido</th><th>Valor</th><th>Situação</th></tr></thead><tbody>${linhasMostradas.map(l => `<tr><td>${U.esc(l.secao)}</td><td>${U.esc(l.ensaio)}</td><td>${U.esc(l.valor)}</td><td>${chipSituacaoIauditor(l.situacao, l.situacaoLabel)}</td></tr>`).join('')}</tbody></table></div>` : ''}
     </div>`;
@@ -586,6 +593,7 @@ function camposObrigatoriosFaltantesIauditor(r) {
 }
 
 async function registrarLeituraIauditor() {
+  if (!Auth.pode('criar')) { App.toast(Auth.mensagemSemPermissao('criar registros'), 'aviso'); return; }
   const atual = IAUDITOR_RELATORIO_ATUAL;
   if (!atual?.registro) {
     App.toast('Importe um PDF do iAuditor antes de registrar.', 'aviso');
@@ -625,6 +633,7 @@ async function registrarLeituraIauditor() {
 }
 
 function preencherModalComLeituraIauditor() {
+  if (!Auth.pode('criar')) { App.toast(Auth.mensagemSemPermissao('criar registros'), 'aviso'); return; }
   const atual = IAUDITOR_RELATORIO_ATUAL;
   if (!atual?.registro) {
     abrirNovo();

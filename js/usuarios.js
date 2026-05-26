@@ -4,11 +4,12 @@
 let usuarios = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-  App.montarLayout('usuarios', 'Usuários', 'Perfis reais de acesso: admin, qualidade e consulta');
+  if (!await Auth.exigirLogin()) return;
+  App.montarLayout('usuarios', 'Usuários', 'Perfis reais de acesso: admin, Fiscalização e Consulta');
   document.getElementById('formUsuario')?.addEventListener('submit', salvarUsuario);
 
-  const perfil = await Auth.perfilAtual().catch(() => null);
-  if (perfil?.perfil !== 'admin') {
+  const perfil = window.USUARIO_ATUAL?.perfil || await Auth.perfilAtual().catch(() => null);
+  if (!Auth.pode('gerenciarUsuarios', perfil)) {
     document.querySelector('.container').innerHTML = `
       <div class="card aviso-erro">
         <div class="card-titulo"><span class="acento">Acesso restrito</span></div>
@@ -45,7 +46,7 @@ function renderUsuarios() {
     <tr>
       <td><strong>${U.esc(u.nome || '—')}</strong></td>
       <td>${U.esc(u.email || '—')}</td>
-      <td><span class="badge badge-projeto">${U.esc(u.perfil || 'consulta')}</span></td>
+      <td><span class="badge badge-projeto">${U.esc(Auth.rotuloPerfil(u.perfil || 'consulta'))}</span></td>
       <td>${u.ativo ? 'Sim' : 'Não'}</td>
       <td><code>${U.esc(u.id || '')}</code></td>
       <td>${formatarDataHora(u.atualizado_em)}</td>
@@ -59,7 +60,7 @@ function editarUsuario(id) {
   document.getElementById('uId').value = u.id || '';
   document.getElementById('uNome').value = u.nome || '';
   document.getElementById('uEmail').value = u.email || '';
-  document.getElementById('uPerfil').value = u.perfil || 'consulta';
+  document.getElementById('uPerfil').value = Auth.normalizarPerfil(u.perfil || 'consulta');
   document.getElementById('uAtivo').value = u.ativo ? 'true' : 'false';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -76,7 +77,7 @@ async function salvarUsuario(ev) {
     id: document.getElementById('uId').value.trim(),
     nome: document.getElementById('uNome').value.trim(),
     email: document.getElementById('uEmail').value.trim(),
-    perfil: document.getElementById('uPerfil').value,
+    perfil: Auth.normalizarPerfil(document.getElementById('uPerfil').value),
     ativo: document.getElementById('uAtivo').value === 'true',
   };
 
@@ -123,12 +124,12 @@ function registrarExportacaoUsuarios() {
       columns: [
         { key: 'nome', label: 'Nome' },
         { key: 'email', label: 'E-mail' },
-        { key: 'perfil', label: 'Perfil' },
+        { key: 'perfilRotulo', label: 'Perfil' },
         { key: 'ativo', label: 'Ativo' },
         { key: 'id', label: 'UID' },
         { key: 'atualizado_em', label: 'Atualizado em' },
       ],
-      rows: usuarios.map(u => ({ ...u, ativo: u.ativo ? 'Sim' : 'Não', atualizado_em: formatarDataHora(u.atualizado_em) }))
+      rows: usuarios.map(u => ({ ...u, perfilRotulo: Auth.rotuloPerfil(u.perfil), ativo: u.ativo ? 'Sim' : 'Não', atualizado_em: formatarDataHora(u.atualizado_em) }))
     }]
   });
 }

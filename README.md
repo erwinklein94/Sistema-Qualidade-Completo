@@ -181,15 +181,15 @@ A sequência das colunas segue o modelo antigo: Semana, Data de Produção, Per�
 
 Esta versão preserva o layout desktop e adiciona regras responsivas para telas menores, evitando sobreposição no topo, campos saindo da tela, tabelas estourando a largura e cards desalinhados no celular.
 
-## Usuários reais e auditoria
+## Usuários reais, permissões e auditoria
 
-Para ativar auditoria completa, rode no Supabase SQL Editor:
+Para ativar os perfis corretos e as políticas de segurança do Supabase, rode no Supabase SQL Editor:
 
 ```text
-supabase/2026-05-23-auditoria-e-usuarios.sql
+supabase/2026-05-26-perfis-e-rls.sql
 ```
 
-Depois, crie os usuários reais em:
+Esse script também substitui o perfil antigo `qualidade` por `fiscalizacao` no banco. Depois, crie os usuários reais em:
 
 ```text
 Supabase → Authentication → Users → Add user
@@ -201,19 +201,21 @@ Copie o UID de cada usuário e cadastre o perfil na tela:
 Sistema → Usuários
 ```
 
-Perfis:
+Perfis aplicados:
 
-- `admin`: visualiza, cria, edita e exclui.
-- `qualidade`: visualiza, cria e edita, mas não exclui.
-- `consulta`: apenas visualiza.
+- `admin` / **Admin**: visualiza, cria, edita, exclui, administra usuários e vê auditoria.
+- `fiscalizacao` / **Fiscalização**: visualiza, cria e edita; não exclui e não acessa Usuários/Auditoria.
+- `consulta` / **Consulta**: apenas visualiza; não cria, não edita e não exclui.
 
-A auditoria fica disponível em:
+A auditoria fica disponível apenas para Admin em:
 
 ```text
 Sistema → Auditoria
 ```
 
 Ela registra criação, alteração e exclusão em Produção, Reprovados e Ensaios de Liberação, com usuário, data/hora, tabela, registro e resumo dos campos alterados.
+
+> Se ainda não existir nenhum usuário Admin, crie o primeiro Admin diretamente pelo SQL Editor usando o exemplo no final de `2026-05-26-perfis-e-rls.sql`. Depois disso, a tela Sistema → Usuários passa a fazer a manutenção normalmente.
 
 ## Integração do leitor iAuditor em Ensaios de Liberação
 

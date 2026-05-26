@@ -76,8 +76,11 @@ const CAMPOS_STATUS_AUTOMATICO = [
 let PRODUCAO_ENSAIOS_LIBERACAO = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
+  if (!await Auth.exigirLogin()) return;
   App.montarLayout('producao', 'Produção de Dormentes', 'Lançamento e controle de fabricação por lote');
-  App.acoesTopo(`<button class="btn btn-primario" onclick="abrirNovo()">${ICN.add}Novo lançamento</button>`);
+  App.acoesTopo(Auth.pode('criar')
+    ? `<button class="btn btn-primario" onclick="abrirNovo()">${ICN.add}Novo lançamento</button>`
+    : App.avisoModoConsulta());
 
   sel('fornecedor', CFG.listas.fornecedores, '');
   sel('pedido', CFG.listas.pedidos, '');
@@ -327,8 +330,8 @@ function render() {
       <td>${U.badgeStatus(r.status)}</td>
       <td class="acoes-cel">
         <button class="icone-btn" title="Ver" onclick="ver('${r.id}')">${ICN.olho}</button>
-        <button class="icone-btn" title="Editar" onclick="editar('${r.id}')">${ICN.edit}</button>
-        <button class="icone-btn del" title="Excluir" onclick="excluir('${r.id}')">${ICN.del}</button>
+        ${Auth.pode('editar') ? `<button class="icone-btn" title="Editar" onclick="editar('${r.id}')">${ICN.edit}</button>` : ''}
+        ${Auth.pode('excluir') ? `<button class="icone-btn del" title="Excluir" onclick="excluir('${r.id}')">${ICN.del}</button>` : ''}
       </td>
     </tr>`;
   });
@@ -418,7 +421,7 @@ function renderAlertasPreenchimento(lista) {
       <td>${U.badgeBitola(r)}</td>
       <td>${badgePreenchimento(info)}</td>
       <td><div class="chips-faltantes">${grupos}</div></td>
-      <td class="acoes-cel"><button class="btn btn-secundario btn-sm" onclick="editar('${r.id}')">Completar</button></td>
+      <td class="acoes-cel">${Auth.pode('editar') ? `<button class="btn btn-secundario btn-sm" onclick="editar('${r.id}')">Completar</button>` : '<span class="txt-mini txt-cinza">Consulta</span>'}</td>
     </tr>`;
   }).join('');
 
@@ -434,6 +437,7 @@ function renderAlertasPreenchimento(lista) {
 }
 
 function abrirNovo() {
+  if (!Auth.pode('criar')) { App.toast(Auth.mensagemSemPermissao('criar registros'), 'aviso'); return; }
   document.getElementById('form').reset();
   document.getElementById('id').value = '';
   aplicarStatusAutomaticoFormulario();
@@ -446,6 +450,7 @@ function obterProducao(id) {
 }
 
 function editar(id) {
+  if (!Auth.pode('editar')) { App.toast(Auth.mensagemSemPermissao('editar registros'), 'aviso'); return; }
   const r = obterProducao(id);
   if (!r) return;
   document.getElementById('id').value = r.id;
@@ -457,6 +462,11 @@ function editar(id) {
 }
 
 async function salvar() {
+  const editando = !!document.getElementById('id')?.value;
+  if (!Auth.pode(editando ? 'editar' : 'criar')) {
+    App.toast(Auth.mensagemSemPermissao(editando ? 'editar registros' : 'criar registros'), 'aviso');
+    return;
+  }
   atualizarCurasPelaFabricacao();
   aplicarStatusAutomaticoFormulario();
   const lote = document.getElementById('lote').value.trim();
@@ -500,9 +510,8 @@ async function salvar() {
 async function excluir(id) {
   const r = obterProducao(id);
   if (!r) return;
-  const perfil = window.USUARIO_ATUAL?.perfil?.perfil;
-  if (perfil !== 'admin') {
-    App.toast('Somente usuários admin podem excluir registros.', 'aviso');
+  if (!Auth.pode('excluir')) {
+    App.toast(Auth.mensagemSemPermissao('excluir registros'), 'aviso');
     return;
   }
   if (!App.confirmar(`Excluir o lançamento do lote ${r ? r.lote : ''}?`)) return;
@@ -564,7 +573,7 @@ function ver(id) {
   document.getElementById('verTitulo').textContent = `Lote ${r.lote} — ${r.projeto}`;
   document.getElementById('verCorpo').innerHTML = html +
     `<div class="form-acoes"><button class="btn btn-secundario" onclick="fecharVer()">Fechar</button>
-     <button class="btn btn-primario" onclick="fecharVer(); editar('${r.id}')">Editar</button></div>`;
+     ${Auth.pode('editar') ? `<button class="btn btn-primario" onclick="fecharVer(); editar('${r.id}')">Editar</button>` : ''}</div>`;
   document.getElementById('modalVer').classList.add('aberto');
 }
 

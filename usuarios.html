@@ -16,7 +16,7 @@
             Primeiro crie o usuário em <strong>Supabase → Authentication → Users → Add user</strong>. Depois copie o <strong>UID</strong> desse usuário e cadastre aqui o perfil do sistema.
           </p>
           <p style="font-size:14px;line-height:1.7;margin:0">
-            Perfis: <strong>admin</strong> faz tudo; <strong>qualidade</strong> cria/edita, mas não exclui; <strong>consulta</strong> apenas visualiza.
+            Perfis: <strong>Admin</strong> faz tudo; <strong>Fiscalização</strong> cria/edita, mas não exclui; <strong>Consulta</strong> apenas visualiza.
           </p>
         </div>
 
@@ -35,9 +35,9 @@
               </label>
               <label>Perfil
                 <select id="uPerfil" required>
-                  <option value="admin">admin</option>
-                  <option value="qualidade">qualidade</option>
-                  <option value="consulta">consulta</option>
+                  <option value="admin">Admin</option>
+                  <option value="fiscalizacao">Fiscalização</option>
+                  <option value="consulta">Consulta</option>
                 </select>
               </label>
               <label>Ativo
@@ -59,9 +59,9 @@
               <table>
                 <thead><tr><th>Perfil</th><th>Ver</th><th>Criar/editar</th><th>Excluir</th></tr></thead>
                 <tbody>
-                  <tr><td><strong>admin</strong></td><td>Sim</td><td>Sim</td><td>Sim</td></tr>
-                  <tr><td><strong>qualidade</strong></td><td>Sim</td><td>Sim</td><td>Não</td></tr>
-                  <tr><td><strong>consulta</strong></td><td>Sim</td><td>Não</td><td>Não</td></tr>
+                  <tr><td><strong>Admin</strong></td><td>Sim</td><td>Sim</td><td>Sim</td></tr>
+                  <tr><td><strong>Fiscalização</strong></td><td>Sim</td><td>Sim</td><td>Não</td></tr>
+                  <tr><td><strong>Consulta</strong></td><td>Sim</td><td>Não</td><td>Não</td></tr>
                 </tbody>
               </table>
             </div>

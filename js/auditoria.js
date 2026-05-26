@@ -4,11 +4,12 @@
 let auditoria = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
+  if (!await Auth.exigirLogin()) return;
   App.montarLayout('auditoria', 'Auditoria', 'Histórico de criação, alteração e exclusão dos registros');
   ['fTabela', 'fAcao', 'fDataIni', 'fDataFim'].forEach(id => document.getElementById(id)?.addEventListener('change', carregarAuditoria));
 
-  const perfil = await Auth.perfilAtual().catch(() => null);
-  if (perfil?.perfil !== 'admin') {
+  const perfil = window.USUARIO_ATUAL?.perfil || await Auth.perfilAtual().catch(() => null);
+  if (!Auth.pode('verAuditoria', perfil)) {
     document.querySelector('.container').innerHTML = `
       <div class="card aviso-erro">
         <div class="card-titulo"><span class="acento">Acesso restrito</span></div>

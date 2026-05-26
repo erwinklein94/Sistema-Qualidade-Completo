@@ -19,6 +19,17 @@ const StoreSupabase = (() => {
     return Auth.perfilAtual();
   }
 
+
+  function exigirPermissao(acao, descricao) {
+    if (!window.Auth?.pode?.(acao)) {
+      throw new Error(window.Auth?.mensagemSemPermissao?.(descricao) || `Sem permissão para ${descricao}.`);
+    }
+  }
+
+  function acaoSalvar(registro) {
+    return registro?.id ? ['editar', 'editar registros'] : ['criar', 'criar registros'];
+  }
+
   async function listarProducao(filtros = {}) {
     let q = db()
       .from('producao_lotes')
@@ -42,6 +53,8 @@ const StoreSupabase = (() => {
   }
 
   async function salvarProducao(registro) {
+    const [acao, descricao] = acaoSalvar(registro);
+    exigirPermissao(acao, descricao);
     const user = await usuarioAtual();
     const payload = { ...registro, atualizado_por: user?.id || null };
     const id = payload.id;
@@ -62,6 +75,7 @@ const StoreSupabase = (() => {
   }
 
   async function removerProducao(id) {
+    exigirPermissao('excluir', 'excluir registros');
     const { error } = await db().from('producao_lotes').delete().eq('id', id);
     if (error) throw error;
     return true;
@@ -91,6 +105,8 @@ const StoreSupabase = (() => {
   }
 
   async function salvarReprovado(registro) {
+    const [acao, descricao] = acaoSalvar(registro);
+    exigirPermissao(acao, descricao);
     const user = await usuarioAtual();
     const payload = { ...registro, atualizado_por: user?.id || null };
     const id = payload.id;
@@ -111,6 +127,7 @@ const StoreSupabase = (() => {
   }
 
   async function removerReprovado(id) {
+    exigirPermissao('excluir', 'excluir registros');
     const { error } = await db().from('reprovados').delete().eq('id', id);
     if (error) throw error;
     return true;
@@ -140,6 +157,8 @@ const StoreSupabase = (() => {
   }
 
   async function salvarEnsaioLiberacao(registro) {
+    const [acao, descricao] = acaoSalvar(registro);
+    exigirPermissao(acao, descricao);
     const user = await usuarioAtual();
     const payload = { ...registro, atualizado_por: user?.id || null };
     const id = payload.id;
@@ -160,6 +179,7 @@ const StoreSupabase = (() => {
   }
 
   async function removerEnsaioLiberacao(id) {
+    exigirPermissao('excluir', 'excluir registros');
     const { error } = await db().from('ensaios_liberacao').delete().eq('id', id);
     if (error) throw error;
     return true;
@@ -175,6 +195,7 @@ const StoreSupabase = (() => {
 
 
   async function listarUsuariosApp() {
+    exigirPermissao('gerenciarUsuarios', 'administrar usuários');
     const { data, error } = await db()
       .from('usuarios_app')
       .select('id,nome,email,perfil,ativo,criado_em,atualizado_em')
@@ -185,11 +206,12 @@ const StoreSupabase = (() => {
   }
 
   async function salvarUsuarioApp(registro) {
+    exigirPermissao('gerenciarUsuarios', 'administrar usuários');
     const payload = {
       id: registro.id,
       nome: registro.nome || null,
       email: registro.email,
-      perfil: registro.perfil || 'consulta',
+      perfil: Auth.normalizarPerfil(registro.perfil || 'consulta'),
       ativo: registro.ativo !== false,
     };
 
@@ -203,6 +225,7 @@ const StoreSupabase = (() => {
   }
 
   async function listarAuditoria(filtros = {}) {
+    exigirPermissao('verAuditoria', 'consultar auditoria');
     let q = db()
       .from('auditoria_alteracoes')
       .select('*')

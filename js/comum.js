@@ -3,10 +3,8 @@
    ===================================================================== */
 
 const App = {
-  // monta sidebar + topo. paginaAtiva: chave do menu
-  montarLayout(paginaAtiva, titulo, subtitulo) {
-    this.paginaAtiva = paginaAtiva;
-    const menu = [
+  menuBase() {
+    return [
       { sec: 'Painel' },
       { k: 'dashboard', t: 'Dashboard', ic: ICN.dashboard, href: 'index.html' },
       { k: 'semanal', t: 'Indicador Semanal', ic: ICN.semanal, href: 'semanal.html' },
@@ -17,16 +15,61 @@ const App = {
       { k: 'reprovados', t: 'Reprovados', ic: ICN.reprova, href: 'reprovados.html' },
       { sec: 'Sistema' },
       { k: 'banco', t: 'Conexão Supabase', ic: ICN.config, href: 'banco.html' },
-      { k: 'usuarios', t: 'Usuários', ic: ICN.config, href: 'usuarios.html' },
-      { k: 'auditoria', t: 'Auditoria', ic: ICN.config, href: 'auditoria.html' },
+      { k: 'usuarios', t: 'Usuários', ic: ICN.config, href: 'usuarios.html', adminOnly: true },
+      { k: 'auditoria', t: 'Auditoria', ic: ICN.config, href: 'auditoria.html', adminOnly: true },
       { k: 'dados', t: 'Dados do Sistema', ic: ICN.config, href: 'dados.html' },
     ];
+  },
 
+  menuPermitido() {
+    const podeAdmin = window.Auth?.pode?.('gerenciarUsuarios') || false;
+    const base = this.menuBase();
+    const itens = [];
+    for (let i = 0; i < base.length; i++) {
+      const atual = base[i];
+      if (atual.adminOnly && !podeAdmin) continue;
+      if (atual.sec) {
+        const proximos = base.slice(i + 1);
+        const temItemVisivel = proximos.some(x => !x.sec && (!x.adminOnly || podeAdmin));
+        if (temItemVisivel) itens.push(atual);
+        continue;
+      }
+      itens.push(atual);
+    }
+    return itens;
+  },
+
+  navHtml() {
     let nav = '';
-    menu.forEach(m => {
+    this.menuPermitido().forEach(m => {
       if (m.sec) { nav += `<div class="nav-section-label">${m.sec}</div>`; return; }
-      nav += `<a href="${m.href}" class="${m.k === paginaAtiva ? 'ativo' : ''}" onclick="App.fecharMenu()">${m.ic}<span>${m.t}</span></a>`;
+      nav += `<a href="${m.href}" class="${m.k === this.paginaAtiva ? 'ativo' : ''}" onclick="App.fecharMenu()">${m.ic}<span>${m.t}</span></a>`;
     });
+    return nav;
+  },
+
+  atualizarMenuPorPermissoes() {
+    const nav = document.querySelector('.sidebar .nav');
+    if (nav) nav.innerHTML = this.navHtml();
+  },
+
+  aplicarPermissoesNaTela() {
+    const p = window.Auth?.permissoesAtuais?.();
+    if (!p) return;
+    document.body.dataset.perfil = p.perfil;
+    document.querySelectorAll('[data-admin-only]').forEach(el => { el.hidden = !p.admin; });
+    document.querySelectorAll('[data-can-write]').forEach(el => { el.hidden = !(p.podeCriar || p.podeEditar); });
+    document.querySelectorAll('[data-can-delete]').forEach(el => { el.hidden = !p.podeExcluir; });
+  },
+
+  avisoModoConsulta() {
+    return '<span class="badge badge-amarelo">Modo consulta: somente visualização</span>';
+  },
+
+  // monta sidebar + topo. paginaAtiva: chave do menu
+  montarLayout(paginaAtiva, titulo, subtitulo) {
+    this.paginaAtiva = paginaAtiva;
+    const nav = this.navHtml();
 
     const sidebar = `
       <aside class="sidebar" id="sidebar">
@@ -59,7 +102,11 @@ const App = {
     document.getElementById('app').insertAdjacentHTML('afterbegin', sidebar);
     document.getElementById('conteudo').insertAdjacentHTML('afterbegin', topo);
     this.aplicarTemaInicial();
-    setTimeout(() => { if (window.Auth && typeof Auth.montarStatusUsuario === 'function') Auth.montarStatusUsuario(); }, 0);
+    setTimeout(() => {
+      if (window.Auth && typeof Auth.montarStatusUsuario === 'function') Auth.montarStatusUsuario();
+      this.aplicarPermissoesNaTela();
+      this.atualizarMenuPorPermissoes();
+    }, 0);
 
     if (!this._atalhoMenuConfigurado) {
       document.addEventListener('keydown', (ev) => {

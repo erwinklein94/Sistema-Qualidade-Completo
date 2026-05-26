@@ -17,8 +17,11 @@ const CAMPOS = [
 ];
 
 document.addEventListener('DOMContentLoaded', async () => {
+  if (!await Auth.exigirLogin()) return;
   App.montarLayout('reprovados', 'Dormentes Reprovados', 'Registro de refugos por molde, cavidade, motivo e período operacional');
-  App.acoesTopo(`<button class="btn btn-primario" onclick="abrirNovo()">${ICN.add}Novo registro</button>`);
+  App.acoesTopo(Auth.pode('criar')
+    ? `<button class="btn btn-primario" onclick="abrirNovo()">${ICN.add}Novo registro</button>`
+    : App.avisoModoConsulta());
 
   preencherSelect('fornecedor', CFG.listas.fornecedores, '');
   preencherSelect('projeto', CFG.listas.projetos, 'Selecione...');
@@ -234,8 +237,8 @@ function render() {
       <td>${U.esc(r.motivoDetalhado || '—')}</td>
       <td class="right">${(U.int(r.totalRefugos) || 1).toLocaleString('pt-BR')}</td>
       <td class="acoes-cel">
-        <button class="icone-btn" title="Editar" onclick="editar('${r.id}')">${ICN.edit}</button>
-        <button class="icone-btn del" title="Excluir" onclick="excluir('${r.id}')">${ICN.del}</button>
+        ${Auth.pode('editar') ? `<button class="icone-btn" title="Editar" onclick="editar('${r.id}')">${ICN.edit}</button>` : '<span class="txt-mini txt-cinza">Consulta</span>'}
+        ${Auth.pode('excluir') ? `<button class="icone-btn del" title="Excluir" onclick="excluir('${r.id}')">${ICN.del}</button>` : ''}
       </td>
     </tr>`;
   });
@@ -308,6 +311,7 @@ function renderCardsMotivos(ranking, totalRefugos) {
 }
 
 function abrirNovo() {
+  if (!Auth.pode('criar')) { App.toast(Auth.mensagemSemPermissao('criar registros'), 'aviso'); return; }
   document.getElementById('form').reset();
   document.getElementById('id').value = '';
   popularSelectLotes();
@@ -316,6 +320,7 @@ function abrirNovo() {
 }
 
 function editar(id) {
+  if (!Auth.pode('editar')) { App.toast(Auth.mensagemSemPermissao('editar registros'), 'aviso'); return; }
   const r = obterReprovado(id);
   if (!r) return;
   document.getElementById('form').reset();
@@ -328,6 +333,11 @@ function editar(id) {
 }
 
 async function salvar() {
+  const editando = !!document.getElementById('id')?.value;
+  if (!Auth.pode(editando ? 'editar' : 'criar')) {
+    App.toast(Auth.mensagemSemPermissao(editando ? 'editar registros' : 'criar registros'), 'aviso');
+    return;
+  }
   const lote = document.getElementById('lote').value.trim();
   const projeto = document.getElementById('projeto').value;
   const dataProd = document.getElementById('dataProducao').value;
@@ -376,9 +386,8 @@ async function salvar() {
 async function excluir(id) {
   const r = obterReprovado(id);
   if (!r) return;
-  const perfil = window.USUARIO_ATUAL?.perfil?.perfil;
-  if (perfil !== 'admin') {
-    App.toast('Somente usuários admin podem excluir registros.', 'aviso');
+  if (!Auth.pode('excluir')) {
+    App.toast(Auth.mensagemSemPermissao('excluir registros'), 'aviso');
     return;
   }
   if (!App.confirmar(`Excluir esta reprova do lote ${r.lote || ''}?`)) return;

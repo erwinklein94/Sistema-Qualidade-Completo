@@ -34,7 +34,7 @@ async function prepararTela() {
   try {
     await Auth.exigirLogin();
     const perfil = window.USUARIO_ATUAL?.perfil || await Auth.perfilAtual();
-    if (!perfil || perfil.perfil !== 'admin') {
+    if (!perfil || !Auth.pode('gerenciarUsuarios', perfil)) {
       MIG_BLOQUEADA = true;
       atualizarStatus('Bloqueada');
       document.getElementById('cardSelecao').innerHTML = `
@@ -227,7 +227,7 @@ async function executarMigracao() {
   try {
     await Auth.exigirLogin();
     const perfil = window.USUARIO_ATUAL?.perfil || await Auth.perfilAtual();
-    if (!perfil || perfil.perfil !== 'admin') throw new Error('Somente admin pode executar a migração.');
+    if (!perfil || !Auth.pode('gerenciarUsuarios', perfil)) throw new Error('Somente admin pode executar a migração.');
 
     let producaoGravada = [];
     let modoCompatibilidade = false;

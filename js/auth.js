@@ -91,6 +91,66 @@ var Auth = (() => {
     return 'A Publishable key parece curta. Se o login falhar com erro de API key, copie novamente pelo botão Copy do Supabase, não pelo texto visível na tela.';
   }
 
+
+  function normalizarPerfil(valor) {
+    const bruto = typeof valor === 'object' && valor ? valor.perfil : valor;
+    const p = String(bruto || 'consulta')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+    if (p === 'admin') return 'admin';
+    if (p === 'qualidade' || p === 'fiscalizacao') return 'fiscalizacao';
+    return 'consulta';
+  }
+
+  function rotuloPerfil(valor) {
+    const p = normalizarPerfil(valor);
+    if (p === 'admin') return 'Admin';
+    if (p === 'fiscalizacao') return 'Fiscalização';
+    return 'Consulta';
+  }
+
+  function permissoes(valor) {
+    const perfil = normalizarPerfil(valor || window.USUARIO_ATUAL?.perfil);
+    const admin = perfil === 'admin';
+    const fiscalizacao = perfil === 'fiscalizacao';
+    return {
+      perfil,
+      rotulo: rotuloPerfil(perfil),
+      admin,
+      fiscalizacao,
+      consulta: perfil === 'consulta',
+      podeVer: true,
+      podeCriar: admin || fiscalizacao,
+      podeEditar: admin || fiscalizacao,
+      podeExcluir: admin,
+      podeGerenciarUsuarios: admin,
+      podeVerAuditoria: admin,
+    };
+  }
+
+  function permissoesAtuais() {
+    return permissoes(window.USUARIO_ATUAL?.perfil);
+  }
+
+  function pode(acao, valor) {
+    const p = permissoes(valor || window.USUARIO_ATUAL?.perfil);
+    const mapa = {
+      ver: p.podeVer,
+      criar: p.podeCriar,
+      editar: p.podeEditar,
+      excluir: p.podeExcluir,
+      gerenciarUsuarios: p.podeGerenciarUsuarios,
+      verAuditoria: p.podeVerAuditoria,
+    };
+    return !!mapa[acao];
+  }
+
+  function mensagemSemPermissao(acao = 'executar esta ação') {
+    return `Seu perfil (${rotuloPerfil(window.USUARIO_ATUAL?.perfil)}) não tem permissão para ${acao}.`;
+  }
+
   function exibirBloqueioConfiguracao() {
     const html = `
       <div class="auth-bloqueio">
@@ -128,6 +188,7 @@ var Auth = (() => {
       .eq('id', session.user.id)
       .maybeSingle();
     if (error) throw error;
+    if (data) data.perfil = normalizarPerfil(data.perfil);
     return data || null;
   }
 
@@ -154,6 +215,8 @@ var Auth = (() => {
 
       window.USUARIO_ATUAL = { session, perfil };
       montarStatusUsuario();
+      if (window.App?.atualizarMenuPorPermissoes) window.App.atualizarMenuPorPermissoes();
+      if (window.App?.aplicarPermissoesNaTela) window.App.aplicarPermissoesNaTela();
       return true;
     } catch (err) {
       console.error('Erro ao validar login', err);
@@ -179,6 +242,8 @@ var Auth = (() => {
     }
 
     window.USUARIO_ATUAL = { session: data.session, perfil };
+    if (window.App?.atualizarMenuPorPermissoes) window.App.atualizarMenuPorPermissoes();
+    if (window.App?.aplicarPermissoesNaTela) window.App.aplicarPermissoesNaTela();
     return perfil;
   }
 
@@ -196,7 +261,7 @@ var Auth = (() => {
       alvo.innerHTML = `
         <div class="usuario-pill" title="${escapeHtml(perfil.email || '')}">
           <span class="usuario-nome">${escapeHtml(perfil.nome || perfil.email || 'Usuário')}</span>
-          <span class="usuario-perfil">${escapeHtml(perfil.perfil || '')}</span>
+          <span class="usuario-perfil">${escapeHtml(rotuloPerfil(perfil))}</span>
         </div>
         <button class="btn btn-secundario btn-sm" type="button" onclick="Auth.sair()">Sair</button>`;
     } catch (err) {
@@ -223,6 +288,12 @@ var Auth = (() => {
     sessaoAtual,
     perfilAtual,
     montarStatusUsuario,
+    normalizarPerfil,
+    rotuloPerfil,
+    permissoes,
+    permissoesAtuais,
+    pode,
+    mensagemSemPermissao,
     proximaUrlPadrao,
     erroConfiguracao,
   };

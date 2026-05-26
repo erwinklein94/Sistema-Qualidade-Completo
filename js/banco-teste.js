@@ -2,7 +2,8 @@
    BANCO-TESTE.JS — Diagnóstico Supabase sem dados de exemplo fixos
    ===================================================================== */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!await Auth.exigirLogin()) return;
   App.montarLayout('banco', 'Conexão Supabase', 'Validação de login, perfil e leitura do banco');
   App.acoesTopo(`<button class="btn btn-primario" onclick="testarBanco()">Testar conexão</button>`);
   testarBanco();
@@ -39,7 +40,7 @@ function cardPerfil(p) {
   return `
     <div class="grid-kpi">
       <div class="kpi escuro"><div class="rotulo">Usuário</div><div class="valor" style="font-size:18px">${U.esc(p.nome || '—')}</div><div class="extra">${U.esc(p.email || '')}</div></div>
-      <div class="kpi verde"><div class="rotulo">Perfil</div><div class="valor" style="font-size:22px">${U.esc(p.perfil || '—')}</div><div class="extra">ativo: ${p.ativo ? 'sim' : 'não'}</div></div>
+      <div class="kpi verde"><div class="rotulo">Perfil</div><div class="valor" style="font-size:22px">${U.esc(Auth.rotuloPerfil(p))}</div><div class="extra">ativo: ${p.ativo ? 'sim' : 'não'}</div></div>
     </div>`;
 }
 

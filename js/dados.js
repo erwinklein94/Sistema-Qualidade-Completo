@@ -1,7 +1,8 @@
 /* =====================================================================
    DADOS.JS — Administração sem importação de massa
    ===================================================================== */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!await Auth.exigirLogin()) return;
   App.montarLayout('dados', 'Dados do Sistema', 'Administração, resumo e limpeza de dados locais legados');
 
   const bxProducao = document.getElementById('bxProducao');
@@ -10,6 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (bxProducao) bxProducao.innerHTML = ICN.producao;
   if (bxReprovados) bxReprovados.innerHTML = ICN.reprova;
   if (bxEnsaios) bxEnsaios.innerHTML = ICN.check;
+
+  if (!Auth.pode('criar')) {
+    document.querySelectorAll("button[onclick*=\"producao.html\"], button[onclick*=\"reprovados.html\"], button[onclick*=\"ensaios-liberacao.html\"]").forEach(btn => btn.hidden = true);
+    const blocoEntrada = document.querySelector('.card .flex.gap12');
+    if (blocoEntrada) blocoEntrada.insertAdjacentHTML('afterbegin', App.avisoModoConsulta());
+  }
+  if (!Auth.pode('excluir')) document.querySelector('button[onclick="limparDadosLocaisLegados()"]')?.setAttribute('hidden', 'hidden');
 
   atualizarFiltroSemanaDados();
   document.getElementById('fSemanaDados')?.addEventListener('change', renderResumoSemanaDados);
@@ -29,6 +37,7 @@ function atualizarKpis() {
 }
 
 function limparDadosLocaisLegados() {
+  if (!Auth.pode('excluir')) { App.toast(Auth.mensagemSemPermissao('limpar dados locais legados'), 'aviso'); return; }
   if (!App.confirmar('Isto apaga apenas dados antigos salvos neste navegador. Dados do Supabase não serão apagados. Continuar?')) return;
   if (!App.confirmar('Última confirmação: limpar armazenamento local legado?')) return;
   Store.limpar();

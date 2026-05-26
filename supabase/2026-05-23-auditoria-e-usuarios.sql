@@ -1,9 +1,12 @@
 /* =====================================================================
-   AUDITORIA E PERFIS DE USUÁRIOS
+   AUDITORIA E PERFIS DE USUÁRIOS — LEGADO
 
-   Rode este arquivo no Supabase SQL Editor antes de usar as páginas:
-   - Sistema > Usuários
-   - Sistema > Auditoria
+   Arquivo legado. Para aplicar as permissões corretas atuais
+   (Admin / Fiscalização / Consulta), prefira rodar:
+
+   supabase/2026-05-26-perfis-e-rls.sql
+
+   Este arquivo antigo foi mantido apenas como histórico.
 
    O que faz:
    1) Cria tabela de auditoria das alterações.
@@ -200,7 +203,7 @@ for each row execute function public.registrar_auditoria_alteracao();
 insert into public.usuarios_app (id, nome, email, perfil, ativo)
 values
   ('UUID_DO_ADMIN', 'Nome Admin', 'admin@empresa.com', 'admin', true),
-  ('UUID_DA_QUALIDADE', 'Nome Qualidade', 'qualidade@empresa.com', 'qualidade', true),
+  ('UUID_DA_FISCALIZACAO', 'Nome Fiscalização', 'fiscalizacao@empresa.com', 'fiscalizacao', true),
   ('UUID_DA_CONSULTA', 'Nome Consulta', 'consulta@empresa.com', 'consulta', true)
 on conflict (id) do update
 set
