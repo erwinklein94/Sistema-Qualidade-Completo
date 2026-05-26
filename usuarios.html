@@ -4,84 +4,178 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Usuários · Controle de Dormentes</title>
-  <link rel="stylesheet" href="css/style.css?v=20260523-mobile" />
+  <link rel="stylesheet" href="css/style.css?v=20260526-usuarios-ui" />
 </head>
 <body>
   <div id="app">
     <main class="conteudo" id="conteudo">
-      <div class="container">
-        <div class="card aviso-info" style="margin-bottom:20px">
-          <div class="card-titulo"><span class="acento">Cadastro de usuários reais</span></div>
-          <p style="font-size:14px;line-height:1.7;margin-bottom:10px">
-            Primeiro crie o usuário em <strong>Supabase → Authentication → Users → Add user</strong>. Depois copie o <strong>UID</strong> desse usuário e cadastre aqui o perfil do sistema.
-          </p>
-          <p style="font-size:14px;line-height:1.7;margin:0">
-            Perfis: <strong>Admin</strong> faz tudo; <strong>Fiscalização</strong> cria/edita, mas não exclui; <strong>Consulta</strong> apenas visualiza.
-          </p>
-        </div>
+      <div class="container usuarios-page">
+        <section class="usuarios-hero card">
+          <div>
+            <span class="usuarios-eyebrow">Administração restrita</span>
+            <h2>Controle de usuários e perfis</h2>
+            <p>
+              Cadastre aqui o vínculo entre o usuário criado no Supabase Auth e o perfil de acesso do sistema.
+              Esta área é exclusiva para administradores.
+            </p>
+          </div>
+          <div class="usuarios-hero-passos">
+            <div><strong>1</strong><span>Criar usuário no Supabase Authentication</span></div>
+            <div><strong>2</strong><span>Copiar o UID do usuário criado</span></div>
+            <div><strong>3</strong><span>Salvar o perfil correto nesta tela</span></div>
+          </div>
+        </section>
 
-        <div class="grid-2" style="align-items:start">
-          <div class="card">
-            <div class="card-titulo"><span class="acento">Adicionar ou atualizar perfil</span></div>
-            <form id="formUsuario" class="form-grid" style="margin-top:14px">
-              <label class="col-2">UID do Supabase Auth
-                <input id="uId" required placeholder="cole aqui o UID do usuário criado no Auth" />
+        <section class="usuarios-resumo-grid" aria-label="Resumo dos usuários cadastrados">
+          <article class="usuarios-kpi card">
+            <span>Total cadastrado</span>
+            <strong id="usuariosKpiTotal">—</strong>
+            <small>Usuários vinculados ao sistema</small>
+          </article>
+          <article class="usuarios-kpi card admin">
+            <span>Admin</span>
+            <strong id="usuariosKpiAdmin">—</strong>
+            <small>Acesso completo</small>
+          </article>
+          <article class="usuarios-kpi card fiscalizacao">
+            <span>Fiscalização</span>
+            <strong id="usuariosKpiFiscalizacao">—</strong>
+            <small>Cria e edita, sem excluir</small>
+          </article>
+          <article class="usuarios-kpi card consulta">
+            <span>Consulta</span>
+            <strong id="usuariosKpiConsulta">—</strong>
+            <small>Apenas visualização</small>
+          </article>
+        </section>
+
+        <section class="usuarios-layout">
+          <div class="card usuarios-form-card">
+            <div class="card-titulo">
+              <span class="acento">Adicionar ou atualizar perfil</span>
+              <span class="card-sub">Dados obrigatórios do Auth</span>
+            </div>
+
+            <div class="usuarios-alerta">
+              <strong>Importante:</strong>
+              <span>o UID precisa existir em Supabase → Authentication → Users antes de salvar aqui.</span>
+            </div>
+
+            <form id="formUsuario" class="form-grid usuarios-form" style="margin-top:16px">
+              <label class="campo full">UID do Supabase Auth
+                <input id="uId" required placeholder="Cole aqui o UID do usuário criado no Auth" autocomplete="off" />
               </label>
-              <label>Nome
-                <input id="uNome" required placeholder="Nome do usuário" />
+              <label class="campo">Nome
+                <input id="uNome" required placeholder="Nome do usuário" autocomplete="name" />
               </label>
-              <label>E-mail
-                <input id="uEmail" type="email" required placeholder="email@empresa.com" />
+              <label class="campo">E-mail
+                <input id="uEmail" type="email" required placeholder="email@empresa.com" autocomplete="email" />
               </label>
-              <label>Perfil
+              <label class="campo">Perfil
                 <select id="uPerfil" required>
                   <option value="admin">Admin</option>
                   <option value="fiscalizacao">Fiscalização</option>
                   <option value="consulta">Consulta</option>
                 </select>
               </label>
-              <label>Ativo
+              <label class="campo">Ativo
                 <select id="uAtivo">
                   <option value="true">Sim</option>
                   <option value="false">Não</option>
                 </select>
               </label>
-              <div class="col-2 flex gap12" style="justify-content:flex-end;flex-wrap:wrap">
+              <div class="form-acoes full">
                 <button class="btn btn-secundario" type="button" onclick="limparFormUsuario()">Limpar</button>
                 <button class="btn btn-primario" type="submit">Salvar perfil</button>
               </div>
             </form>
           </div>
 
-          <div class="card">
-            <div class="card-titulo"><span class="acento">Permissões aplicadas</span></div>
-            <div class="table-wrap" style="margin-top:14px">
-              <table>
-                <thead><tr><th>Perfil</th><th>Ver</th><th>Criar/editar</th><th>Excluir</th></tr></thead>
-                <tbody>
-                  <tr><td><strong>Admin</strong></td><td>Sim</td><td>Sim</td><td>Sim</td></tr>
-                  <tr><td><strong>Fiscalização</strong></td><td>Sim</td><td>Sim</td><td>Não</td></tr>
-                  <tr><td><strong>Consulta</strong></td><td>Sim</td><td>Não</td><td>Não</td></tr>
-                </tbody>
-              </table>
+          <div class="card usuarios-permissoes-card">
+            <div class="card-titulo">
+              <span class="acento">Permissões aplicadas</span>
+              <span class="card-sub">Regra atual do sistema</span>
+            </div>
+
+            <div class="usuarios-perfis-lista">
+              <article class="usuarios-perfil-card admin">
+                <div>
+                  <strong>Admin</strong>
+                  <span>Acesso total ao sistema</span>
+                </div>
+                <ul>
+                  <li>Visualiza, cria, edita e exclui</li>
+                  <li>Acessa Usuários, Auditoria e Dados do Sistema</li>
+                  <li>Gerencia Conexão Supabase</li>
+                </ul>
+              </article>
+
+              <article class="usuarios-perfil-card fiscalizacao">
+                <div>
+                  <strong>Fiscalização</strong>
+                  <span>Operação técnica do controle</span>
+                </div>
+                <ul>
+                  <li>Visualiza, cria e edita registros</li>
+                  <li>Não exclui informações</li>
+                  <li>Não acessa áreas administrativas</li>
+                </ul>
+              </article>
+
+              <article class="usuarios-perfil-card consulta">
+                <div>
+                  <strong>Consulta</strong>
+                  <span>Acompanhamento sem alteração</span>
+                </div>
+                <ul>
+                  <li>Apenas visualiza informações</li>
+                  <li>Não cria, não edita e não exclui</li>
+                  <li>Não acessa áreas administrativas</li>
+                </ul>
+              </article>
             </div>
           </div>
-        </div>
+        </section>
 
-        <div class="card" style="margin-top:20px">
-          <div class="flex entre" style="margin-bottom:12px;gap:12px;flex-wrap:wrap">
-            <div class="card-titulo" style="margin:0"><span class="acento">Usuários cadastrados no sistema</span></div>
+        <section class="card usuarios-lista-card">
+          <div class="usuarios-lista-topo">
+            <div>
+              <div class="card-titulo" style="margin:0;padding-bottom:0;border-bottom:0">
+                <span class="acento">Usuários cadastrados no sistema</span>
+              </div>
+              <p id="usuariosStatus" class="usuarios-status">Carregando usuários...</p>
+            </div>
             <button class="btn btn-secundario btn-sm" onclick="carregarUsuarios()">Atualizar</button>
           </div>
-          <div id="usuariosStatus" class="muted" style="margin-bottom:12px"></div>
-          <div class="table-wrap">
-            <table>
+
+          <div class="usuarios-filtros">
+            <label class="campo usuarios-busca">Buscar usuário
+              <input id="usuariosBusca" placeholder="Nome, e-mail ou UID" autocomplete="off" />
+            </label>
+            <label class="campo">Perfil
+              <select id="usuariosFiltroPerfil">
+                <option value="todos">Todos</option>
+                <option value="admin">Admin</option>
+                <option value="fiscalizacao">Fiscalização</option>
+                <option value="consulta">Consulta</option>
+              </select>
+            </label>
+            <label class="campo">Status
+              <select id="usuariosFiltroAtivo">
+                <option value="todos">Todos</option>
+                <option value="ativo">Ativos</option>
+                <option value="inativo">Inativos</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="tabela-wrap usuarios-tabela-wrap">
+            <table class="tabela usuarios-tabela">
               <thead>
                 <tr>
-                  <th>Nome</th>
-                  <th>E-mail</th>
+                  <th>Usuário</th>
                   <th>Perfil</th>
-                  <th>Ativo</th>
+                  <th>Status</th>
                   <th>UID</th>
                   <th>Atualizado em</th>
                   <th>Ações</th>
@@ -90,7 +184,7 @@
               <tbody id="usuariosTabela"></tbody>
             </table>
           </div>
-        </div>
+        </section>
       </div>
     </main>
   </div>
@@ -107,7 +201,7 @@
   <script src="js/config.js"></script>
   <script src="js/store-supabase.js?v=20260523-audit"></script>
   <script src="js/exportacoes.js?v=20260523-export"></script>
-  <script src="js/comum.js?v=20260523-audit"></script>
-  <script src="js/usuarios.js?v=20260523-audit"></script>
+  <script src="js/comum.js?v=20260526-admin-sistema"></script>
+  <script src="js/usuarios.js?v=20260526-usuarios-ui"></script>
 </body>
 </html>
