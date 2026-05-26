@@ -4,70 +4,108 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Auditoria · Controle de Dormentes</title>
-  <link rel="stylesheet" href="css/style.css?v=20260523-mobile" />
+  <link rel="stylesheet" href="css/style.css?v=20260526-auditoria-ui" />
 </head>
 <body>
   <div id="app">
     <main class="conteudo" id="conteudo">
-      <div class="container">
-        <div class="card aviso-info" style="margin-bottom:20px">
-          <div class="card-titulo"><span class="acento">Auditoria das alterações</span></div>
-          <p style="font-size:14px;line-height:1.7;margin:0">
-            Esta tela mostra quem criou, alterou ou excluiu registros nas tabelas principais. Para funcionar, rode antes o SQL <strong>supabase/2026-05-23-auditoria-e-usuarios.sql</strong> no Supabase.
-          </p>
-        </div>
-
-        <div class="filtros-grid" style="margin-bottom:20px">
-          <label>Tabela
-            <select id="fTabela">
-              <option value="">Todas</option>
-              <option value="producao_lotes">Produção</option>
-              <option value="reprovados">Reprovados</option>
-              <option value="ensaios_liberacao">Ensaios de Liberação</option>
-            </select>
-          </label>
-          <label>Ação
-            <select id="fAcao">
-              <option value="">Todas</option>
-              <option value="INSERT">Criação</option>
-              <option value="UPDATE">Alteração</option>
-              <option value="DELETE">Exclusão</option>
-            </select>
-          </label>
-          <label>Data inicial
-            <input type="date" id="fDataIni" />
-          </label>
-          <label>Data fim
-            <input type="date" id="fDataFim" />
-          </label>
-          <div style="align-self:end">
-            <button class="btn btn-primario" onclick="carregarAuditoria()">Atualizar</button>
+      <div class="container auditoria-page">
+        <section class="auditoria-hero card">
+          <div>
+            <span class="auditoria-eyebrow">Área administrativa</span>
+            <h2>Auditoria de alterações</h2>
+            <p>
+              Acompanhe quem criou, editou ou excluiu registros do sistema. Esta tela é exclusiva para administradores
+              e usa o histórico gravado no Supabase.
+            </p>
           </div>
-        </div>
-
-        <div class="grid-cards" id="auditoriaKpis" style="margin-bottom:20px"></div>
-
-        <div class="card">
-          <div class="flex entre" style="margin-bottom:12px;gap:12px;flex-wrap:wrap">
-            <div class="card-titulo" style="margin:0"><span class="acento">Registros de auditoria</span></div>
-            <div class="muted" id="auditoriaStatus"></div>
+          <div class="auditoria-hero-blocos">
+            <div>
+              <strong>Criação</strong>
+              <span>Mostra novos registros lançados no sistema.</span>
+            </div>
+            <div>
+              <strong>Alteração</strong>
+              <span>Compara os principais campos antes e depois.</span>
+            </div>
+            <div>
+              <strong>Exclusão</strong>
+              <span>Registra remoções feitas por administradores.</span>
+            </div>
           </div>
-          <div class="table-wrap">
-            <table>
+        </section>
+
+        <section class="auditoria-resumo-grid" id="auditoriaKpis" aria-label="Resumo dos registros de auditoria"></section>
+
+        <section class="card auditoria-filtros-card">
+          <div class="card-titulo">
+            <span class="acento">Filtros de consulta</span>
+            <span class="card-sub">Use filtros para localizar alterações específicas</span>
+          </div>
+          <div class="auditoria-filtros">
+            <label class="campo auditoria-busca">Buscar no histórico
+              <input id="fBusca" placeholder="Usuário, e-mail, lote, projeto, série ou resumo" autocomplete="off" />
+            </label>
+            <label class="campo">Tabela
+              <select id="fTabela">
+                <option value="">Todas</option>
+                <option value="producao_lotes">Produção</option>
+                <option value="reprovados">Reprovados</option>
+                <option value="ensaios_liberacao">Ensaios de Liberação</option>
+              </select>
+            </label>
+            <label class="campo">Ação
+              <select id="fAcao">
+                <option value="">Todas</option>
+                <option value="INSERT">Criação</option>
+                <option value="UPDATE">Alteração</option>
+                <option value="DELETE">Exclusão</option>
+              </select>
+            </label>
+            <label class="campo">Data inicial
+              <input type="date" id="fDataIni" />
+            </label>
+            <label class="campo">Data fim
+              <input type="date" id="fDataFim" />
+            </label>
+            <div class="auditoria-filtros-acoes">
+              <button class="btn btn-secundario" type="button" onclick="limparFiltrosAuditoria()">Limpar</button>
+              <button class="btn btn-primario" type="button" onclick="carregarAuditoria()">Atualizar</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="card auditoria-lista-card">
+          <div class="auditoria-lista-topo">
+            <div>
+              <div class="card-titulo" style="margin:0;padding-bottom:0;border-bottom:0">
+                <span class="acento">Registros de auditoria</span>
+              </div>
+              <p id="auditoriaStatus" class="auditoria-status">Carregando alterações...</p>
+            </div>
+            <div class="auditoria-legenda" aria-label="Legenda das ações">
+              <span><i class="dot criacao"></i>Criação</span>
+              <span><i class="dot alteracao"></i>Alteração</span>
+              <span><i class="dot exclusao"></i>Exclusão</span>
+            </div>
+          </div>
+
+          <div class="tabela-wrap auditoria-tabela-wrap">
+            <table class="tabela auditoria-tabela">
               <thead>
                 <tr>
-                  <th>Data/hora</th>
-                  <th>Usuário</th>
+                  <th>Quando</th>
+                  <th>Responsável</th>
                   <th>Ação</th>
-                  <th>Tabela</th>
-                  <th>Registro</th>
-                  <th>Resumo</th>
+                  <th>Área</th>
+                  <th>Registro afetado</th>
+                  <th>Resumo da alteração</th>
                 </tr>
               </thead>
               <tbody id="auditoriaTabela"></tbody>
             </table>
           </div>
-        </div>
+        </section>
       </div>
     </main>
   </div>
@@ -84,7 +122,7 @@
   <script src="js/config.js"></script>
   <script src="js/store-supabase.js?v=20260523-audit"></script>
   <script src="js/exportacoes.js?v=20260523-export"></script>
-  <script src="js/comum.js?v=20260523-audit"></script>
-  <script src="js/auditoria.js?v=20260523-audit"></script>
+  <script src="js/comum.js?v=20260526-admin-sistema"></script>
+  <script src="js/auditoria.js?v=20260526-auditoria-ui"></script>
 </body>
 </html>
