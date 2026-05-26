@@ -29,16 +29,16 @@ const CFG = {
 
   // Cores para gráficos (paleta Rumo)
   cores: {
-    azulEscuro: '#003567',
-    azulClaro: '#00A8E9',
-    verde: '#1E9F80',
-    verdeClaro: '#8DC63F',
-    amarelo: '#FFD401',
+    azulEscuro: '#003865',
+    azulClaro: '#32A6E6',
+    verde: '#1E9F7F',
+    verdeClaro: '#7FE06C',
+    amarelo: '#FBD300',
     erro: '#e23b3b',
-    cinza: '#8a9aab',
+    cinza: '#BDCCD4',
     // paleta cíclica para projetos
-    projetos: { 'MALHA PAULISTA': '#003567', 'FMT': '#00A8E9', 'FERRO NORTE': '#1E9F80', 'MALHA CENTRAL': '#FFD401' },
-    paleta: ['#003567', '#00A8E9', '#1E9F80', '#8DC63F', '#FFD401', '#e23b3b', '#8a9aab', '#6a4c93'],
+    projetos: { 'MALHA PAULISTA': '#003865', 'FMT': '#32A6E6', 'FERRO NORTE': '#1E9F7F', 'MALHA CENTRAL': '#FBD300' },
+    paleta: ['#003865', '#32A6E6', '#1E9F7F', '#7FE06C', '#FBD300', '#F78344', '#BDCCD4', '#9F4BB9'],
   },
 
   // Mapa de classe CSS por status

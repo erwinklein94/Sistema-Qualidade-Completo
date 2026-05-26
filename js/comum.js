@@ -75,11 +75,11 @@ const App = {
     const sidebar = `
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-          <div class="marca">rum<span class="o-circ"></span></div>
+          <img class="logo-rumo logo-rumo-negativo" src="assets/brand/rumo-logo-negativo.png" alt="Rumo">
           <div class="sub">Somos o Brasil em movimento</div>
         </div>
         <nav class="nav">${nav}</nav>
-        <div class="sidebar-rodape">Controle de Dormentes<br>de Concreto</div>
+        <div class="sidebar-rodape"><span>Qualidade ferroviária</span><strong>Controle de Dormentes</strong><small>Concreto · Supabase</small></div>
       </aside>
       <div class="backdrop-mobile" id="backdrop" onclick="App.fecharMenu()"></div>`;
 
@@ -87,13 +87,14 @@ const App = {
       <header class="topo">
         <div class="flex" style="align-items:center;gap:14px;">
           <button class="btn btn-secundario btn-sm menu-toggle" id="botaoMenu" onclick="App.alternarMenu()" aria-controls="sidebar" aria-expanded="false">${ICN.menu}<span>Menu</span></button>
-          <div>
+          <div class="topo-identidade">
+            <div class="topo-kicker">Rumo · Qualidade Ferroviária</div>
             <h1>${titulo}</h1>
             ${subtitulo ? `<div class="subtitulo">${subtitulo}</div>` : ''}
           </div>
         </div>
         <div class="topo-acoes">
-          <a class="btn btn-secundario btn-sm hub-link" href="https://erwinklein94.github.io/Projeto-Hub-Qualidade/" title="Abrir Hub de Qualidade">HUB</a>
+          <a class="btn btn-secundario btn-sm hub-link" href="https://erwinklein94.github.io/Projeto-Hub-Qualidade/" title="Abrir Hub de Qualidade">Hub Qualidade</a>
           <button class="btn btn-secundario btn-sm tema-toggle" id="botaoTema" type="button" onclick="App.alternarTema()" aria-pressed="false" title="Alternar tema">${ICN.tema}<span>Tema escuro</span></button>
           <div class="usuario-auth" id="areaUsuario"></div>
           <div class="topo-acoes" id="topoAcoes">${window.Exportacoes && paginaAtiva !== 'banco' ? window.Exportacoes.botoes() : ''}</div>
