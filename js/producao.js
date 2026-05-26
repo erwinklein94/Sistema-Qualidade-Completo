@@ -8,6 +8,14 @@ let PRODUCAO_ERRO = '';
 
 const GRUPOS_PREENCHIMENTO = [
   {
+    nome: 'Identificação',
+    campos: [
+      ['fornecedor', 'Fornecedor'], ['pista', 'Pista'], ['pedido', 'N° Pedido'],
+      ['lote', 'Lote'], ['projeto', 'Projeto'], ['tipo', 'Tipo de Dormente'],
+      ['total', 'Total da Produção']
+    ]
+  },
+  {
     nome: 'Datas e Cura',
     campos: [
       ['dataFabricacao', 'Data de Fabricação'], ['cura14', 'Cura 14 dias'],
@@ -17,13 +25,8 @@ const GRUPOS_PREENCHIMENTO = [
   {
     nome: 'USP / Ombreiras',
     campos: [
-      ['comUsp', 'Com USP'], ['uspLote', 'USP (Lote)'],
-      ['ombreira', 'Tipo de Ombreiras'], ['loteOmbreira', 'Lote Ombreiras']
+      ['comUsp', 'Com USP'], ['ombreira', 'Tipo de Ombreiras']
     ]
-  },
-  {
-    nome: 'Temperatura (°C)',
-    campos: [['tempIni', 'Inicial'], ['tempMeio', 'Meio'], ['tempFim', 'Final']]
   },
   {
     nome: 'Slump Test (mm)',
@@ -34,6 +37,12 @@ const GRUPOS_PREENCHIMENTO = [
     ]
   },
   {
+    nome: 'Desprotensão',
+    campos: [
+      ['desproIni', 'Início Pista'], ['desproMeio', 'Meio Pista'], ['desproFim', 'Fim Pista']
+    ]
+  },
+  {
     nome: 'Resistências',
     campos: [
       ['comp7', 'Comp. Axial 7 dias'], ['comp14', 'Comp. Axial 14 dias'],
@@ -41,15 +50,7 @@ const GRUPOS_PREENCHIMENTO = [
       ['tracao28', 'Tração Flexão 28 dias']
     ]
   },
-  {
-    nome: 'Ensaio / Resultado',
-    campos: [
-      ['serie', 'Série — Ensaio de Liberação'], ['iauditor', 'Ensaio no iAuditor'],
-      ['ensaiados', 'Dormentes Ensaiados'], ['aAnalisar', 'Dormentes a Analisar'],
-      ['reprovados', 'Dormentes Reprovados'], ['aprovado', 'Total Produção Aprovado']
-    ]
-  },
-  { nome: 'Status', campos: [['status', 'Status']] }
+  { nome: 'Resultado e Status', campos: [['status', 'Status']] }
 ];
 
 const CAMPOS = ['fornecedor','pista','pedido','lote','projeto','tipo','total','dataFabricacao','cura14','cura28',
@@ -423,7 +424,7 @@ function renderAlertasPreenchimento(lista) {
 
   alvo.innerHTML = `<div class="alerta-preenchimento-topo">
       <strong>${ICN.alerta} ${incompletos.length} lote(s) com dados pendentes</strong>
-      <span>Lista ordenada pelos menores percentuais de preenchimento. Campos avaliados: Datas e Cura, USP / Ombreiras, Temperatura, Slump Test, Resistências, Ensaio / Resultado e Status.</span>
+      <span>Lista ordenada pelos menores percentuais de preenchimento. Campos avaliados: Identificação, Datas e Cura, USP / Ombreiras, Slump Test, Desprotensão, Resistências e Status.</span>
     </div>
     <div class="tabela-wrap"><table class="tabela tabela-alertas">
       <thead><tr><th>Lote</th><th>Projeto</th><th>Bitola</th><th>Preenchimento</th><th>Dados faltantes</th><th>Ação</th></tr></thead>
@@ -544,7 +545,7 @@ function ver(id) {
       ${item('Meio Abat.', r.slumpMeioA)}${item('Meio Esp.', r.slumpMeioE)}
       ${item('Fim Abat.', r.slumpFimA)}${item('Fim Esp.', r.slumpFimE)}
     </div>
-    <div class="detalhe-secao">Despronteção</div>
+    <div class="detalhe-secao">Desprotensão</div>
     <div class="detalhe-grid">${item('Início Pista', r.desproIni)}${item('Meio Pista', r.desproMeio)}${item('Fim Pista', r.desproFim)}</div>
     <div class="detalhe-secao">Resistências</div>
     <div class="detalhe-grid">
