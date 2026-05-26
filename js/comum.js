@@ -22,7 +22,7 @@ const App = {
   },
 
   menuPermitido() {
-    const podeAdmin = window.Auth?.pode?.('gerenciarUsuarios') || false;
+    const podeAdmin = window.Auth?.pode?.('gerenciarSistema') || window.Auth?.pode?.('gerenciarUsuarios') || false;
     const base = this.menuBase();
     const itens = [];
     for (let i = 0; i < base.length; i++) {
@@ -114,6 +114,15 @@ const App = {
         if (ev.key === 'Escape') App.fecharMenu();
       });
       this._atalhoMenuConfigurado = true;
+    }
+
+    if (!this._authMenuConfigurado) {
+      window.addEventListener('auth:perfilAtualizado', () => {
+        if (window.Auth && typeof Auth.montarStatusUsuario === 'function') Auth.montarStatusUsuario();
+        this.aplicarPermissoesNaTela();
+        this.atualizarMenuPorPermissoes();
+      });
+      this._authMenuConfigurado = true;
     }
   },
 

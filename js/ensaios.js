@@ -23,6 +23,7 @@ const STATUS_SERIE = [
 ];
 
 document.addEventListener('DOMContentLoaded', async () => {
+  if (!await Auth.exigirLogin()) return;
   App.montarLayout('painelSeries', 'Painel de séries', 'Controle das séries, gatilhos de ensaio, lotes vinculados e liberações registradas');
   App.acoesTopo(`
     <button class="btn btn-secundario" onclick="location.href='producao.html'">${ICN.producao}Ver produção</button>

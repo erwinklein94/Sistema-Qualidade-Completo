@@ -14,6 +14,7 @@ const Dashboard = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+  if (!await Auth.exigirLogin()) return;
   App.montarLayout('dashboard', 'Dashboard', 'Visão geral da produção de dormentes de concreto');
   App.acoesTopo(`<button class="btn btn-secundario" onclick="carregarDashboard()">${ICN.check}Atualizar</button>`);
 

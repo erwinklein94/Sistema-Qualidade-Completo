@@ -135,6 +135,10 @@ var Auth = (() => {
     return permissoes(window.USUARIO_ATUAL?.perfil);
   }
 
+  function notificarPerfilAtualizado(perfil) {
+    window.dispatchEvent(new CustomEvent('auth:perfilAtualizado', { detail: { perfil } }));
+  }
+
   function pode(acao, valor) {
     const p = permissoes(valor || window.USUARIO_ATUAL?.perfil);
     const mapa = {
@@ -216,6 +220,7 @@ var Auth = (() => {
       }
 
       window.USUARIO_ATUAL = { session, perfil };
+      notificarPerfilAtualizado(perfil);
       montarStatusUsuario();
       if (window.App?.atualizarMenuPorPermissoes) window.App.atualizarMenuPorPermissoes();
       if (window.App?.aplicarPermissoesNaTela) window.App.aplicarPermissoesNaTela();
@@ -244,6 +249,7 @@ var Auth = (() => {
     }
 
     window.USUARIO_ATUAL = { session: data.session, perfil };
+    notificarPerfilAtualizado(perfil);
     if (window.App?.atualizarMenuPorPermissoes) window.App.atualizarMenuPorPermissoes();
     if (window.App?.aplicarPermissoesNaTela) window.App.aplicarPermissoesNaTela();
     return perfil;
