@@ -11,12 +11,16 @@ const Dashboard = {
   carregando: true,
   erro: '',
   periodoPadrao: null,
+  aviso: null,
+  avisoCarregando: true,
+  avisoErro: '',
+  avisoSalvando: false,
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!await Auth.exigirLogin()) return;
   App.montarLayout('dashboard', 'Dashboard', 'Visão geral da produção de dormentes de concreto');
-  App.acoesTopo(`<button class="btn btn-secundario" onclick="carregarDashboard()">${ICN.check}Atualizar</button>`);
+  App.acoesTopo(`<button class="btn btn-secundario" onclick="carregarDashboard();carregarAvisoDashboard()">${ICN.check}Atualizar</button>`);
 
   preencherSelectBase('fFornecedor', CFG.listas.fornecedores, 'Todos');
   preencherSelectBase('fProjeto', CFG.listas.projetos, 'Todos');
@@ -46,10 +50,204 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   App.aplicarPadraoGraficos();
   render();
-  await carregarDashboard();
+  renderAvisoDashboard();
+
+  await Promise.all([
+    carregarDashboard(),
+    carregarAvisoDashboard(),
+  ]);
 });
 
 window.render = render;
+window.carregarAvisoDashboard = carregarAvisoDashboard;
+window.salvarAvisoDashboard = salvarAvisoDashboard;
+
+
+async function carregarAvisoDashboard() {
+  Dashboard.avisoCarregando = true;
+  Dashboard.avisoErro = '';
+  renderAvisoDashboard();
+
+  try {
+    const aviso = await StoreSupabase.obterAvisoDashboard();
+    Dashboard.aviso = mapAvisoDashboard(aviso);
+    Dashboard.avisoCarregando = false;
+    renderAvisoDashboard();
+  } catch (err) {
+    console.error('Erro ao carregar quadro de avisos', err);
+    Dashboard.avisoCarregando = false;
+    Dashboard.avisoErro = mensagemErroAvisoDashboard(err);
+    renderAvisoDashboard();
+  }
+}
+
+async function salvarAvisoDashboard() {
+  const permissoes = window.Auth?.permissoesAtuais?.();
+  if (!permissoes?.admin) {
+    App.toast(Auth.mensagemSemPermissao('editar o quadro de avisos do Dashboard'), 'erro');
+    return;
+  }
+
+  const tituloEl = document.getElementById('avisoDashboardTitulo');
+  const conteudoEl = document.getElementById('avisoDashboardConteudo');
+  const titulo = String(tituloEl?.value || '').trim() || 'Avisos do Dashboard';
+  const conteudo = String(conteudoEl?.value || '');
+
+  Dashboard.avisoSalvando = true;
+  alternarAvisoDashboardSalvando(true);
+
+  try {
+    const salvo = await StoreSupabase.salvarAvisoDashboard({ titulo, conteudo });
+    Dashboard.aviso = mapAvisoDashboard(salvo);
+    Dashboard.avisoErro = '';
+    App.toast('Quadro de avisos salvo no Supabase.');
+    renderAvisoDashboard();
+  } catch (err) {
+    console.error('Erro ao salvar quadro de avisos', err);
+    App.toast(mensagemErroAvisoDashboard(err), 'erro');
+    alternarAvisoDashboardSalvando(false);
+  } finally {
+    Dashboard.avisoSalvando = false;
+  }
+}
+
+function alternarAvisoDashboardSalvando(salvando) {
+  document.querySelectorAll('[data-aviso-acao]').forEach(btn => { btn.disabled = !!salvando; });
+  const btnSalvar = document.getElementById('btnSalvarAvisoDashboard');
+  if (btnSalvar) btnSalvar.innerHTML = salvando ? `${ICN.check}Salvando...` : `${ICN.check}Salvar aviso`;
+}
+
+function renderAvisoDashboard() {
+  const alvo = document.getElementById('quadroAvisosDashboard');
+  if (!alvo) return;
+
+  const permissoes = window.Auth?.permissoesAtuais?.();
+  const admin = !!permissoes?.admin;
+
+  if (Dashboard.avisoCarregando) {
+    alvo.innerHTML = `
+      <div class="card dashboard-aviso-card">
+        <div class="card-titulo">
+          <span class="acento">Quadro de avisos</span>
+          <span class="card-sub">Visível para Consulta e Fiscalização</span>
+        </div>
+        <div class="vazio compacto">${ICN.vazioBox}<h3>Carregando avisos</h3><p>Buscando o conteúdo salvo no Supabase...</p></div>
+      </div>`;
+    return;
+  }
+
+  if (Dashboard.avisoErro) {
+    alvo.innerHTML = `
+      <div class="card dashboard-aviso-card">
+        <div class="card-titulo">
+          <span class="acento">Quadro de avisos</span>
+          <span class="card-sub">Visível para Consulta e Fiscalização</span>
+        </div>
+        <div class="vazio compacto">${ICN.alerta}<h3>Não foi possível carregar os avisos</h3><p>${U.esc(Dashboard.avisoErro)}</p>
+          <div style="margin-top:14px"><button class="btn btn-secundario btn-sm" type="button" onclick="carregarAvisoDashboard()">Tentar novamente</button></div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const aviso = Dashboard.aviso || {};
+  const titulo = aviso.titulo || 'Avisos do Dashboard';
+  const conteudo = aviso.conteudo || '';
+  const atualizado = aviso.atualizadoEm ? dataHoraBR(aviso.atualizadoEm) : '';
+  const temConteudo = conteudo.trim().length > 0;
+
+  alvo.innerHTML = `
+    <div class="card dashboard-aviso-card">
+      <div class="card-titulo dashboard-aviso-titulo">
+        <span class="acento">${U.esc(titulo)}</span>
+        <span class="card-sub">Último bloco da página · Visível para Consulta e Fiscalização</span>
+      </div>
+      <div class="dashboard-aviso-corpo">
+        <div class="dashboard-aviso-publicado ${temConteudo ? '' : 'sem-conteudo'}">
+          ${temConteudo ? formatarTextoAvisoDashboard(conteudo) : '<p>Nenhum aviso publicado no momento.</p>'}
+        </div>
+        <div class="dashboard-aviso-meta">
+          <span class="badge badge-amarelo">Consulta e Fiscalização</span>
+          ${admin ? '<span class="badge badge-projeto">Admin pode editar</span>' : '<span class="badge badge-entregue">Somente leitura</span>'}
+          ${atualizado ? `<span>Atualizado em ${U.esc(atualizado)}</span>` : '<span>Ainda sem atualização salva</span>'}
+        </div>
+      </div>
+      ${admin ? htmlEditorAvisoDashboard(titulo, conteudo) : ''}
+    </div>`;
+
+  prepararEditorAvisoDashboard();
+}
+
+function htmlEditorAvisoDashboard(titulo, conteudo) {
+  return `
+    <div class="dashboard-aviso-editor" data-admin-only>
+      <div class="form-grid">
+        <div class="campo">
+          <label for="avisoDashboardTitulo">Título do aviso</label>
+          <input id="avisoDashboardTitulo" type="text" maxlength="120" value="${U.esc(titulo)}" placeholder="Ex.: Avisos da Qualidade">
+        </div>
+        <div class="campo full">
+          <label for="avisoDashboardConteudo">Conteúdo do quadro</label>
+          <textarea id="avisoDashboardConteudo" maxlength="4000" rows="7" placeholder="Escreva aqui o aviso que os perfis Consulta e Fiscalização devem visualizar no Dashboard...">${U.esc(conteudo)}</textarea>
+        </div>
+      </div>
+      <div class="dashboard-aviso-editor-acoes">
+        <span class="dashboard-aviso-contador" id="avisoDashboardContador">0/4000 caracteres</span>
+        <div class="flex" style="gap:10px;justify-content:flex-end;">
+          <button class="btn btn-secundario btn-sm" data-aviso-acao type="button" onclick="carregarAvisoDashboard()">Recarregar</button>
+          <button class="btn btn-primario btn-sm" data-aviso-acao id="btnSalvarAvisoDashboard" type="button" onclick="salvarAvisoDashboard()">${ICN.check}Salvar aviso</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function prepararEditorAvisoDashboard() {
+  const textarea = document.getElementById('avisoDashboardConteudo');
+  const contador = document.getElementById('avisoDashboardContador');
+  if (!textarea || !contador) return;
+  const atualizar = () => { contador.textContent = `${textarea.value.length}/4000 caracteres`; };
+  textarea.addEventListener('input', atualizar);
+  atualizar();
+}
+
+function formatarTextoAvisoDashboard(texto) {
+  const seguro = U.esc(texto).trim();
+  if (!seguro) return '<p>Nenhum aviso publicado no momento.</p>';
+  return seguro
+    .split(/\n{2,}/)
+    .map(par => `<p>${par.replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
+
+function mapAvisoDashboard(r) {
+  if (!r) return null;
+  return {
+    id: r.id || '',
+    chave: r.chave || 'dashboard',
+    titulo: r.titulo || 'Avisos do Dashboard',
+    conteudo: r.conteudo || '',
+    ativo: r.ativo !== false,
+    criadoEm: r.criado_em || '',
+    atualizadoEm: r.atualizado_em || r.criado_em || '',
+  };
+}
+
+function dataHoraBR(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso).replace('T', ' ').slice(0, 16);
+  return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+}
+
+function mensagemErroAvisoDashboard(err) {
+  const msg = err?.message || err?.details || '';
+  if (/avisos_dashboard|Could not find the table|schema cache/i.test(msg)) {
+    return 'A tabela avisos_dashboard ainda não existe no Supabase. Rode o arquivo supabase/2026-05-27-quadro-avisos-dashboard.sql no SQL Editor.';
+  }
+  if (/row-level security|violates row-level security/i.test(msg)) return 'Acesso bloqueado pelas regras de segurança do Supabase. Apenas perfis admin podem editar o quadro de avisos.';
+  if (/JWT|token|auth/i.test(msg)) return 'Sessão expirada ou inválida. Saia e faça login novamente.';
+  return msg || 'Não foi possível sincronizar o quadro de avisos com o Supabase.';
+}
 
 function preencherSelectBase(id, arr, placeholder) {
   const el = document.getElementById(id);

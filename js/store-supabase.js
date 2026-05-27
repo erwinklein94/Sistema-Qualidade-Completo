@@ -194,6 +194,43 @@ const StoreSupabase = (() => {
   }
 
 
+
+  function exigirAdmin(descricao) {
+    if (!window.Auth?.permissoesAtuais?.()?.admin) {
+      throw new Error(window.Auth?.mensagemSemPermissao?.(descricao) || `Sem permissão para ${descricao}.`);
+    }
+  }
+
+  async function obterAvisoDashboard() {
+    const { data, error } = await db()
+      .from('avisos_dashboard')
+      .select('*')
+      .eq('chave', 'dashboard')
+      .maybeSingle();
+    if (error) throw error;
+    return data || null;
+  }
+
+  async function salvarAvisoDashboard(registro = {}) {
+    exigirAdmin('editar o quadro de avisos do Dashboard');
+    const user = await usuarioAtual();
+    const payload = {
+      chave: 'dashboard',
+      titulo: String(registro.titulo || 'Avisos do Dashboard').trim() || 'Avisos do Dashboard',
+      conteudo: String(registro.conteudo || ''),
+      ativo: true,
+      atualizado_por: user?.id || null,
+    };
+
+    const { data, error } = await db()
+      .from('avisos_dashboard')
+      .upsert(payload, { onConflict: 'chave' })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
   async function listarUsuariosApp() {
     exigirPermissao('gerenciarUsuarios', 'administrar usuários');
     const { data, error } = await db()
@@ -255,6 +292,8 @@ const StoreSupabase = (() => {
     listarEnsaiosLiberacao,
     salvarEnsaioLiberacao,
     removerEnsaioLiberacao,
+    obterAvisoDashboard,
+    salvarAvisoDashboard,
     listarUsuariosApp,
     salvarUsuarioApp,
     listarAuditoria,
