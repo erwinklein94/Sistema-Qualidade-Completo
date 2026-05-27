@@ -129,7 +129,6 @@ function renderAvisoDashboard() {
       <div class="card dashboard-aviso-card">
         <div class="card-titulo">
           <span class="acento">Quadro de avisos</span>
-          <span class="card-sub">Visível para Consulta e Fiscalização</span>
         </div>
         <div class="vazio compacto">${ICN.vazioBox}<h3>Carregando avisos</h3><p>Buscando o conteúdo salvo no Supabase...</p></div>
       </div>`;
@@ -141,7 +140,6 @@ function renderAvisoDashboard() {
       <div class="card dashboard-aviso-card">
         <div class="card-titulo">
           <span class="acento">Quadro de avisos</span>
-          <span class="card-sub">Visível para Consulta e Fiscalização</span>
         </div>
         <div class="vazio compacto">${ICN.alerta}<h3>Não foi possível carregar os avisos</h3><p>${U.esc(Dashboard.avisoErro)}</p>
           <div style="margin-top:14px"><button class="btn btn-secundario btn-sm" type="button" onclick="carregarAvisoDashboard()">Tentar novamente</button></div>
@@ -160,15 +158,12 @@ function renderAvisoDashboard() {
     <div class="card dashboard-aviso-card">
       <div class="card-titulo dashboard-aviso-titulo">
         <span class="acento">${U.esc(titulo)}</span>
-        <span class="card-sub">Último bloco da página · Visível para Consulta e Fiscalização</span>
       </div>
       <div class="dashboard-aviso-corpo">
         <div class="dashboard-aviso-publicado ${temConteudo ? '' : 'sem-conteudo'}">
           ${temConteudo ? formatarTextoAvisoDashboard(conteudo) : '<p>Nenhum aviso publicado no momento.</p>'}
         </div>
         <div class="dashboard-aviso-meta">
-          <span class="badge badge-amarelo">Consulta e Fiscalização</span>
-          ${admin ? '<span class="badge badge-projeto">Admin pode editar</span>' : '<span class="badge badge-entregue">Somente leitura</span>'}
           ${atualizado ? `<span>Atualizado em ${U.esc(atualizado)}</span>` : '<span>Ainda sem atualização salva</span>'}
         </div>
       </div>
@@ -188,7 +183,7 @@ function htmlEditorAvisoDashboard(titulo, conteudo) {
         </div>
         <div class="campo full">
           <label for="avisoDashboardConteudo">Conteúdo do quadro</label>
-          <textarea id="avisoDashboardConteudo" maxlength="4000" rows="7" placeholder="Escreva aqui o aviso que os perfis Consulta e Fiscalização devem visualizar no Dashboard...">${U.esc(conteudo)}</textarea>
+          <textarea id="avisoDashboardConteudo" maxlength="4000" rows="7" placeholder="Escreva aqui o aviso do Dashboard...">${U.esc(conteudo)}</textarea>
         </div>
       </div>
       <div class="dashboard-aviso-editor-acoes">
