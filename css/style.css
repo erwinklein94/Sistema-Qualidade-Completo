@@ -3760,3 +3760,358 @@ table.tabela tbody td,
   .fluxo-card-topo { flex-direction: column; }
   .fluxo-metricas { grid-template-columns: 1fr; }
 }
+
+/* =====================================================================
+   Fluxo de Liberação — ajuste compacto e correção de tema escuro
+   Remove os ícones gigantes do resumo via JS e reduz escala visual sem
+   esconder informações, para caber mais conteúdo na mesma tela.
+   ===================================================================== */
+body.pagina-fluxo {
+  font-size: 12.6px;
+}
+
+body.pagina-fluxo .topo {
+  margin: 8px 24px 0 !important;
+  padding: 10px 18px !important;
+  border-radius: 18px !important;
+}
+body.pagina-fluxo .topo h1 {
+  font-size: clamp(17px, 1.35vw, 21px) !important;
+}
+body.pagina-fluxo .topo .subtitulo {
+  font-size: 11.5px;
+  line-height: 1.22;
+}
+body.pagina-fluxo .topo-acoes,
+body.pagina-fluxo #topoAcoes {
+  gap: 6px;
+}
+body.pagina-fluxo .btn {
+  min-height: 31px !important;
+  padding: 6px 11px !important;
+  font-size: 11.5px !important;
+}
+body.pagina-fluxo .btn .ic {
+  width: 14px;
+  height: 14px;
+}
+
+body.pagina-fluxo .pagina {
+  max-width: none;
+  padding: 12px 18px 38px !important;
+}
+body.pagina-fluxo .card {
+  padding: 12px !important;
+  margin-bottom: 12px !important;
+  border-radius: 16px !important;
+}
+body.pagina-fluxo .card-titulo {
+  margin-bottom: 9px !important;
+  padding-bottom: 7px !important;
+  font-size: 13.2px !important;
+}
+body.pagina-fluxo .card-titulo .card-sub,
+body.pagina-fluxo .card-sub {
+  font-size: 10.8px !important;
+}
+body.pagina-fluxo .card > p.txt-cinza {
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+
+body.pagina-fluxo .barra-filtros {
+  padding: 12px 13px 11px !important;
+  gap: 9px !important;
+  margin-bottom: 12px !important;
+  border-radius: 15px !important;
+}
+body.pagina-fluxo .barra-filtros::before {
+  top: -9px;
+  left: 14px;
+  padding: 2px 9px;
+  font-size: 8.8px;
+}
+body.pagina-fluxo .barra-filtros .campo {
+  min-width: 122px;
+  flex-basis: 122px;
+}
+body.pagina-fluxo .barra-filtros .busca-rapida {
+  min-width: 168px;
+}
+body.pagina-fluxo .campo label {
+  font-size: 10.6px;
+}
+body.pagina-fluxo .campo input,
+body.pagina-fluxo .campo select,
+body.pagina-fluxo .campo textarea {
+  min-height: 31px !important;
+  padding: 6px 9px !important;
+  font-size: 12px !important;
+  border-radius: 10px !important;
+}
+body.pagina-fluxo .check-filtro .check-inline {
+  min-height: 31px;
+  font-size: 11.5px;
+}
+
+body.pagina-fluxo .grid-kpi {
+  grid-template-columns: repeat(auto-fit, minmax(126px, 1fr));
+  gap: 9px;
+  margin-bottom: 11px;
+}
+body.pagina-fluxo .kpi {
+  min-height: 82px;
+  padding: 10px 11px !important;
+  border-radius: 14px !important;
+}
+body.pagina-fluxo .kpi .rotulo {
+  font-size: 9.2px !important;
+  min-height: auto;
+}
+body.pagina-fluxo .kpi .valor {
+  font-size: clamp(18px, 1.45vw, 23px) !important;
+  margin-top: 4px !important;
+}
+body.pagina-fluxo .kpi .extra {
+  font-size: 10px;
+  margin-top: 3px;
+}
+
+body.pagina-fluxo .fluxo-regra-grid {
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 9px;
+  margin: 8px 0 12px;
+}
+body.pagina-fluxo .fluxo-regra-card {
+  padding: 10px 12px;
+  border-radius: 14px;
+  gap: 5px;
+}
+body.pagina-fluxo .fluxo-regra-card strong {
+  font-size: 12px;
+  gap: 0;
+}
+body.pagina-fluxo .fluxo-regra-card span {
+  font-size: 11.3px;
+  line-height: 1.35;
+}
+
+body.pagina-fluxo .fluxo-grid {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 10px;
+}
+body.pagina-fluxo .fluxo-card {
+  padding: 11px 12px;
+  border-radius: 16px;
+  gap: 9px;
+}
+body.pagina-fluxo .fluxo-card::before {
+  width: 4px;
+}
+body.pagina-fluxo .fluxo-card-topo {
+  gap: 8px;
+}
+body.pagina-fluxo .fluxo-card-topo h3 {
+  font-size: 14.3px;
+  line-height: 1.18;
+}
+body.pagina-fluxo .fluxo-card-topo p {
+  margin-top: 2px;
+  font-size: 11px;
+  line-height: 1.24;
+}
+body.pagina-fluxo .status-fluxo {
+  padding: 4px 7px;
+  font-size: 9.6px;
+  max-width: 148px;
+}
+body.pagina-fluxo .fluxo-metricas {
+  gap: 6px;
+}
+body.pagina-fluxo .fluxo-metricas div {
+  padding: 7px;
+  border-radius: 11px;
+}
+body.pagina-fluxo .fluxo-metricas span,
+body.pagina-fluxo .fluxo-metricas small {
+  font-size: 9.4px;
+  line-height: 1.2;
+}
+body.pagina-fluxo .fluxo-metricas strong {
+  font-size: 13.7px;
+  margin: 1px 0;
+  line-height: 1.08;
+}
+body.pagina-fluxo .fluxo-progressos {
+  gap: 5px;
+}
+body.pagina-fluxo .progress-label {
+  font-size: 10.7px;
+  margin-bottom: 3px;
+}
+body.pagina-fluxo .barra-progresso {
+  height: 9px;
+}
+body.pagina-fluxo .fluxo-lotes,
+body.pagina-fluxo .fluxo-ensaios,
+body.pagina-fluxo .fluxo-decisao {
+  gap: 6px;
+}
+body.pagina-fluxo .fluxo-lotes > strong,
+body.pagina-fluxo .fluxo-ensaios > strong,
+body.pagina-fluxo .fluxo-decisao > strong {
+  font-size: 11.8px;
+}
+body.pagina-fluxo .fluxo-lotes > div,
+body.pagina-fluxo .fluxo-ensaios > div {
+  gap: 6px;
+}
+body.pagina-fluxo .lote-serie-chip {
+  min-width: 104px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  gap: 1px;
+}
+body.pagina-fluxo .lote-serie-chip strong {
+  font-size: 11.4px;
+}
+body.pagina-fluxo .lote-serie-chip em {
+  font-size: 9.7px;
+}
+body.pagina-fluxo .ensaio-fluxo-chip {
+  min-width: 124px;
+  padding: 6px 8px;
+  border-radius: 11px;
+}
+body.pagina-fluxo .ensaio-fluxo-chip strong {
+  font-size: 10.9px;
+}
+body.pagina-fluxo .ensaio-fluxo-chip em,
+body.pagina-fluxo .ensaio-fluxo-chip a {
+  font-size: 9.8px;
+}
+body.pagina-fluxo .fluxo-decisao {
+  padding: 9px 10px;
+  border-radius: 12px;
+}
+body.pagina-fluxo .fluxo-decisao span {
+  font-size: 11.7px;
+  line-height: 1.38;
+}
+body.pagina-fluxo .fluxo-decisao small {
+  font-size: 10.4px;
+  line-height: 1.32;
+}
+
+/* Fluxo: tema escuro legível */
+body.pagina-fluxo[data-tema="escuro"] .fluxo-card,
+body.pagina-fluxo[data-tema="escuro"] .fluxo-regra-card {
+  background: rgba(8, 42, 77, .92);
+  border-color: rgba(255, 255, 255, .18);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .28);
+}
+body.pagina-fluxo[data-tema="escuro"] .fluxo-regra-card.alerta {
+  background: linear-gradient(135deg, rgba(251, 211, 0, .14), rgba(8,42,77,.92));
+  border-color: rgba(251, 211, 0, .45);
+}
+body.pagina-fluxo[data-tema="escuro"] .fluxo-card-topo h3,
+body.pagina-fluxo[data-tema="escuro"] .fluxo-regra-card strong,
+body.pagina-fluxo[data-tema="escuro"] .fluxo-lotes > strong,
+body.pagina-fluxo[data-tema="escuro"] .fluxo-ensaios > strong,
+body.pagina-fluxo[data-tema="escuro"] .fluxo-decisao > strong,
+body.pagina-fluxo[data-tema="escuro"] .fluxo-metricas strong,
+body.pagina-fluxo[data-tema="escuro"] .ensaio-fluxo-chip strong {
+  color: #ffffff;
+}
+body.pagina-fluxo[data-tema="escuro"] .fluxo-card-topo p,
+body.pagina-fluxo[data-tema="escuro"] .fluxo-regra-card span,
+body.pagina-fluxo[data-tema="escuro"] .fluxo-metricas span,
+body.pagina-fluxo[data-tema="escuro"] .fluxo-metricas small,
+body.pagina-fluxo[data-tema="escuro"] .progress-label,
+body.pagina-fluxo[data-tema="escuro"] .ensaio-fluxo-chip em,
+body.pagina-fluxo[data-tema="escuro"] .fluxo-decisao small,
+body.pagina-fluxo[data-tema="escuro"] .txt-cinza {
+  color: #c9d8e8 !important;
+}
+body.pagina-fluxo[data-tema="escuro"] .fluxo-metricas div,
+body.pagina-fluxo[data-tema="escuro"] .ensaio-fluxo-chip,
+body.pagina-fluxo[data-tema="escuro"] .fluxo-decisao {
+  background: rgba(255, 255, 255, .075);
+  border-color: rgba(255, 255, 255, .16);
+}
+body.pagina-fluxo[data-tema="escuro"] .lote-serie-chip {
+  background: rgba(3, 22, 43, .92);
+  border-color: rgba(255, 255, 255, .18);
+  color: #ffffff;
+}
+body.pagina-fluxo[data-tema="escuro"] .lote-serie-chip.ultimo {
+  background: rgba(251, 211, 0, .13);
+  border-color: var(--amarelo);
+  box-shadow: 0 0 0 1px rgba(251,211,0,.12), 0 8px 18px rgba(0,0,0,.20);
+}
+body.pagina-fluxo[data-tema="escuro"] .lote-serie-chip strong {
+  color: #ffffff;
+}
+body.pagina-fluxo[data-tema="escuro"] .lote-serie-chip em {
+  color: #c9d8e8;
+}
+body.pagina-fluxo[data-tema="escuro"] .status-fluxo.liberado {
+  color: #dfffd4;
+  background: rgba(141, 198, 63, .22);
+  border-color: rgba(141, 198, 63, .52);
+}
+body.pagina-fluxo[data-tema="escuro"] .status-fluxo.travado {
+  color: #ffd3d3;
+  background: rgba(255, 107, 107, .20);
+  border-color: rgba(255, 107, 107, .55);
+}
+body.pagina-fluxo[data-tema="escuro"] .status-fluxo.aguardando14,
+body.pagina-fluxo[data-tema="escuro"] .status-fluxo.aguardando28,
+body.pagina-fluxo[data-tema="escuro"] .status-fluxo.reteste28,
+body.pagina-fluxo[data-tema="escuro"] .status-fluxo.pendente {
+  color: #fff4b3;
+  background: rgba(251, 211, 0, .18);
+  border-color: rgba(251, 211, 0, .55);
+}
+body.pagina-fluxo[data-tema="escuro"] .status-fluxo.formando,
+body.pagina-fluxo[data-tema="escuro"] .status-fluxo.cura14,
+body.pagina-fluxo[data-tema="escuro"] .status-fluxo.cura28 {
+  color: #ffffff;
+  background: rgba(255, 255, 255, .11);
+  border-color: rgba(255, 255, 255, .22);
+}
+body.pagina-fluxo .barra-progresso span.formando {
+  background: var(--cinza-texto-claro);
+}
+body.pagina-fluxo[data-tema="escuro"] .barra-progresso {
+  background: rgba(255, 255, 255, .13);
+}
+body.pagina-fluxo[data-tema="escuro"] .barra-progresso span.cura14,
+body.pagina-fluxo[data-tema="escuro"] .barra-progresso span.cura28 {
+  background: #8dc63f;
+}
+body.pagina-fluxo[data-tema="escuro"] .tabela-wrap,
+body.pagina-fluxo[data-tema="escuro"] table.tabela tbody td {
+  color: #d9e8f7;
+}
+
+@media (min-width: 1280px) {
+  body.pagina-fluxo .fluxo-grid {
+    grid-template-columns: repeat(auto-fit, minmax(295px, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  body.pagina-fluxo .fluxo-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  body.pagina-fluxo .pagina {
+    padding: 10px 10px 32px !important;
+  }
+  body.pagina-fluxo .fluxo-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -141,11 +141,11 @@ function renderResumoRegra(series) {
   const proximas = series.filter(s => s.statusChave === 'formando' && (s.total >= FluxoLiberacao.ALERTA_PECAS || s.loteQtd >= FluxoLiberacao.ALERTA_LOTES));
   setHtml('resumoFluxo', `
     <div class="fluxo-regra-card">
-      <strong>${ICN.check} Regra ativa</strong>
+      <strong>Regra ativa</strong>
       <span>Série padrão por fábrica + projeto + bitola. Fecha ao atingir 2.000 dormentes ou 10 lotes. Exceções sob demanda continuam possíveis quando a série for informada manualmente no lote ou no ensaio.</span>
     </div>
     <div class="fluxo-regra-card alerta">
-      <strong>${ICN.alerta} Atenção operacional</strong>
+      <strong>Atenção operacional</strong>
       <span>${alertas.length} série(s) exigem ação agora e ${proximas.length} estão próximas do gatilho padrão.</span>
     </div>
   `);
