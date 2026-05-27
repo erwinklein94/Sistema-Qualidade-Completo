@@ -8,7 +8,7 @@ const CFG = {
   listas: {
     fornecedores: ['Cavan SP', 'Conprem MG'],
     pedidos: ['N/A', '4501971179', '4501971181', '4501971186', '4501977441', '4501985412', '4920122050', '4920122051', '361'],
-    projetos: ['MALHA PAULISTA', 'FMT', 'FERRO NORTE', 'MALHA CENTRAL'],
+    projetos: ['FMT', 'FERRO NORTE', 'MALHA PAULISTA BITOLA MISTA', 'MALHA PAULISTA BITOLA LARGA'],
     tipos: ['Bitola Larga FMT USP', 'Bitola Larga MP', 'Bitola Mista MP - USP', 'Bitola Larga FN', 'Bitola Mista', 'Contra Trilho', 'PN', 'AMV'],
     bitolas: ['Bitola Larga', 'Bitola Mista', 'Sem bitola definida'],
     comUsp: ['SIM', 'NÃO'],
@@ -37,7 +37,7 @@ const CFG = {
     erro: '#e23b3b',
     cinza: '#BDCCD4',
     // paleta cíclica para projetos
-    projetos: { 'MALHA PAULISTA': '#003865', 'FMT': '#32A6E6', 'FERRO NORTE': '#1E9F7F', 'MALHA CENTRAL': '#FBD300' },
+    projetos: { 'FMT': '#32A6E6', 'FERRO NORTE': '#1E9F7F', 'MALHA PAULISTA BITOLA MISTA': '#003865', 'MALHA PAULISTA BITOLA LARGA': '#1E9F7F', 'MALHA PAULISTA': '#003865' },
     paleta: ['#003865', '#32A6E6', '#1E9F7F', '#7FE06C', '#FBD300', '#F78344', '#BDCCD4', '#9F4BB9'],
   },
 

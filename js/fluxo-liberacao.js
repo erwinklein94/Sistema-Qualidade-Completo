@@ -178,8 +178,8 @@ function renderMapaProjetos(series) {
 function montarMapaProjetos(series) {
   const mapa = new Map();
   (series || []).forEach(s => {
-    const projeto = s.projeto || 'Sem projeto';
-    const codigo = FluxoLiberacao.codigoProjeto(projeto);
+    const projeto = FluxoLiberacao.projetoCanonico ? FluxoLiberacao.projetoCanonico(s) : (s.projeto || 'Sem projeto');
+    const codigo = FluxoLiberacao.codigoProjeto ? FluxoLiberacao.codigoProjeto(s) : codigoProjetoMapaLocal(projeto, s.bitola);
     const chaveProjeto = chaveTextoLocal(`${codigo}|||${projeto}`);
     if (!mapa.has(chaveProjeto)) {
       mapa.set(chaveProjeto, {
@@ -310,6 +310,15 @@ function loteMapaProjeto(l) {
 
 function nomeSerieSugeridaLocal(codigo, numero) {
   return `Série ${String(numero || 1).padStart(2, '0')} - ${codigo || 'PRJ'}`;
+}
+
+function codigoProjetoMapaLocal(projeto, bitola = '') {
+  const k = chaveTextoLocal(`${projeto || ''} ${bitola || ''}`);
+  if (k.includes('MALHA PAULISTA') && k.includes('BITOLA MISTA')) return 'MPBM';
+  if (k.includes('MALHA PAULISTA') && k.includes('BITOLA LARGA')) return 'MPBL';
+  if (k.includes('FERRO')) return 'FN';
+  if (k.includes('FMT')) return 'FMT';
+  return k.split(' ').map(p => p[0]).join('').slice(0, 4) || 'PRJ';
 }
 
 function numeroSerieLocal(serie) {

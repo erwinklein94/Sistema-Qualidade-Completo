@@ -29,7 +29,7 @@ const FluxoLiberacao = (() => {
 
     grupos.forEach((lotesGrupo, key) => {
       lotesGrupo.sort(ordemProducao);
-      const codigo = codigoProjeto(lotesGrupo[0]?.projeto);
+      const codigo = codigoProjeto(lotesGrupo[0]);
       let indice = 1;
       let serieAtual = novaSerie(lotesGrupo[0], indice, codigo, key, false);
       const seriesDoGrupo = [];
@@ -72,7 +72,7 @@ const FluxoLiberacao = (() => {
 
   function seriesManualMapGet(mapa, lote, key, serieNome) {
     const k = `${key}|||${serieNome}`;
-    if (!mapa.has(k)) mapa.set(k, novaSerie(lote, null, codigoProjeto(lote.projeto), key, true, serieNome));
+    if (!mapa.has(k)) mapa.set(k, novaSerie(lote, null, codigoProjeto(lote), key, true, serieNome));
     return mapa.get(k);
   }
 
@@ -82,9 +82,9 @@ const FluxoLiberacao = (() => {
       key,
       chave: `${key}|||${serie}`,
       fornecedor: lote?.fornecedor || '',
-      projeto: lote?.projeto || '',
+      projeto: projetoCanonico(lote) || '',
       bitola: lote?.bitola || bitolaDe(lote),
-      grupo: `${lote?.projeto || 'Sem projeto'} • ${bitolaCodigo(lote)}`,
+      grupo: `${projetoCanonico(lote) || 'Sem projeto'} • ${bitolaCodigo(lote)}`,
       serie,
       auto: !manual,
       manual: !!manual,
@@ -276,7 +276,7 @@ const FluxoLiberacao = (() => {
 
   function mesmoGrupoEnsaio(e, serie) {
     if (e.fornecedor && norm(e.fornecedor) !== norm(serie.fornecedor)) return false;
-    if (e.projeto && norm(e.projeto) !== norm(serie.projeto)) return false;
+    if (e.projeto && norm(projetoCanonico(e)) !== norm(serie.projeto)) return false;
     if (e.bitola && norm(e.bitola) !== norm(serie.bitola)) return false;
     return true;
   }
@@ -300,7 +300,8 @@ const FluxoLiberacao = (() => {
       id: r.id || r.producaoLoteId || `idx-${i}`,
       fornecedor: r.fornecedor || '',
       lote: r.lote || '',
-      projeto: r.projeto || '',
+      projeto: projetoCanonico(r),
+      projetoOrigem: r.projeto || '',
       bitola: r.bitola || bitolaDe(r),
       tipo: r.tipo || r.tipo_dormente || '',
       total: int(r.total ?? r.total_produzido),
@@ -317,7 +318,8 @@ const FluxoLiberacao = (() => {
       producaoLoteId: r.producaoLoteId || r.producao_lote_id || '',
       dataEnsaio: dataISO(r.dataEnsaio || r.data_ensaio),
       fornecedor: r.fornecedor || '',
-      projeto: r.projeto || '',
+      projeto: projetoCanonico(r),
+      projetoOrigem: r.projeto || '',
       bitola: r.bitola || bitolaDe(r),
       lote: r.lote || r.lote_ensaiado || '',
       serieLiberada: r.serieLiberada || r.serie_liberada || '',
@@ -370,18 +372,45 @@ const FluxoLiberacao = (() => {
 
   function normalizarSerie(valor, projeto, opcoes = {}) {
     const raw = String(valor == null ? '' : valor).replace(/\s+/g, ' ').trim();
-    if (!raw || raw === '0' || raw === '-') return opcoes.permitirVazio ? '' : `Série aberta / sem série - ${codigoProjeto(projeto)}`;
-    return raw
+    const codigo = codigoProjeto(projeto);
+    if (!raw || raw === '0' || raw === '-') return opcoes.permitirVazio ? '' : `Série aberta / sem série - ${codigo}`;
+    const normalizada = raw
       .replace(/\s*-\s*/g, ' - ')
       .replace(/S[eé]rie\s+(\d+)/i, (_, n) => `Série ${String(Number(n)).padStart(2, '0')}`)
       .replace(/\s+/g, ' ')
       .trim();
+    if ((codigo === 'MPBM' || codigo === 'MPBL') && /^S[eé]rie\s+\d{2}\s+-\s+MP$/i.test(normalizada)) {
+      return normalizada.replace(/\s+-\s+MP$/i, ` - ${codigo}`);
+    }
+    return normalizada;
   }
 
-  function codigoProjeto(projeto) {
-    const k = norm(projeto);
+  function projetoCanonico(registroOuTexto) {
+    const original = typeof registroOuTexto === 'string'
+      ? registroOuTexto
+      : (registroOuTexto?.projeto || registroOuTexto?.projetoOrigem || '');
+    const textoCompleto = typeof registroOuTexto === 'string'
+      ? registroOuTexto
+      : `${registroOuTexto?.projeto || ''} ${registroOuTexto?.projetoOrigem || ''} ${registroOuTexto?.bitola || ''} ${registroOuTexto?.tipo || ''} ${registroOuTexto?.tipo_dormente || ''}`;
+    const k = norm(textoCompleto || original);
+    const bitola = bitolaDe(registroOuTexto);
+
+    if (k.includes('FMT')) return 'FMT';
+    if (k.includes('FERRO')) return 'FERRO NORTE';
+    if (k.includes('MALHA PAULISTA')) {
+      if (k.includes('BITOLA MISTA') || bitola === 'Bitola Mista' || /(^|\s)BM($|\s)/.test(k)) return 'MALHA PAULISTA BITOLA MISTA';
+      if (k.includes('BITOLA LARGA') || bitola === 'Bitola Larga' || /(^|\s)BL($|\s)/.test(k)) return 'MALHA PAULISTA BITOLA LARGA';
+      return 'MALHA PAULISTA';
+    }
+    if (k.includes('MALHA CENTRAL')) return 'MALHA CENTRAL';
+    return String(original || '').trim() || 'Sem projeto';
+  }
+
+  function codigoProjeto(registroOuTexto) {
+    const k = norm(projetoCanonico(registroOuTexto));
+    if (k.includes('MALHA PAULISTA') && k.includes('BITOLA MISTA')) return 'MPBM';
+    if (k.includes('MALHA PAULISTA') && k.includes('BITOLA LARGA')) return 'MPBL';
     if (k.includes('FERRO')) return 'FN';
-    if (k.includes('MALHA PAULISTA')) return 'MP';
     if (k.includes('FMT')) return 'FMT';
     if (k.includes('MALHA CENTRAL')) return 'MC';
     return k.split(' ').map(p => p[0]).join('').slice(0, 4) || 'PRJ';
@@ -477,6 +506,7 @@ const FluxoLiberacao = (() => {
     serieDoLote,
     normalizarSerie,
     codigoProjeto,
+    projetoCanonico,
     addDias,
     diffDias,
     dataBR,

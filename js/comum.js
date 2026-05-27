@@ -187,10 +187,11 @@ const App = {
       amarelo: '#FFD401',
       cinza: '#b8c7d8',
       projetos: {
-        'MALHA PAULISTA': '#8DC63F',
         'FMT': '#ffffff',
         'FERRO NORTE': '#A9E56D',
-        'MALHA CENTRAL': '#FFD401'
+        'MALHA PAULISTA BITOLA MISTA': '#8DC63F',
+        'MALHA PAULISTA BITOLA LARGA': '#FFD401',
+        'MALHA PAULISTA': '#8DC63F'
       },
       paleta: ['#8DC63F', '#ffffff', '#FFD401', '#00A8E9', '#A9E56D', '#ff6b6b', '#b8c7d8', '#6dd6ff']
     };
