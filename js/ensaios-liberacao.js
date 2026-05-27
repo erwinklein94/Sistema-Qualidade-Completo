@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!await Auth.exigirLogin()) return;
   App.montarLayout('ensaiosLiberacao', 'Ensaios de Liberação', 'Registro dos lotes ensaiados, série liberada e relatório iAuditor');
   App.acoesTopo(`
-    <button class="btn btn-secundario" onclick="location.href='ensaios.html'">${ICN.ensaios}Painel de séries</button>
-    <button class="btn btn-secundario" onclick="location.href='fluxo-liberacao.html'">${ICN.trem}Fluxo</button>
+    <button class="btn btn-secundario" onclick="location.href='ensaios.html'">${ICN.ensaios}Fluxo de Liberação</button>
+    <button class="btn btn-secundario" onclick="location.href='fluxo-liberacao.html'">${ICN.trem}Painel de séries</button>
     <button class="btn btn-secundario" onclick="abrirImportadorIauditor()">${ICN.upload}Importar PDF iAuditor</button>
     ${Auth.pode('criar') ? `<button class="btn btn-primario" onclick="abrirNovo()">${ICN.add}Novo ensaio manual</button>` : App.avisoModoConsulta()}
   `);

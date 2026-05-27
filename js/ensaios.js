@@ -1,5 +1,5 @@
 /* =====================================================================
-   ENSAIOS.JS — Painel de séries em fluxo horizontal por lote
+   ENSAIOS.JS — Fluxo de Liberação em etapas horizontais por lote
    Cada lote aparece como uma linha e herda as decisões da própria série.
    ===================================================================== */
 let PAINEL_PRODUCAO = [];
@@ -30,11 +30,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.body.classList.add('pagina-painel-series');
   if (!await Auth.exigirLogin()) return;
 
-  App.montarLayout('painelSeries', 'Painel de séries', 'Fluxo horizontal dos lotes, séries, cura, ensaios e liberação para transporte');
+  App.montarLayout('painelSeries', 'Fluxo de Liberação', 'Etapas horizontais por lote, série, cura, ensaios e liberação para transporte');
   App.acoesTopo(`
     <button class="btn btn-secundario" onclick="location.href='producao.html'">${ICN.producao}Produção</button>
     <button class="btn btn-secundario" onclick="location.href='ensaios-liberacao.html'">${ICN.check}Ensaios</button>
-    <button class="btn btn-primario" onclick="carregarPainelSeries()">${ICN.download}Atualizar painel</button>
+    <button class="btn btn-primario" onclick="carregarPainelSeries()">${ICN.download}Atualizar fluxo</button>
   `);
 
   preencherFiltros();
@@ -90,9 +90,9 @@ async function carregarPainelSeries() {
     PAINEL_CARREGANDO = false;
     render();
   } catch (err) {
-    console.error('Erro ao carregar Painel de séries', err);
+    console.error('Erro ao carregar Fluxo de Liberação', err);
     PAINEL_CARREGANDO = false;
-    PAINEL_ERRO = mensagemErroBanco(err, 'Não foi possível carregar o Painel de séries do Supabase.');
+    PAINEL_ERRO = mensagemErroBanco(err, 'Não foi possível carregar o Fluxo de Liberação do Supabase.');
     App.toast(PAINEL_ERRO, 'erro');
     render();
   }
@@ -166,7 +166,7 @@ function render() {
 
   const dados = PAINEL_DADOS || calcularDadosSeguro();
   if (!dados) {
-    alvo.innerHTML = `<div class="vazio compacto"><h3>Nenhum dado carregado</h3><p>Clique em Atualizar painel para buscar os dados.</p></div>`;
+    alvo.innerHTML = `<div class="vazio compacto"><h3>Nenhum dado carregado</h3><p>Clique em Atualizar fluxo para buscar os dados.</p></div>`;
     if (contador) contador.textContent = '0 lotes';
     return;
   }
@@ -360,8 +360,8 @@ function resultadoCurto(ensaio) {
 function registrarExportacaoPainelSeries(linhas, dados) {
   if (!window.Exportacoes) return;
   Exportacoes.registrar({
-    titulo: 'Painel de Séries',
-    nomeArquivo: 'painel-series-fluxo-lotes',
+    titulo: 'Fluxo de Liberação',
+    nomeArquivo: 'fluxo-liberacao-lotes',
     filtros: Exportacoes.filtrosDaTela(),
     secoes: [{
       titulo: 'Fluxo horizontal por lote',

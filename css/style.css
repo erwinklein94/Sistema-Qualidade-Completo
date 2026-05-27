@@ -4513,3 +4513,105 @@ body.pagina-painel-series[data-tema="escuro"] .tag-lote.ensaio {
     flex-direction: column;
   }
 }
+
+/* =====================================================================
+   Ajuste 2026-05-27 — textos mais compactos nos cards de séries
+   ===================================================================== */
+body.pagina-fluxo .fluxo-grid {
+  grid-template-columns: repeat(auto-fit, minmax(286px, 1fr));
+}
+body.pagina-fluxo .fluxo-card {
+  padding: 10px 11px !important;
+  gap: 8px !important;
+}
+body.pagina-fluxo .fluxo-card-topo {
+  gap: 6px !important;
+}
+body.pagina-fluxo .fluxo-card-topo h3 {
+  font-size: 13.5px !important;
+  line-height: 1.12 !important;
+  letter-spacing: .01em;
+}
+body.pagina-fluxo .fluxo-card-topo p {
+  font-size: 10.2px !important;
+  line-height: 1.18 !important;
+}
+body.pagina-fluxo .status-fluxo {
+  padding: 3px 6px !important;
+  font-size: 8.6px !important;
+  line-height: 1.05 !important;
+  max-width: 132px !important;
+  min-width: 0 !important;
+  overflow-wrap: anywhere;
+}
+body.pagina-fluxo .fluxo-metricas {
+  gap: 5px !important;
+}
+body.pagina-fluxo .fluxo-metricas div {
+  padding: 6px !important;
+  border-radius: 10px !important;
+  min-width: 0;
+}
+body.pagina-fluxo .fluxo-metricas span,
+body.pagina-fluxo .fluxo-metricas small {
+  font-size: 8.7px !important;
+  line-height: 1.12 !important;
+  overflow-wrap: anywhere;
+}
+body.pagina-fluxo .fluxo-metricas strong {
+  font-size: 12.3px !important;
+  line-height: 1.05 !important;
+  overflow-wrap: anywhere;
+}
+body.pagina-fluxo .progress-label {
+  font-size: 10px !important;
+}
+body.pagina-fluxo .fluxo-lotes > strong,
+body.pagina-fluxo .fluxo-ensaios > strong,
+body.pagina-fluxo .fluxo-decisao > strong {
+  font-size: 11px !important;
+}
+body.pagina-fluxo .lote-serie-chip {
+  min-width: 98px !important;
+  padding: 5px 7px !important;
+}
+body.pagina-fluxo .lote-serie-chip strong {
+  font-size: 10.6px !important;
+}
+body.pagina-fluxo .lote-serie-chip em {
+  font-size: 8.8px !important;
+  line-height: 1.15 !important;
+}
+body.pagina-fluxo .ensaio-fluxo-chip {
+  min-width: 112px !important;
+  padding: 5px 7px !important;
+}
+body.pagina-fluxo .ensaio-fluxo-chip strong {
+  font-size: 10.1px !important;
+}
+body.pagina-fluxo .ensaio-fluxo-chip em,
+body.pagina-fluxo .ensaio-fluxo-chip a {
+  font-size: 8.9px !important;
+}
+body.pagina-fluxo .fluxo-decisao span {
+  font-size: 10.8px !important;
+  line-height: 1.28 !important;
+}
+body.pagina-fluxo .fluxo-decisao small {
+  font-size: 9.5px !important;
+  line-height: 1.24 !important;
+}
+
+/* Fluxo horizontal: leve compactação para caber mais texto nas etapas */
+body.pagina-painel-series .tabela-fluxo-lotes {
+  font-size: 10.8px !important;
+}
+body.pagina-painel-series .etapa-box span {
+  font-size: 10.1px !important;
+  line-height: 1.08 !important;
+}
+body.pagina-painel-series .etapa-box small,
+body.pagina-painel-series .etapa-box em {
+  font-size: 9.1px !important;
+  line-height: 1.12 !important;
+}

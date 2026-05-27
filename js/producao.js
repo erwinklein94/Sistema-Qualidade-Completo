@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!await Auth.exigirLogin()) return;
   App.montarLayout('producao', 'Produção de Dormentes', 'Lançamento e controle de fabricação por lote');
   App.acoesTopo(`
-    <button class="btn btn-secundario" onclick="location.href='fluxo-liberacao.html'">${ICN.trem}Fluxo</button>
+    <button class="btn btn-secundario" onclick="location.href='fluxo-liberacao.html'">${ICN.trem}Painel de séries</button>
     ${Auth.pode('criar') ? `<button class="btn btn-primario" onclick="abrirNovo()">${ICN.add}Novo lançamento</button>` : App.avisoModoConsulta()}
   `);
 

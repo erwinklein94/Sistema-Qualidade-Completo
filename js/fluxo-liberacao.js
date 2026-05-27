@@ -1,5 +1,5 @@
 /* =====================================================================
-   FLUXO-LIBERACAO.JS — Visão operacional do fluxo por projeto/fábrica/série
+   FLUXO-LIBERACAO.JS — Painel de séries por projeto/fábrica/série
    ===================================================================== */
 let FLUXO_PRODUCAO = [];
 let FLUXO_ENSAIOS = [];
@@ -22,11 +22,11 @@ const STATUS_FILTRO_FLUXO = [
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!await Auth.exigirLogin()) return;
-  App.montarLayout('fluxoLiberacao', 'Fluxo de Liberação', 'Rastreabilidade automática por fábrica, projeto, série, lote e ensaio');
+  App.montarLayout('fluxoLiberacao', 'Painel de séries', 'Rastreabilidade automática por fábrica, projeto, série, lote e ensaio');
   App.acoesTopo(`
     <button class="btn btn-secundario" onclick="location.href='producao.html'">${ICN.producao}Produção</button>
     <button class="btn btn-secundario" onclick="location.href='ensaios-liberacao.html'">${ICN.check}Ensaios</button>
-    <button class="btn btn-primario" onclick="carregarFluxoLiberacao()">${ICN.filtro}Atualizar fluxo</button>
+    <button class="btn btn-primario" onclick="carregarFluxoLiberacao()">${ICN.filtro}Atualizar painel</button>
   `);
 
   preencherFiltrosFluxo();
@@ -63,9 +63,9 @@ async function carregarFluxoLiberacao() {
     FLUXO_CARREGANDO = false;
     renderFluxo();
   } catch (err) {
-    console.error('Erro ao carregar Fluxo de Liberação', err);
+    console.error('Erro ao carregar Painel de séries', err);
     FLUXO_CARREGANDO = false;
-    FLUXO_ERRO = mensagemErroBanco(err, 'Não foi possível carregar o Fluxo de Liberação do Supabase.');
+    FLUXO_ERRO = mensagemErroBanco(err, 'Não foi possível carregar o Painel de séries do Supabase.');
     App.toast(FLUXO_ERRO, 'erro');
     renderFluxo();
   }
@@ -283,8 +283,8 @@ function mapEnsaioFluxo(r) {
 function registrarExportacaoFluxo(series) {
   if (!window.Exportacoes) return;
   Exportacoes.registrar({
-    titulo: 'Fluxo de Liberação',
-    nomeArquivo: 'fluxo-liberacao',
+    titulo: 'Painel de Séries',
+    nomeArquivo: 'painel-series',
     filtros: Exportacoes.filtrosDaTela(),
     secoes: [{
       titulo: 'Séries no fluxo',
