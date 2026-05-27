@@ -102,6 +102,7 @@ function renderFluxo() {
   if (FLUXO_CARREGANDO) {
     setHtml('kpisFluxo', `<div class="kpi escuro"><div class="rotulo">Fluxo</div><div class="valor">...</div><div class="extra">Carregando produção e ensaios</div></div>`);
     setHtml('cardsFluxo', `<div class="vazio">${ICN.vazioBox}<h3>Carregando fluxo</h3><p>Buscando dados no Supabase.</p></div>`);
+    setHtml('mapaProjetosSeries', `<div class="vazio">${ICN.vazioBox}<h3>Carregando mapa por projeto</h3><p>Organizando séries e lotes já registrados.</p></div>`);
     setHtml('tabelaFluxo', '');
     setText('contadorFluxo', 'Carregando...');
     return;
@@ -110,6 +111,7 @@ function renderFluxo() {
   if (FLUXO_ERRO) {
     setHtml('kpisFluxo', `<div class="kpi vermelho"><div class="rotulo">Erro</div><div class="valor">!</div><div class="extra">${U.esc(FLUXO_ERRO)}</div></div>`);
     setHtml('cardsFluxo', `<div class="vazio">${ICN.alerta}<h3>Erro ao carregar</h3><p>${U.esc(FLUXO_ERRO)}</p><button class="btn btn-secundario" onclick="carregarFluxoLiberacao()">Tentar novamente</button></div>`);
+    setHtml('mapaProjetosSeries', '');
     return;
   }
 
@@ -117,6 +119,7 @@ function renderFluxo() {
   registrarExportacaoFluxo(series);
   renderKpisFluxo(series);
   renderResumoRegra(series);
+  renderMapaProjetos(series);
   renderCardsFluxo(series);
   renderTabelaFluxo(series);
   setText('contadorFluxo', `${series.length} de ${(FLUXO_DADOS.series || []).length} série(s)`);
@@ -159,6 +162,187 @@ function renderCardsFluxo(series) {
     return;
   }
   alvo.innerHTML = `<div class="fluxo-grid">${series.map(cardFluxo).join('')}</div>`;
+}
+
+function renderMapaProjetos(series) {
+  const alvo = document.getElementById('mapaProjetosSeries');
+  if (!alvo) return;
+  const projetos = montarMapaProjetos(series);
+  if (!projetos.length) {
+    alvo.innerHTML = `<div class="vazio">${ICN.vazioBox}<h3>Nenhum projeto encontrado</h3><p>Ajuste os filtros ou cadastre lotes de produção para visualizar a sequência das séries.</p></div>`;
+    return;
+  }
+  alvo.innerHTML = `<div class="mapa-projetos-grid">${projetos.map(cardMapaProjeto).join('')}</div>`;
+}
+
+function montarMapaProjetos(series) {
+  const mapa = new Map();
+  (series || []).forEach(s => {
+    const projeto = s.projeto || 'Sem projeto';
+    const codigo = FluxoLiberacao.codigoProjeto(projeto);
+    const chaveProjeto = chaveTextoLocal(`${codigo}|||${projeto}`);
+    if (!mapa.has(chaveProjeto)) {
+      mapa.set(chaveProjeto, {
+        projeto,
+        codigo,
+        series: new Map(),
+        fornecedores: new Set(),
+        bitolas: new Set(),
+        numeros: [],
+        total: 0,
+        lotesTotal: 0,
+      });
+    }
+
+    const projetoInfo = mapa.get(chaveProjeto);
+    projetoInfo.fornecedores.add(s.fornecedor || 'Sem fábrica');
+    projetoInfo.bitolas.add(s.bitola || 'Sem bitola');
+    projetoInfo.total += Number(s.total || 0);
+    projetoInfo.lotesTotal += Number(s.loteQtd || 0);
+
+    const numero = numeroSerieLocal(s.serie);
+    if (numero) projetoInfo.numeros.push(numero);
+
+    const chaveSerie = chaveTextoLocal(s.serie || `serie-${projetoInfo.series.size + 1}`);
+    if (!projetoInfo.series.has(chaveSerie)) {
+      projetoInfo.series.set(chaveSerie, {
+        serie: s.serie || 'Série sem nome',
+        numero,
+        subseries: [],
+        lotes: [],
+        total: 0,
+        fornecedores: new Set(),
+        bitolas: new Set(),
+        origens: new Set(),
+        statusChave: s.statusChave || 'formando',
+        status: s.status || 'Série em formação',
+      });
+    }
+
+    const serieInfo = projetoInfo.series.get(chaveSerie);
+    serieInfo.subseries.push(s);
+    serieInfo.total += Number(s.total || 0);
+    serieInfo.fornecedores.add(s.fornecedor || 'Sem fábrica');
+    serieInfo.bitolas.add(s.bitola || 'Sem bitola');
+    serieInfo.origens.add(s.auto ? 'automática' : 'manual');
+    const statusPrioritario = statusPrioridadeLocal(s.statusChave) < statusPrioridadeLocal(serieInfo.statusChave);
+    if (statusPrioritario) {
+      serieInfo.statusChave = s.statusChave || serieInfo.statusChave;
+      serieInfo.status = s.status || serieInfo.status;
+    }
+    (s.lotes || []).forEach(lote => serieInfo.lotes.push({ ...lote, _serie: s }));
+  });
+
+  return Array.from(mapa.values()).map(p => {
+    const numerosValidos = p.numeros.filter(n => Number.isFinite(n) && n > 0);
+    p.ultimoNumero = numerosValidos.length ? Math.max(...numerosValidos) : 0;
+    p.proximoNumero = p.ultimoNumero + 1 || 1;
+    p.proximaSerie = nomeSerieSugeridaLocal(p.codigo, p.proximoNumero);
+    p.seriesLista = Array.from(p.series.values()).map(serie => {
+      serie.lotes.sort((a, b) => String(a.dataFabricacao || '').localeCompare(String(b.dataFabricacao || '')) || String(a.lote || '').localeCompare(String(b.lote || ''), 'pt-BR', { numeric: true }));
+      serie.loteQtd = serie.lotes.length;
+      return serie;
+    }).sort((a, b) => (a.numero || 999999) - (b.numero || 999999) || String(a.serie).localeCompare(String(b.serie), 'pt-BR', { numeric: true }));
+    return p;
+  }).sort((a, b) => String(a.codigo).localeCompare(String(b.codigo), 'pt-BR', { numeric: true }) || String(a.projeto).localeCompare(String(b.projeto), 'pt-BR', { numeric: true }));
+}
+
+function cardMapaProjeto(p) {
+  const ultimaSerie = p.ultimoNumero ? nomeSerieSugeridaLocal(p.codigo, p.ultimoNumero) : 'Nenhuma série numerada';
+  const fornecedores = resumoListaLocal([...p.fornecedores]);
+  const bitolas = resumoListaLocal([...p.bitolas]);
+  return `<article class="mapa-projeto-card">
+    <div class="mapa-projeto-topo">
+      <div>
+        <span class="mapa-projeto-codigo">${U.esc(p.codigo)}</span>
+        <h3>${U.esc(p.projeto)}</h3>
+        <p>${U.esc(fornecedores)} · ${U.esc(bitolas)}</p>
+      </div>
+      <div class="mapa-proxima-serie" title="Maior número de série encontrado neste projeto + 1">
+        <span>Próxima série a abrir</span>
+        <strong>${U.esc(p.proximaSerie)}</strong>
+        <small>nº ${p.proximoNumero}</small>
+      </div>
+    </div>
+    <div class="mapa-projeto-metricas">
+      <div><span>Séries existentes</span><strong>${p.seriesLista.length}</strong></div>
+      <div><span>Lotes no projeto</span><strong>${p.lotesTotal}</strong></div>
+      <div><span>Dormentes</span><strong>${p.total.toLocaleString('pt-BR')}</strong></div>
+      <div><span>Última encontrada</span><strong>${U.esc(ultimaSerie)}</strong></div>
+    </div>
+    <div class="mapa-series-lista">
+      ${p.seriesLista.map(serie => itemMapaSerie(serie, p)).join('')}
+    </div>
+  </article>`;
+}
+
+function itemMapaSerie(serie, projetoInfo) {
+  const isUltima = serie.numero && serie.numero === projetoInfo.ultimoNumero;
+  const origem = resumoListaLocal([...serie.origens]);
+  const bitolas = resumoListaLocal([...serie.bitolas]);
+  const fornecedores = resumoListaLocal([...serie.fornecedores]);
+  const aberta = isUltima ? ' open' : '';
+  return `<details class="mapa-serie-item ${isUltima ? 'ultima' : ''}"${aberta}>
+    <summary>
+      <span class="mapa-serie-nome"><strong>${U.esc(serie.serie)}</strong><em>${serie.numero ? `nº ${serie.numero}` : 'sem número identificado'}</em></span>
+      <span class="mapa-serie-meta">${serie.loteQtd} lote(s) · ${serie.total.toLocaleString('pt-BR')} peças</span>
+      <span class="status-fluxo ${serie.statusChave}">${U.esc(serie.status)}</span>
+    </summary>
+    <div class="mapa-serie-detalhes">
+      <div class="mapa-serie-contexto">
+        <span>${U.esc(origem)}</span><span>${U.esc(fornecedores)}</span><span>${U.esc(bitolas)}</span>
+      </div>
+      <div class="mapa-lotes-lista">
+        ${serie.lotes.length ? serie.lotes.map(loteMapaProjeto).join('') : '<span class="txt-mini txt-cinza">Nenhum lote vinculado a esta série.</span>'}
+      </div>
+    </div>
+  </details>`;
+}
+
+function loteMapaProjeto(l) {
+  const serie = l._serie || {};
+  return `<span class="mapa-lote-chip">
+    <strong>${U.esc(l.lote || 'Lote sem número')}</strong>
+    <em>${U.dataBR(l.dataFabricacao)} · ${intLocal(l.total).toLocaleString('pt-BR')} peças</em>
+    <small>${U.esc(serie.fornecedor || l.fornecedor || 'Sem fábrica')} · ${U.esc(serie.bitola || l.bitola || 'Sem bitola')}</small>
+  </span>`;
+}
+
+function nomeSerieSugeridaLocal(codigo, numero) {
+  return `Série ${String(numero || 1).padStart(2, '0')} - ${codigo || 'PRJ'}`;
+}
+
+function numeroSerieLocal(serie) {
+  const texto = String(serie || '').trim();
+  const m = texto.match(/S[eé]rie\s*0*(\d+)/i) || texto.match(/(?:^|[^0-9])0*(\d{1,4})(?=$|[^0-9])/);
+  if (!m) return 0;
+  const n = parseInt(m[1], 10);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function statusPrioridadeLocal(chave) {
+  return {
+    travado: 0,
+    aguardando14: 1,
+    aguardando28: 2,
+    reteste28: 3,
+    pendente: 4,
+    cura28: 5,
+    cura14: 6,
+    formando: 7,
+    liberado: 8,
+  }[chave] ?? 99;
+}
+
+function chaveTextoLocal(v) {
+  return String(v == null ? '' : v).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim().toUpperCase();
+}
+
+function resumoListaLocal(valores, limite = 2) {
+  const lista = [...new Set((valores || []).map(v => String(v || '').trim()).filter(Boolean))];
+  if (!lista.length) return '—';
+  if (lista.length <= limite) return lista.join(' · ');
+  return `${lista.slice(0, limite).join(' · ')} +${lista.length - limite}`;
 }
 
 function cardFluxo(s) {
@@ -282,6 +466,7 @@ function mapEnsaioFluxo(r) {
 
 function registrarExportacaoFluxo(series) {
   if (!window.Exportacoes) return;
+  const projetos = montarMapaProjetos(series);
   Exportacoes.registrar({
     titulo: 'Painel de Séries',
     nomeArquivo: 'painel-series',
@@ -308,6 +493,32 @@ function registrarExportacaoFluxo(series) {
         cura14Export: U.dataBR(s.cura14),
         cura28Export: U.dataBR(s.cura28),
         ensaiosExport: s.ensaios.map(e => `${e.fase || '?'}d ${e.resultado || ''} lote ${e.lote || ''} ${U.dataBR(e.dataEnsaio)}`).join(' | '),
+      }))
+    }, {
+      titulo: 'Mapa por projeto',
+      columns: [
+        { key: 'codigo', label: 'Código do projeto' },
+        { key: 'projeto', label: 'Projeto' },
+        { key: 'seriesQtd', label: 'Séries existentes' },
+        { key: 'ultimaSerie', label: 'Última série encontrada' },
+        { key: 'proximaSerie', label: 'Próxima série a abrir' },
+        { key: 'lotesTotal', label: 'Lotes' },
+        { key: 'total', label: 'Dormentes' },
+        { key: 'fornecedoresExport', label: 'Fábricas' },
+        { key: 'bitolasExport', label: 'Bitolas' },
+        { key: 'seriesExport', label: 'Séries e lotes' },
+      ],
+      rows: projetos.map(p => ({
+        codigo: p.codigo,
+        projeto: p.projeto,
+        seriesQtd: p.seriesLista.length,
+        ultimaSerie: p.ultimoNumero ? nomeSerieSugeridaLocal(p.codigo, p.ultimoNumero) : '',
+        proximaSerie: p.proximaSerie,
+        lotesTotal: p.lotesTotal,
+        total: p.total,
+        fornecedoresExport: [...p.fornecedores].join(' | '),
+        bitolasExport: [...p.bitolas].join(' | '),
+        seriesExport: p.seriesLista.map(serie => `${serie.serie}: ${serie.lotes.map(l => l.lote || 'sem lote').join(', ')}`).join(' | '),
       }))
     }]
   });
