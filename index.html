@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="assets/brand/favicon-rumo.png">
-  <link rel="stylesheet" href="css/style.css?v=20260527-quadro-avisos-dashboard">
+  <link rel="stylesheet" href="css/style.css?v=20260527-dashboard-grafico-mensal">
 </head>
 <body>
   <div class="app" id="app">
@@ -42,6 +42,11 @@
               <div class="chart-box alto"><canvas id="chartSemanalProjeto"></canvas></div>
             </div>
             <div class="card span2">
+              <div class="card-titulo"><span class="acento">Produção × Reprova mensal por projeto</span>
+                <span class="card-sub">Total produzido, refugos e % de reprova por mês, projeto e bitola</span></div>
+              <div class="chart-box alto"><canvas id="chartMensalProjeto"></canvas></div>
+            </div>
+            <div class="card span2">
               <div class="card-titulo"><span class="acento">Produção × Reprova por lote</span>
                 <span class="card-sub">Total produzido, refugos e % de reprova de cada lote</span></div>
               <div class="chart-box alto"><canvas id="chartLote"></canvas></div>
@@ -74,6 +79,6 @@
   <script src="js/store-supabase.js?v=20260527-quadro-avisos-dashboard"></script>
   <script src="js/exportacoes.js?v=20260523-export"></script>
   <script src="js/comum.js?v=20260526-zoomout-concreto-v3"></script>
-  <script src="js/dashboard.js?v=20260527-quadro-avisos-dashboard"></script>
+  <script src="js/dashboard.js?v=20260527-dashboard-grafico-mensal"></script>
 </body>
 </html>

@@ -438,6 +438,18 @@ function desenharGraficos(prod, rep, ens, filtros) {
     tituloTooltip: (label, detalhe) => `${label}${detalhe?.projeto ? ' · ' + detalhe.projeto : ''}${detalhe?.bitola ? ' · ' + detalhe.bitola : ''}${detalhe?.ini ? ' · ' + U.dataBR(detalhe.ini) + ' a ' + U.dataBR(detalhe.fim) : ''}`,
   });
 
+  const mensalProjeto = agregarMensalProjeto(prod, rep, filtros);
+  charts.mensalProjeto = graficoComparativo({
+    canvasId: 'chartMensalProjeto',
+    labels: mensalProjeto.labels,
+    produzidos: mensalProjeto.produzidos,
+    refugos: mensalProjeto.refugos,
+    percentuais: mensalProjeto.percentuais,
+    detalhes: mensalProjeto.detalhes,
+    pluginId: 'rotuloPctMensalProjeto',
+    tituloTooltip: (label, detalhe) => `${label}${detalhe?.projeto ? ' · ' + detalhe.projeto : ''}${detalhe?.bitola ? ' · ' + detalhe.bitola : ''}${detalhe?.ini ? ' · ' + U.dataBR(detalhe.ini) + ' a ' + U.dataBR(detalhe.fim) : ''}`,
+  });
+
   const porLote = {};
   prod.forEach(r => {
     const k = String(r.lote || '—');
@@ -568,6 +580,68 @@ function agregarSemanalProjeto(prod, rep, filtros) {
   };
 }
 
+function agregarMensalProjeto(prod, rep, filtros) {
+  const mapa = {};
+  const add = (mes, registro, campo, valor) => {
+    if (!mes) return;
+    const projeto = registro.projeto || '—';
+    const bitola = U.bitolaCodigo(registro);
+    const key = `${mes.ano}-${String(mes.mes).padStart(2, '0')}|${projeto}|${bitola}`;
+    if (!mapa[key]) mapa[key] = {
+      ano: mes.ano,
+      mes: mes.mes,
+      nomeMes: mes.nomeMes,
+      rotuloMes: mes.rotuloMes,
+      ini: mes.ini,
+      fim: mes.fim,
+      projeto,
+      bitola,
+      prod: 0,
+      rep: 0,
+    };
+    mapa[key][campo] += U.int(valor);
+  };
+
+  prod.forEach(r => { if (r.dataFabricacao) add(infoMesDashboard(r.dataFabricacao), r, 'prod', r.total); });
+  rep.forEach(r => {
+    const data = r.dataProducao || r.periodoIni || r.periodoFim;
+    if (data) add(infoMesDashboard(data), r, 'rep', r.totalRefugos || 1);
+  });
+
+  const itens = Object.values(mapa).sort((a, b) =>
+    (a.ano - b.ano) || (a.mes - b.mes) || a.projeto.localeCompare(b.projeto) || a.bitola.localeCompare(b.bitola)
+  );
+
+  return {
+    labels: itens.map(i => `${i.rotuloMes}${filtros.projeto ? '' : ' · ' + i.projeto}${filtros.bitola ? '' : ' · ' + i.bitola}`),
+    produzidos: itens.map(i => i.prod),
+    refugos: itens.map(i => i.rep),
+    percentuais: itens.map(i => i.prod ? (i.rep / i.prod) * 100 : 0),
+    detalhes: itens.map(i => ({ projeto: i.projeto, bitola: i.bitola, ano: i.ano, mes: i.mes, nomeMes: i.nomeMes, ini: i.ini, fim: i.fim })),
+  };
+}
+
+function infoMesDashboard(iso) {
+  if (!iso) return null;
+  const partes = String(iso).slice(0, 10).split('-').map(Number);
+  if (partes.length !== 3 || partes.some(Number.isNaN)) return null;
+  const [ano, mes] = partes;
+  const ini = `${ano}-${String(mes).padStart(2, '0')}-01`;
+  const ultimoDia = new Date(ano, mes, 0).getDate();
+  const fim = `${ano}-${String(mes).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`;
+  const nomeMes = new Intl.DateTimeFormat('pt-BR', { month: 'short' })
+    .format(new Date(ano, mes - 1, 1))
+    .replace('.', '');
+  return {
+    ano,
+    mes,
+    nomeMes,
+    rotuloMes: `${nomeMes}/${ano}`,
+    ini,
+    fim,
+  };
+}
+
 function baseOpt({ legend }) {
   const corTexto = App.cssVar('--cinza-texto', '#5a6b7b');
   return {
@@ -627,6 +701,7 @@ function garantirGradeGraficos() {
       <div class="card"><div class="card-titulo"><span class="acento">Produção por projeto</span></div><div class="chart-box"><canvas id="chartProjeto"></canvas></div></div>
       <div class="card"><div class="card-titulo"><span class="acento">Motivos de reprova</span></div><div class="chart-box"><canvas id="chartMotivos"></canvas></div></div>
       <div class="card span2"><div class="card-titulo"><span class="acento">Produção × Reprova semanal por projeto</span><span class="card-sub">Total produzido, refugos e % de reprova por semana operacional, projeto e bitola</span></div><div class="chart-box alto"><canvas id="chartSemanalProjeto"></canvas></div></div>
+      <div class="card span2"><div class="card-titulo"><span class="acento">Produção × Reprova mensal por projeto</span><span class="card-sub">Total produzido, refugos e % de reprova por mês, projeto e bitola</span></div><div class="chart-box alto"><canvas id="chartMensalProjeto"></canvas></div></div>
       <div class="card span2"><div class="card-titulo"><span class="acento">Produção × Reprova por lote</span><span class="card-sub">Total produzido, refugos e % de reprova de cada lote</span></div><div class="chart-box alto"><canvas id="chartLote"></canvas></div></div>
       <div class="card"><div class="card-titulo"><span class="acento">Status dos lotes</span></div><div class="chart-box"><canvas id="chartStatus"></canvas></div></div>
       <div class="card"><div class="card-titulo"><span class="acento">Ensaios de liberação</span></div><div class="chart-box"><canvas id="chartEnsaios"></canvas></div></div>
