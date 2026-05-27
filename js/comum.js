@@ -9,6 +9,7 @@ const App = {
       { k: 'dashboard', t: 'Dashboard', ic: ICN.dashboard, href: 'index.html' },
       { k: 'semanal', t: 'Indicador Semanal', ic: ICN.semanal, href: 'semanal.html' },
       { k: 'painelSeries', t: 'Painel de séries', ic: ICN.ensaios, href: 'ensaios.html' },
+      { k: 'fluxoLiberacao', t: 'Fluxo de Liberação', ic: ICN.trem, href: 'fluxo-liberacao.html' },
       { sec: 'Lançamentos' },
       { k: 'producao', t: 'Produção', ic: ICN.producao, href: 'producao.html' },
       { k: 'ensaiosLiberacao', t: 'Ensaios de Liberação', ic: ICN.check, href: 'ensaios-liberacao.html' },

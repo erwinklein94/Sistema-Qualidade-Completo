@@ -234,3 +234,10 @@ Arquivos adicionados/alterados nesta integração:
 - `js/ensaios-liberacao.js`
 - `ensaios-liberacao.html`
 - `css/style.css`
+
+
+## Fluxo de Liberação Automático
+
+Esta versão adiciona a aba **Fluxo de Liberação**, que cruza automaticamente Produção e Ensaios de Liberação para mostrar, por fábrica/projeto/bitola/série, em qual etapa cada conjunto de lotes está: formação da série, cura 14 dias, aguardando ensaio 14 dias, cura 28 dias, aguardando ensaio 28 dias, contraensaios, liberado para transporte ou travado para decisão da coordenação/especialistas.
+
+Consulte `README_FLUXO_LIBERACAO_AUTOMATICO.md` para detalhes da regra implementada.

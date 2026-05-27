@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fluxo de Liberação · Controle de Dormentes Rumo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="assets/brand/favicon-rumo.png">
+  <link rel="stylesheet" href="css/style.css?v=20260527-fluxo-liberacao">
+</head>
+<body>
+  <div class="app" id="app">
+    <main class="conteudo" id="conteudo">
+      <div class="pagina">
+
+        <div class="card">
+          <div class="card-titulo">
+            <span class="acento">Fluxo automático por série</span>
+            <span class="card-sub">Produção + Ensaios de Liberação trabalhando como uma regra única</span>
+          </div>
+          <p class="txt-cinza" style="font-size:14px;line-height:1.7">
+            Esta visão calcula automaticamente quais lotes pertencem a cada série por fábrica, projeto e bitola, identifica o último lote ensaiável, acompanha cura de 14/28 dias, cruza os ensaios cadastrados e mostra a próxima ação operacional.
+          </p>
+        </div>
+
+        <div class="barra-filtros">
+          <div class="busca-rapida campo">
+            <label>Buscar</label>
+            <input type="text" id="busca" placeholder="Lote, série, projeto, status...">
+          </div>
+          <div class="campo"><label>Fábrica</label><select id="fFornecedor"></select></div>
+          <div class="campo"><label>Projeto</label><select id="fProjeto"></select></div>
+          <div class="campo"><label>Bitola</label><select id="fBitola"></select></div>
+          <div class="campo"><label>Status do fluxo</label><select id="fStatusFluxo"></select></div>
+          <div class="campo check-filtro">
+            <label>Alertas</label>
+            <label class="check-inline"><input type="checkbox" id="fSomenteAlertas"> Somente ações/travas</label>
+          </div>
+        </div>
+
+        <div class="grid-kpi" id="kpisFluxo"></div>
+        <div id="resumoFluxo" class="fluxo-regra-grid"></div>
+
+        <div class="card">
+          <div class="card-titulo">
+            <span class="acento">Linha de fluxo das séries</span>
+            <span class="txt-mini txt-cinza" id="contadorFluxo">0 séries</span>
+          </div>
+          <div id="cardsFluxo"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-titulo">
+            <span class="acento">Tabela de rastreabilidade</span>
+            <span class="card-sub">Resumo para reunião da qualidade, coordenação e expedição</span>
+          </div>
+          <div id="tabelaFluxo"></div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');}</script>
+  <script src="js/supabase-config.js?v=20260523-2"></script>
+  <script src="js/auth.js?v=20260526-menu-admin-fix"></script>
+  <script>Auth.exigirLogin();</script>
+  <script src="js/config.js?v=20260527-fluxo"></script>
+  <script src="js/store.js"></script>
+  <script src="js/store-supabase.js?v=20260523-4"></script>
+  <script src="js/exportacoes.js?v=20260523-export"></script>
+  <script src="js/comum.js?v=20260527-fluxo-liberacao"></script>
+  <script src="js/fluxo-liberacao-core.js?v=20260527-fluxo-liberacao"></script>
+  <script src="js/fluxo-liberacao.js?v=20260527-fluxo-liberacao"></script>
+</body>
+</html>

@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   App.montarLayout('ensaiosLiberacao', 'Ensaios de Liberação', 'Registro dos lotes ensaiados, série liberada e relatório iAuditor');
   App.acoesTopo(`
     <button class="btn btn-secundario" onclick="location.href='ensaios.html'">${ICN.ensaios}Painel de séries</button>
+    <button class="btn btn-secundario" onclick="location.href='fluxo-liberacao.html'">${ICN.trem}Fluxo</button>
     <button class="btn btn-secundario" onclick="abrirImportadorIauditor()">${ICN.upload}Importar PDF iAuditor</button>
     ${Auth.pode('criar') ? `<button class="btn btn-primario" onclick="abrirNovo()">${ICN.add}Novo ensaio manual</button>` : App.avisoModoConsulta()}
   `);
@@ -202,7 +203,8 @@ function popularSelectLotes(selecionado = '') {
 
   let html = '<option value="">Selecione um lote cadastrado...</option>';
   ordenados.forEach(l => {
-    const texto = `${l.lote || 'sem lote'} · ${l.fornecedor || 'sem fornecedor'} · ${l.projeto || 'sem projeto'} · ${U.bitolaDe(l)}${l.serie ? ` · ${l.serie}` : ''}${l.dataFabricacao ? ` · ${U.dataBR(l.dataFabricacao)}` : ''}`;
+    const serieAuto = l.serie || (window.FluxoLiberacao ? FluxoLiberacao.serieDoLote(PRODUCAO_LOTES, l.id) : '');
+    const texto = `${l.lote || 'sem lote'} · ${l.fornecedor || 'sem fornecedor'} · ${l.projeto || 'sem projeto'} · ${U.bitolaDe(l)}${serieAuto ? ` · ${serieAuto}` : ''}${l.dataFabricacao ? ` · ${U.dataBR(l.dataFabricacao)}` : ''}`;
     html += `<option value="${U.esc(l.id)}" ${l.id === selecionado ? 'selected' : ''}>${U.esc(texto)}</option>`;
   });
   el.innerHTML = html;
@@ -216,7 +218,10 @@ function preencherDadosDoLote(id) {
   setValor('projeto', l.projeto);
   setValor('bitola', U.bitolaDe(l));
   setValor('lote', l.lote);
-  if (!document.getElementById('serieLiberada')?.value && l.serie) setValor('serieLiberada', normalizarSerie(l.serie, l.projeto));
+  if (!document.getElementById('serieLiberada')?.value) {
+    const serieAuto = l.serie || (window.FluxoLiberacao ? FluxoLiberacao.serieDoLote(PRODUCAO_LOTES, l.id) : '');
+    if (serieAuto) setValor('serieLiberada', normalizarSerie(serieAuto, l.projeto));
+  }
   if (!document.getElementById('quantidadeEnsaiada')?.value && l.ensaiados) setValor('quantidadeEnsaiada', l.ensaiados);
   preencherSugestoesFormulario();
 }
@@ -722,7 +727,9 @@ function preencherSugestoesFormulario() {
     return true;
   });
   const lotes = [...new Set(producao.map(r => r.lote).filter(Boolean))].sort(ordemLote);
-  const series = [...new Set(producao.map(r => normalizarSerie(r.serie, r.projeto)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
+  const seriesManuais = producao.map(r => normalizarSerie(r.serie, r.projeto)).filter(s => s && !s.startsWith('Série aberta / sem série'));
+  const seriesAuto = window.FluxoLiberacao ? FluxoLiberacao.calcular(PRODUCAO_LOTES, ENSAIOS_REGISTROS).series.map(s => s.serie) : [];
+  const series = [...new Set(seriesManuais.concat(seriesAuto).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
   document.getElementById('listaLotes').innerHTML = lotes.map(l => `<option value="${U.esc(l)}"></option>`).join('');
   document.getElementById('listaSeries').innerHTML = series.map(s => `<option value="${U.esc(s)}"></option>`).join('');
 }

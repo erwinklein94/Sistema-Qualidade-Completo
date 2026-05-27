@@ -78,9 +78,10 @@ let PRODUCAO_ENSAIOS_LIBERACAO = [];
 document.addEventListener('DOMContentLoaded', async () => {
   if (!await Auth.exigirLogin()) return;
   App.montarLayout('producao', 'Produção de Dormentes', 'Lançamento e controle de fabricação por lote');
-  App.acoesTopo(Auth.pode('criar')
-    ? `<button class="btn btn-primario" onclick="abrirNovo()">${ICN.add}Novo lançamento</button>`
-    : App.avisoModoConsulta());
+  App.acoesTopo(`
+    <button class="btn btn-secundario" onclick="location.href='fluxo-liberacao.html'">${ICN.trem}Fluxo</button>
+    ${Auth.pode('criar') ? `<button class="btn btn-primario" onclick="abrirNovo()">${ICN.add}Novo lançamento</button>` : App.avisoModoConsulta()}
+  `);
 
   sel('fornecedor', CFG.listas.fornecedores, '');
   sel('pedido', CFG.listas.pedidos, '');
@@ -238,6 +239,34 @@ function atualizarCurasPelaFabricacao() {
   if (cura14 && !cura14.value) cura14.value = dataISOAdicionarDias(data, 14);
   if (cura28 && !cura28.value) cura28.value = dataISOAdicionarDias(data, 28);
   return aplicarStatusAutomaticoFormulario();
+}
+
+function sugerirSerieAutomaticaProducao(reg) {
+  if (!window.FluxoLiberacao || !reg) return '';
+  if (String(reg.serie || '').trim()) return reg.serie;
+  if (!reg.fornecedor || !reg.projeto || !reg.lote || !reg.dataFabricacao) return '';
+  const tempId = reg.id || '__lote_em_edicao__';
+  const loteAtual = {
+    ...reg,
+    id: tempId,
+    bitola: U.bitolaDe({ bitola: reg.bitola, tipo: reg.tipo, projeto: reg.projeto }),
+    total: inteiroOuZero(reg.total),
+  };
+  const base = PRODUCAO_REGISTROS
+    .filter(x => String(x.id || '') !== String(reg.id || ''))
+    .concat(loteAtual);
+  return FluxoLiberacao.serieDoLote(base, tempId) || '';
+}
+
+function preencherSerieAutomaticaSeVazia(reg) {
+  const el = document.getElementById('serie');
+  if (!el || String(el.value || '').trim()) return reg?.serie || '';
+  const serie = sugerirSerieAutomaticaProducao(reg);
+  if (serie) {
+    el.value = serie;
+    if (reg) reg.serie = serie;
+  }
+  return serie;
 }
 
 
@@ -480,6 +509,7 @@ async function salvar() {
   }
 
   const reg = registroDoFormulario();
+  preencherSerieAutomaticaSeVazia(reg);
   reg.status = status;
 
   const btn = document.querySelector('.form-acoes .btn-primario');

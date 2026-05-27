@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   App.montarLayout('painelSeries', 'Painel de séries', 'Controle das séries, gatilhos de ensaio, lotes vinculados e liberações registradas');
   App.acoesTopo(`
     <button class="btn btn-secundario" onclick="location.href='producao.html'">${ICN.producao}Ver produção</button>
+    <button class="btn btn-secundario" onclick="location.href='fluxo-liberacao.html'">${ICN.trem}Fluxo</button>
     <button class="btn btn-primario" onclick="location.href='ensaios-liberacao.html'">${ICN.add}Registrar ensaio</button>
   `);
 

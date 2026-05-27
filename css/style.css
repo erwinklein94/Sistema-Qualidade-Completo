@@ -3544,3 +3544,219 @@ table.tabela tbody td,
     min-width: 820px;
   }
 }
+
+/* =====================================================================
+   Fluxo de Liberação — automação das séries e ensaios 14/28 dias
+   ===================================================================== */
+.fluxo-regra-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin: 14px 0;
+}
+.fluxo-regra-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--branco);
+  border: 1px solid var(--cinza-borda);
+  box-shadow: var(--sombra-suave);
+}
+.fluxo-regra-card strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--azul-escuro);
+}
+.fluxo-regra-card span {
+  color: var(--cinza-texto);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.fluxo-regra-card.alerta {
+  border-color: rgba(251, 211, 0, .55);
+  background: linear-gradient(135deg, rgba(251, 211, 0, .16), rgba(255,255,255,.92));
+}
+.fluxo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 16px;
+}
+.fluxo-card {
+  border: 1px solid var(--cinza-borda);
+  border-radius: 22px;
+  padding: 16px;
+  background: var(--branco);
+  box-shadow: var(--sombra-suave);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.fluxo-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: var(--azul-claro);
+}
+.fluxo-card.liberado::before { background: var(--verde); }
+.fluxo-card.travado::before { background: var(--erro); }
+.fluxo-card.aguardando14::before,
+.fluxo-card.aguardando28::before,
+.fluxo-card.reteste28::before,
+.fluxo-card.pendente::before { background: var(--amarelo); }
+.fluxo-card.cura14::before,
+.fluxo-card.cura28::before { background: var(--azul-claro); }
+.fluxo-card-topo {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+.fluxo-card-topo h3 {
+  margin: 0;
+  color: var(--azul-escuro);
+  font-size: 17px;
+}
+.fluxo-card-topo p {
+  margin: 4px 0 0;
+  color: var(--cinza-texto);
+  font-size: 12.5px;
+}
+.status-fluxo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--azul-escuro);
+  background: rgba(50, 166, 230, .13);
+  border: 1px solid rgba(50, 166, 230, .30);
+  max-width: 220px;
+  text-align: center;
+}
+.status-fluxo.liberado { color: #06724f; background: rgba(30, 159, 127, .12); border-color: rgba(30, 159, 127, .35); }
+.status-fluxo.travado { color: #a52020; background: rgba(226, 59, 59, .12); border-color: rgba(226, 59, 59, .35); }
+.status-fluxo.aguardando14,
+.status-fluxo.aguardando28,
+.status-fluxo.reteste28,
+.status-fluxo.pendente { color: #7a5a00; background: rgba(251, 211, 0, .18); border-color: rgba(251, 211, 0, .55); }
+.status-fluxo.formando { color: var(--cinza-texto); background: rgba(189, 204, 212, .18); border-color: rgba(189, 204, 212, .55); }
+.fluxo-metricas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.fluxo-metricas div {
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--cinza-bg);
+  border: 1px solid var(--cinza-borda);
+}
+.fluxo-metricas span,
+.fluxo-metricas small {
+  display: block;
+  font-size: 11px;
+  color: var(--cinza-texto);
+}
+.fluxo-metricas strong {
+  display: block;
+  font-size: 16px;
+  color: var(--azul-escuro);
+  margin: 2px 0;
+}
+.fluxo-progressos {
+  display: grid;
+  gap: 8px;
+}
+.fluxo-lotes,
+.fluxo-ensaios,
+.fluxo-decisao {
+  display: grid;
+  gap: 8px;
+}
+.fluxo-lotes > strong,
+.fluxo-ensaios > strong,
+.fluxo-decisao > strong {
+  color: var(--azul-escuro);
+  font-size: 13px;
+}
+.fluxo-lotes > div,
+.fluxo-ensaios > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ensaio-fluxo-chip {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--cinza-borda);
+  background: var(--cinza-bg);
+  min-width: 150px;
+}
+.ensaio-fluxo-chip strong { font-size: 12px; color: var(--azul-escuro); }
+.ensaio-fluxo-chip em { font-size: 11px; color: var(--cinza-texto); font-style: normal; }
+.ensaio-fluxo-chip a { font-size: 11px; font-weight: 800; color: var(--azul-claro); text-decoration: none; }
+.ensaio-fluxo-chip.ok { border-color: rgba(30,159,127,.35); background: rgba(30,159,127,.09); }
+.ensaio-fluxo-chip.erro { border-color: rgba(226,59,59,.35); background: rgba(226,59,59,.09); }
+.ensaio-fluxo-chip.aviso { border-color: rgba(251,211,0,.55); background: rgba(251,211,0,.12); }
+.fluxo-decisao {
+  padding: 12px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(0,56,101,.06), rgba(50,166,230,.07));
+  border: 1px solid var(--cinza-borda);
+}
+.fluxo-decisao span {
+  color: var(--azul-escuro);
+  font-size: 13px;
+  line-height: 1.55;
+  font-weight: 700;
+}
+.fluxo-decisao small {
+  color: var(--cinza-texto);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.check-filtro .check-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  font-size: 13px;
+  color: var(--cinza-texto);
+}
+.check-filtro input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--azul-claro);
+}
+.barra-progresso span.aguardando14,
+.barra-progresso span.aguardando28,
+.barra-progresso span.reteste28,
+.barra-progresso span.pendente { background: var(--amarelo); }
+.barra-progresso span.travado { background: var(--erro); }
+.barra-progresso span.liberado { background: var(--verde); }
+.barra-progresso span.formando { background: var(--cinza); }
+.barra-progresso span.cura14,
+.barra-progresso span.cura28 { background: var(--azul-claro); }
+
+@media (max-width: 980px) {
+  .fluxo-metricas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .fluxo-grid { grid-template-columns: 1fr; }
+  .fluxo-card-topo { flex-direction: column; }
+  .fluxo-metricas { grid-template-columns: 1fr; }
+}
