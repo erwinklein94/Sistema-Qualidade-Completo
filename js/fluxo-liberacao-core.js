@@ -484,3 +484,9 @@ const FluxoLiberacao = (() => {
     bitolaCodigo,
   };
 })();
+
+// Garante que o motor fique disponível para todas as abas que carregam scripts clássicos.
+// Top-level const não vira automaticamente propriedade de window em todos os navegadores.
+if (typeof window !== 'undefined') {
+  window.FluxoLiberacao = FluxoLiberacao;
+}
