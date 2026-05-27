@@ -171,21 +171,18 @@ function render() {
   garantirGradeGraficos();
 
   const totalProd = prod.reduce((s, r) => s + U.int(r.total), 0);
-  const totalRefugos = rep.reduce((s, r) => s + U.int(r.totalRefugos || 1), 0);
+  const totalRefugos = totalRefugosReprovas(rep);
   const reprovadosKpi = totalRefugos;
-  const totalAprov = prod.reduce((s, r) => {
-    const informado = U.int(r.aprovado);
-    return s + (informado || Math.max(0, U.int(r.total) - U.int(r.reprovados)));
-  }, 0);
+  const totalAprov = Math.max(0, totalProd - reprovadosKpi);
   const taxaReprova = totalProd ? ((reprovadosKpi / totalProd) * 100).toFixed(1) : '0,0';
   const periodoTxt = filtros.ini && filtros.fim ? `${U.dataBR(filtros.ini)} a ${U.dataBR(filtros.fim)}` : 'período completo';
   const ensAprov = ens.filter(r => r.resultado === 'Aprovado').length;
 
   kpis.innerHTML = `
     <div class="kpi escuro"><div class="rotulo">Produção total</div><div class="valor">${totalProd.toLocaleString('pt-BR')}</div><div class="extra">${prod.length} lotes · ${periodoTxt}</div></div>
-    <div class="kpi verde"><div class="rotulo">Aprovados</div><div class="valor">${totalAprov.toLocaleString('pt-BR')}</div><div class="extra">produção aprovada informada/calculada</div></div>
-    <div class="kpi vermelho"><div class="rotulo">Reprovados (refugos)</div><div class="valor">${reprovadosKpi.toLocaleString('pt-BR')}</div><div class="extra">${rep.length} ocorrência(s) da aba Reprovados</div></div>
-    <div class="kpi amarelo"><div class="rotulo">Taxa de reprova</div><div class="valor">${String(taxaReprova).replace('.', ',')}%</div><div class="extra">sobre produção do filtro</div></div>
+    <div class="kpi verde"><div class="rotulo">Aprovados</div><div class="valor">${totalAprov.toLocaleString('pt-BR')}</div><div class="extra">produção total - reprovas da aba Reprovas</div></div>
+    <div class="kpi vermelho"><div class="rotulo">Reprovados (refugos)</div><div class="valor">${reprovadosKpi.toLocaleString('pt-BR')}</div><div class="extra">${rep.length} ocorrência(s) da aba Reprovas</div></div>
+    <div class="kpi amarelo"><div class="rotulo">Taxa de reprova</div><div class="valor">${String(taxaReprova).replace('.', ',')}%</div><div class="extra">reprovas da aba Reprovas / produção</div></div>
     <div class="kpi"><div class="rotulo">Ensaios de liberação</div><div class="valor">${ens.length}</div><div class="extra">${ensAprov} aprovado(s)</div></div>`;
 
   registrarExportacaoDashboard(prod, rep, ens, filtros, {
@@ -202,6 +199,10 @@ function render() {
 function destruir() {
   Object.values(charts).forEach(c => c && c.destroy());
   charts = {};
+}
+
+function totalRefugosReprovas(reprovas) {
+  return (reprovas || []).reduce((s, r) => s + U.int(r.totalRefugos || 1), 0);
 }
 
 function desenharGraficos(prod, rep, ens, filtros) {
@@ -563,9 +564,9 @@ function registrarExportacaoDashboard(prod, rep, ens, filtros, resumo) {
         ],
         rows: [
           { indicador: 'Produção total', valor: resumo.totalProd },
-          { indicador: 'Aprovados', valor: resumo.totalAprov },
-          { indicador: 'Reprovados / refugos', valor: resumo.reprovadosKpi },
-          { indicador: 'Taxa de reprova', valor: `${String(resumo.taxaReprova).replace('.', ',')}%` },
+          { indicador: 'Aprovados (produção total - reprovas da aba Reprovas)', valor: resumo.totalAprov },
+          { indicador: 'Reprovados / refugos da aba Reprovas', valor: resumo.reprovadosKpi },
+          { indicador: 'Taxa de reprova (Reprovas / Produção)', valor: `${String(resumo.taxaReprova).replace('.', ',')}%` },
           { indicador: 'Ensaios de liberação', valor: ens.length },
           { indicador: 'Ensaios aprovados', valor: resumo.ensAprov },
           { indicador: 'Período', valor: resumo.periodoTxt }
