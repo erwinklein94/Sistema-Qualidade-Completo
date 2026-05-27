@@ -7,78 +7,53 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="assets/brand/favicon-rumo.png">
-  <link rel="stylesheet" href="css/style.css?v=20260526-zoomout-concreto-v3">
+  <link rel="stylesheet" href="css/style.css?v=20260526-painel-series-fluxo-lotes-v1">
 </head>
 <body>
   <div class="app" id="app">
     <main class="conteudo" id="conteudo">
       <div class="pagina">
 
-        <div class="card">
+        <section class="card painel-series-cabecalho">
           <div class="card-titulo">
-            <span class="acento">Painel automático das séries</span>
-            <span class="card-sub">Regra: ensaio ao atingir 2.000 peças ou 10 lotes, separado por projeto e bitola</span>
+            <span class="acento">Fluxo horizontal por lote</span>
+            <span class="card-sub">Cada linha é um lote produzido; as etapas de ensaio e liberação acompanham a série inteira.</span>
           </div>
-          <p class="txt-cinza" style="font-size:14px;line-height:1.7">
-            Esta tela cruza os lançamentos da aba <strong>Produção</strong> com os <strong>Ensaios de Liberação</strong> registrados. Ela mostra quais séries já precisam de ensaio, quais estão próximas do limite, quais lotes ainda estão em andamento e quais séries já foram liberadas por ensaio aprovado.
+          <p class="txt-cinza">
+            Quando um lote é cadastrado na Produção, ele entra automaticamente neste painel. O sistema calcula a série por fábrica, projeto e bitola, identifica o último lote da série como lote de ensaio e marca as etapas conforme cura, ensaios registrados e resultado de liberação.
           </p>
-        </div>
+        </section>
 
-        <div class="barra-filtros">
+        <section class="barra-filtros painel-series-filtros">
           <div class="busca-rapida campo">
             <label>Buscar</label>
-            <input type="text" id="busca" placeholder="Série, lote, projeto, tipo...">
+            <input type="text" id="busca" placeholder="Lote, projeto, série, fábrica...">
           </div>
-          <div class="campo"><label>Fornecedor</label><select id="fFornecedor"></select></div>
+          <div class="campo"><label>Fábrica</label><select id="fFornecedor"></select></div>
           <div class="campo"><label>Projeto</label><select id="fProjeto"></select></div>
           <div class="campo"><label>Bitola</label><select id="fBitola"></select></div>
           <div class="campo"><label>Série</label><select id="fSerie"></select></div>
-          <div class="campo"><label>Status de liberação</label><select id="fStatusSerie"></select></div>
+          <div class="campo"><label>Status atual</label><select id="fStatusSerie"></select></div>
           <div class="campo"><label>Semana</label><select id="fSemana"></select></div>
           <div class="campo"><label>Período inicial</label><input type="date" id="fPeriodoIni"></div>
           <div class="campo"><label>Período fim</label><input type="date" id="fPeriodoFim"></div>
-        </div>
+        </section>
 
-        <div class="grid-kpi" id="kpis"></div>
-
-        <div class="grid-graficos">
-          <div class="card span2">
-            <div class="card-titulo">
-              <span class="acento">Progresso das séries de liberação</span>
-              <span class="card-sub">Top 15 por criticidade</span>
+        <section class="card painel-series-card">
+          <div class="painel-series-topo">
+            <div>
+              <span class="acento">Etapas dos lotes</span>
+              <p class="txt-mini txt-cinza">O check nos ensaios e na liberação vale para todos os lotes vinculados à mesma série.</p>
             </div>
-            <div class="chart-box alto"><canvas id="chartProgressoSeries"></canvas></div>
+            <div class="painel-series-contadores" id="contadorSeries">Carregando...</div>
           </div>
-
-          <div class="card">
-            <div class="card-titulo"><span class="acento">Alertas de ensaio</span></div>
-            <div id="alertasSeries"></div>
-          </div>
-
-          <div class="card">
-            <div class="card-titulo"><span class="acento">Resumo por status</span></div>
-            <div id="resumoStatus"></div>
-          </div>
-
-          <div class="card span2">
-            <div class="card-titulo">
-              <span class="acento">Séries monitoradas</span>
-              <span class="txt-mini txt-cinza" id="contadorSeries">0 séries</span>
-            </div>
-            <div id="cardsSeries"></div>
-          </div>
-
-          <div class="card span2">
-            <div class="card-titulo"><span class="acento">Detalhamento das séries</span></div>
-            <div id="tabelaSeries"></div>
-          </div>
-        </div>
+          <div id="painelSeriesFluxo"></div>
+        </section>
 
       </div>
     </main>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');}</script>
   <script src="js/supabase-config.js?v=20260523-2"></script>
@@ -89,6 +64,7 @@
   <script src="js/store-supabase.js?v=20260523-2"></script>
   <script src="js/exportacoes.js?v=20260523-export"></script>
   <script src="js/comum.js?v=20260526-zoomout-concreto-v3"></script>
-  <script src="js/ensaios.js?v=20260526-menu-admin-fix"></script>
+  <script src="js/fluxo-liberacao-core.js?v=20260526-fluxo-auto-v2"></script>
+  <script src="js/ensaios.js?v=20260526-painel-series-fluxo-lotes-v1"></script>
 </body>
 </html>

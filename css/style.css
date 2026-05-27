@@ -707,7 +707,7 @@ tr.linha-alerta td { background: #fffafa; }
   gap: 8px;
   margin: -6px 0 16px;
   padding: 10px 12px;
-  border: 1px solid var(--borda);
+  border: 1px solid var(--cinza-borda);
   border-left: 4px solid var(--azul-claro);
   border-radius: 14px;
   background: #f7fbff;
@@ -4113,5 +4113,403 @@ body.pagina-fluxo[data-tema="escuro"] table.tabela tbody td {
   }
   body.pagina-fluxo .fluxo-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* =====================================================================
+   Painel de séries — fluxo horizontal por lote
+   ===================================================================== */
+body.pagina-painel-series .painel-series-cabecalho p {
+  margin: 0;
+  max-width: 1100px;
+  font-size: 12.8px;
+  line-height: 1.55;
+}
+
+body.pagina-painel-series .painel-series-filtros {
+  grid-template-columns: minmax(210px, 1.45fr) repeat(8, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+body.pagina-painel-series .painel-series-card {
+  padding: 14px;
+}
+
+body.pagina-painel-series .painel-series-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+body.pagina-painel-series .painel-series-topo p {
+  margin: 3px 0 0;
+}
+
+body.pagina-painel-series .painel-series-contadores {
+  border: 1px solid var(--cinza-borda);
+  background: rgba(0,56,101,.04);
+  color: var(--azul-escuro);
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 11.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+body.pagina-painel-series .painel-series-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+body.pagina-painel-series .legenda-fluxo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--cinza-borda);
+  background: #fff;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 11px;
+  color: var(--cinza-texto);
+  font-weight: 700;
+}
+
+body.pagina-painel-series .legenda-fluxo b {
+  width: 18px;
+  height: 18px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 11px;
+}
+
+body.pagina-painel-series .legenda-fluxo.feito b { background: rgba(30,159,127,.16); color: var(--verde); }
+body.pagina-painel-series .legenda-fluxo.atual b { background: rgba(251,211,0,.24); color: #9a7400; }
+body.pagina-painel-series .legenda-fluxo.pendente b { background: rgba(189,204,212,.22); color: var(--cinza-texto); }
+body.pagina-painel-series .legenda-fluxo.erro b { background: rgba(226,59,59,.14); color: var(--erro); }
+
+body.pagina-painel-series .fluxo-horizontal-wrap {
+  overflow: auto;
+  max-height: calc(100vh - 285px);
+  border-radius: 15px;
+  border: 1px solid var(--cinza-borda);
+  background: var(--cinza-card);
+}
+
+body.pagina-painel-series .tabela-fluxo-lotes {
+  min-width: 1660px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 11.3px;
+}
+
+body.pagina-painel-series .tabela-fluxo-lotes thead th {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: var(--azul-escuro);
+  color: #fff;
+  font-size: 10.4px;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  padding: 9px 8px;
+  white-space: nowrap;
+  border-right: 1px solid rgba(255,255,255,.14);
+}
+
+body.pagina-painel-series .tabela-fluxo-lotes tbody td {
+  padding: 7px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--cinza-borda);
+  border-right: 1px solid rgba(226,232,240,.7);
+  background: #fff;
+}
+
+body.pagina-painel-series .tabela-fluxo-lotes tbody tr:nth-child(even) td {
+  background: #f8fbfd;
+}
+
+body.pagina-painel-series .tabela-fluxo-lotes .sticky-col {
+  position: sticky;
+  z-index: 5;
+  box-shadow: 10px 0 16px rgba(0, 56, 101, .07);
+}
+
+body.pagina-painel-series .tabela-fluxo-lotes thead .sticky-col {
+  z-index: 8;
+}
+
+body.pagina-painel-series .tabela-fluxo-lotes .lote-col {
+  left: 0;
+  width: 165px;
+  min-width: 165px;
+}
+
+body.pagina-painel-series .tabela-fluxo-lotes .serie-col {
+  left: 165px;
+  width: 250px;
+  min-width: 250px;
+}
+
+body.pagina-painel-series .tabela-fluxo-lotes tbody .sticky-col {
+  background: #fff;
+}
+
+body.pagina-painel-series .tabela-fluxo-lotes tbody tr:nth-child(even) .sticky-col {
+  background: #f8fbfd;
+}
+
+body.pagina-painel-series .fluxo-id,
+body.pagina-painel-series .fluxo-serie-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+body.pagina-painel-series .fluxo-id strong,
+body.pagina-painel-series .fluxo-serie-info strong {
+  color: var(--azul-escuro);
+  font-size: 12.2px;
+  line-height: 1.15;
+}
+
+body.pagina-painel-series .fluxo-id span,
+body.pagina-painel-series .fluxo-serie-info span,
+body.pagina-painel-series .fluxo-serie-info small {
+  color: var(--cinza-texto);
+  font-size: 10.6px;
+  line-height: 1.22;
+}
+
+body.pagina-painel-series .tag-lote {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 3px 7px;
+  font-size: 9.6px;
+  line-height: 1;
+  font-weight: 800;
+  font-style: normal;
+  border: 1px solid transparent;
+}
+
+body.pagina-painel-series .tag-lote.ensaio {
+  color: #6a5000;
+  background: rgba(251,211,0,.22);
+  border-color: rgba(251,211,0,.65);
+}
+
+body.pagina-painel-series .tag-lote.serie {
+  color: var(--azul-escuro);
+  background: rgba(0,56,101,.08);
+  border-color: rgba(0,56,101,.16);
+}
+
+body.pagina-painel-series .etapa-cell {
+  width: 135px;
+  min-width: 135px;
+}
+
+body.pagina-painel-series .etapa-box {
+  min-height: 74px;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  grid-template-rows: auto auto 1fr;
+  gap: 2px 6px;
+  border: 1px solid var(--cinza-borda);
+  border-radius: 12px;
+  padding: 7px;
+  background: #f6f9fb;
+}
+
+body.pagina-painel-series .etapa-box b {
+  grid-row: 1 / span 3;
+  width: 23px;
+  height: 23px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 900;
+  align-self: start;
+  margin-top: 1px;
+}
+
+body.pagina-painel-series .etapa-box span {
+  color: var(--azul-escuro);
+  font-size: 10.8px;
+  line-height: 1.15;
+  font-weight: 900;
+}
+
+body.pagina-painel-series .etapa-box small,
+body.pagina-painel-series .etapa-box em {
+  color: var(--cinza-texto);
+  font-size: 9.7px;
+  line-height: 1.18;
+  font-style: normal;
+}
+
+body.pagina-painel-series .etapa-cell.feito .etapa-box {
+  background: rgba(30,159,127,.08);
+  border-color: rgba(30,159,127,.26);
+}
+
+body.pagina-painel-series .etapa-cell.feito .etapa-box b {
+  color: #fff;
+  background: var(--verde);
+}
+
+body.pagina-painel-series .etapa-cell.atual .etapa-box {
+  background: rgba(251,211,0,.14);
+  border-color: rgba(251,211,0,.55);
+  box-shadow: inset 0 0 0 1px rgba(251,211,0,.18);
+}
+
+body.pagina-painel-series .etapa-cell.atual .etapa-box b {
+  color: #5b4200;
+  background: var(--amarelo);
+}
+
+body.pagina-painel-series .etapa-cell.pendente .etapa-box {
+  opacity: .76;
+}
+
+body.pagina-painel-series .etapa-cell.pendente .etapa-box b {
+  color: var(--cinza-texto);
+  background: rgba(189,204,212,.28);
+}
+
+body.pagina-painel-series .etapa-cell.erro .etapa-box {
+  background: rgba(226,59,59,.08);
+  border-color: rgba(226,59,59,.38);
+}
+
+body.pagina-painel-series .etapa-cell.erro .etapa-box b {
+  color: #fff;
+  background: var(--erro);
+}
+
+body.pagina-painel-series .linha-lote-ensaio .lote-col,
+body.pagina-painel-series .linha-lote-ensaio .serie-col {
+  box-shadow: inset 3px 0 0 var(--amarelo), 10px 0 16px rgba(0, 56, 101, .07);
+}
+
+body.pagina-painel-series .status-liberado .fluxo-serie-info span:nth-of-type(2) {
+  color: var(--verde);
+  font-weight: 900;
+}
+
+body.pagina-painel-series .status-travado .fluxo-serie-info span:nth-of-type(2),
+body.pagina-painel-series .status-travado .fluxo-id strong {
+  color: var(--erro);
+}
+
+body.pagina-painel-series[data-tema="escuro"] .painel-series-cabecalho,
+body.pagina-painel-series[data-tema="escuro"] .painel-series-card {
+  background: rgba(8, 42, 77, .93);
+  border-color: rgba(255,255,255,.16);
+}
+
+body.pagina-painel-series[data-tema="escuro"] .painel-series-contadores,
+body.pagina-painel-series[data-tema="escuro"] .legenda-fluxo,
+body.pagina-painel-series[data-tema="escuro"] .fluxo-horizontal-wrap {
+  background: rgba(3, 22, 43, .88);
+  border-color: rgba(255,255,255,.16);
+  color: #eaf4ff;
+}
+
+body.pagina-painel-series[data-tema="escuro"] .tabela-fluxo-lotes thead th {
+  background: #03172b;
+  color: #fff;
+  border-right-color: rgba(255,255,255,.16);
+}
+
+body.pagina-painel-series[data-tema="escuro"] .tabela-fluxo-lotes tbody td,
+body.pagina-painel-series[data-tema="escuro"] .tabela-fluxo-lotes tbody .sticky-col {
+  background: rgba(8, 42, 77, .96);
+  border-color: rgba(255,255,255,.12);
+  color: #eaf4ff;
+}
+
+body.pagina-painel-series[data-tema="escuro"] .tabela-fluxo-lotes tbody tr:nth-child(even) td,
+body.pagina-painel-series[data-tema="escuro"] .tabela-fluxo-lotes tbody tr:nth-child(even) .sticky-col {
+  background: rgba(5, 31, 58, .98);
+}
+
+body.pagina-painel-series[data-tema="escuro"] .fluxo-id strong,
+body.pagina-painel-series[data-tema="escuro"] .fluxo-serie-info strong,
+body.pagina-painel-series[data-tema="escuro"] .etapa-box span {
+  color: #fff;
+}
+
+body.pagina-painel-series[data-tema="escuro"] .fluxo-id span,
+body.pagina-painel-series[data-tema="escuro"] .fluxo-serie-info span,
+body.pagina-painel-series[data-tema="escuro"] .fluxo-serie-info small,
+body.pagina-painel-series[data-tema="escuro"] .etapa-box small,
+body.pagina-painel-series[data-tema="escuro"] .etapa-box em,
+body.pagina-painel-series[data-tema="escuro"] .txt-cinza {
+  color: #c9d8e8 !important;
+}
+
+body.pagina-painel-series[data-tema="escuro"] .etapa-box {
+  background: rgba(255,255,255,.07);
+  border-color: rgba(255,255,255,.14);
+}
+
+body.pagina-painel-series[data-tema="escuro"] .etapa-cell.feito .etapa-box {
+  background: rgba(141,198,63,.13);
+  border-color: rgba(141,198,63,.38);
+}
+
+body.pagina-painel-series[data-tema="escuro"] .etapa-cell.atual .etapa-box {
+  background: rgba(251,211,0,.16);
+  border-color: rgba(251,211,0,.56);
+}
+
+body.pagina-painel-series[data-tema="escuro"] .etapa-cell.pendente .etapa-box {
+  background: rgba(255,255,255,.045);
+  opacity: .9;
+}
+
+body.pagina-painel-series[data-tema="escuro"] .etapa-cell.pendente .etapa-box b {
+  color: #d6e6f6;
+  background: rgba(255,255,255,.13);
+}
+
+body.pagina-painel-series[data-tema="escuro"] .etapa-cell.erro .etapa-box {
+  background: rgba(255,107,107,.13);
+  border-color: rgba(255,107,107,.48);
+}
+
+body.pagina-painel-series[data-tema="escuro"] .tag-lote.serie {
+  color: #dceeff;
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.16);
+}
+
+body.pagina-painel-series[data-tema="escuro"] .tag-lote.ensaio {
+  color: #fff2a8;
+  background: rgba(251,211,0,.17);
+  border-color: rgba(251,211,0,.58);
+}
+
+@media (max-width: 1180px) {
+  body.pagina-painel-series .painel-series-filtros {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  body.pagina-painel-series .painel-series-filtros {
+    grid-template-columns: 1fr;
+  }
+  body.pagina-painel-series .painel-series-topo {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
