@@ -843,6 +843,19 @@ function mensagemErroBanco(err, padrao) {
   return msg;
 }
 
+
+function graficosDashboardExportacao() {
+  return [
+    { titulo: 'Produção por projeto', canvasId: 'chartProjeto' },
+    { titulo: 'Motivos de reprova', canvasId: 'chartMotivos' },
+    { titulo: 'Produção × Reprova semanal por projeto', canvasId: 'chartSemanalProjeto' },
+    { titulo: 'Produção × Reprova mensal por projeto', canvasId: 'chartMensalProjeto' },
+    { titulo: 'Produção × Reprova por lote', canvasId: 'chartLote' },
+    { titulo: 'Status dos lotes', canvasId: 'chartStatus' },
+    { titulo: 'Ensaios de liberação', canvasId: 'chartEnsaios' },
+  ];
+}
+
 function registrarExportacaoDashboard(prod, rep, ens, filtros, resumo) {
   if (!window.Exportacoes) return;
   const filtrosTela = Exportacoes.filtrosDaTela();
@@ -850,6 +863,7 @@ function registrarExportacaoDashboard(prod, rep, ens, filtros, resumo) {
     titulo: 'Dashboard',
     nomeArquivo: 'dashboard',
     filtros: filtrosTela,
+    graficos: graficosDashboardExportacao(),
     secoes: [
       {
         titulo: 'Resumo do Dashboard',

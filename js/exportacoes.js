@@ -53,10 +53,29 @@ const Exportacoes = (() => {
       nomeArquivo: limparNomeArquivo(rel.nomeArquivo || titulo),
       filtros,
       secoes,
+      graficos: normalizarGraficos(rel.graficos),
       observacao: rel.observacao || 'Fonte: Supabase. Exportação gerada somente a partir dos filtros aplicados na tela.',
       xlsxSomenteDados: !!rel.xlsxSomenteDados,
       toastXlsx: rel.toastXlsx || ''
     };
+  }
+
+  function normalizarGraficos(graficos) {
+    if (!Array.isArray(graficos)) return [];
+    return graficos.map((g, idx) => {
+      if (!g) return null;
+      if (typeof g === 'string') return { titulo: `Gráfico ${idx + 1}`, canvasId: g };
+      const canvasId = g.canvasId || g.id || '';
+      const seletor = g.seletor || g.selector || '';
+      return {
+        titulo: g.titulo || g.title || `Gráfico ${idx + 1}`,
+        canvasId,
+        seletor,
+        imagem: g.imagem || g.image || '',
+        largura: Number(g.largura || g.width || 0),
+        altura: Number(g.altura || g.height || 0),
+      };
+    }).filter(g => g && (g.imagem || g.canvasId || g.seletor));
   }
 
   function tituloPagina() {
@@ -215,18 +234,123 @@ const Exportacoes = (() => {
         styles: { fontSize: sec.headers.length > 10 ? 6.5 : 7.5, cellPadding: 1.5, overflow: 'linebreak' },
         headStyles: { fillColor: [0, 53, 103], textColor: [255, 255, 255], fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [245, 248, 251] },
-        didDrawPage: () => {
-          const page = doc.internal.getNumberOfPages();
-          doc.setFontSize(7);
-          doc.setFont('helvetica', 'normal');
-          doc.text(`Fonte: Supabase · Página ${page}`, largura - margem, doc.internal.pageSize.getHeight() - 6, { align: 'right' });
-        }
+        didDrawPage: () => desenharRodapePDF(doc, margem)
       });
       y = doc.lastAutoTable.finalY + 8;
     });
 
+    const graficosIncluidos = await adicionarGraficosPDF(doc, rel, margem);
+
     doc.save(`${rel.nomeArquivo}.pdf`);
-    App?.toast?.('PDF gerado com os dados filtrados.', 'sucesso');
+    App?.toast?.(graficosIncluidos ? 'PDF gerado com os dados e gráficos filtrados.' : 'PDF gerado com os dados filtrados.', 'sucesso');
+  }
+
+  function desenharRodapePDF(doc, margem) {
+    const largura = doc.internal.pageSize.getWidth();
+    const altura = doc.internal.pageSize.getHeight();
+    const page = doc.internal.getNumberOfPages();
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(90, 107, 123);
+    doc.text(`Fonte: Supabase · Página ${page}`, largura - margem, altura - 6, { align: 'right' });
+    doc.setTextColor(0, 0, 0);
+  }
+
+  async function adicionarGraficosPDF(doc, rel, margem) {
+    const graficos = await coletarImagensGraficos(rel.graficos || []);
+    if (!graficos.length) return 0;
+
+    const larguraPagina = doc.internal.pageSize.getWidth();
+    const alturaPagina = doc.internal.pageSize.getHeight();
+    const larguraUtil = larguraPagina - (margem * 2);
+    let y = alturaPagina;
+
+    graficos.forEach((grafico, idx) => {
+      const maxAlturaImagem = 146;
+      const dims = dimensionarImagem(grafico.largura, grafico.altura, larguraUtil, maxAlturaImagem);
+      const linhasTitulo = doc.splitTextToSize(grafico.titulo || `Gráfico ${idx + 1}`, larguraUtil);
+      const alturaTitulo = Math.max(5, linhasTitulo.length * 5);
+      const alturaBloco = alturaTitulo + dims.altura + 13;
+
+      if (idx === 0 || y + alturaBloco > alturaPagina - margem) {
+        doc.addPage();
+        y = 12;
+        if (idx === 0) {
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(13);
+          doc.text('Gráficos do Dashboard', margem, y);
+          y += 8;
+        }
+      }
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text(linhasTitulo, margem, y);
+      y += alturaTitulo;
+
+      doc.setDrawColor(226, 232, 240);
+      doc.setFillColor(255, 255, 255);
+      doc.rect(margem, y - 2, larguraUtil, dims.altura + 6, 'FD');
+
+      const x = margem + ((larguraUtil - dims.largura) / 2);
+      doc.addImage(grafico.imagem, 'PNG', x, y + 1, dims.largura, dims.altura, undefined, 'FAST');
+      y += dims.altura + 11;
+      desenharRodapePDF(doc, margem);
+    });
+
+    return graficos.length;
+  }
+
+  async function coletarImagensGraficos(graficos) {
+    if (!graficos.length) return [];
+    await aguardarRenderizacaoGraficos();
+
+    return graficos.map(grafico => {
+      const canvas = obterCanvasGrafico(grafico);
+      const instanciaChart = canvas && window.Chart?.getChart?.(canvas);
+      instanciaChart?.stop?.();
+      instanciaChart?.update?.('none');
+      const imagem = grafico.imagem || canvas?.toDataURL?.('image/png');
+      if (!imagem) return null;
+      return {
+        titulo: grafico.titulo,
+        imagem,
+        largura: grafico.largura || canvas?.width || 1200,
+        altura: grafico.altura || canvas?.height || 650,
+      };
+    }).filter(Boolean);
+  }
+
+  function obterCanvasGrafico(grafico) {
+    if (grafico.canvasId) {
+      const porId = document.getElementById(grafico.canvasId);
+      if (porId?.tagName === 'CANVAS') return porId;
+    }
+    if (grafico.seletor) {
+      const porSeletor = document.querySelector(grafico.seletor);
+      if (porSeletor?.tagName === 'CANVAS') return porSeletor;
+    }
+    return null;
+  }
+
+  function dimensionarImagem(larguraOriginal, alturaOriginal, maxLargura, maxAltura) {
+    const larguraBase = Math.max(1, Number(larguraOriginal) || 1200);
+    const alturaBase = Math.max(1, Number(alturaOriginal) || 650);
+    const escala = Math.min(maxLargura / larguraBase, maxAltura / alturaBase, 1);
+    return {
+      largura: larguraBase * escala,
+      altura: alturaBase * escala,
+    };
+  }
+
+  function aguardarRenderizacaoGraficos() {
+    return new Promise(resolve => {
+      if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      } else {
+        setTimeout(resolve, 0);
+      }
+    });
   }
 
   function nomeAba(nome, idx) {
