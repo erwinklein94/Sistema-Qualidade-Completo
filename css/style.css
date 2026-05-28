@@ -5056,3 +5056,34 @@ body[data-tema="escuro"] .dashboard-aviso-contador {
     justify-content: center;
   }
 }
+
+/* =====================================================================
+   Ajuste 2026-05-28 — amplia verticalmente Etapas dos lotes
+   ===================================================================== */
+body.pagina-painel-series .painel-series-card {
+  min-height: calc(100vh - 150px);
+}
+
+body.pagina-painel-series #painelSeriesFluxo {
+  min-height: calc(100vh - 245px);
+}
+
+body.pagina-painel-series .fluxo-horizontal-wrap {
+  height: calc(100vh - 235px);
+  min-height: 560px;
+  max-height: none;
+}
+
+@media (max-height: 760px) {
+  body.pagina-painel-series .fluxo-horizontal-wrap {
+    height: calc(100vh - 205px);
+    min-height: 520px;
+  }
+}
+
+@media (max-width: 680px) {
+  body.pagina-painel-series .fluxo-horizontal-wrap {
+    height: calc(100vh - 220px);
+    min-height: 460px;
+  }
+}
