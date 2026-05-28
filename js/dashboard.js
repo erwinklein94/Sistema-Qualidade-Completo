@@ -283,7 +283,7 @@ async function carregarDashboard() {
 
 function atualizarFiltrosComDados() {
   preencherSelectComDados('fFornecedor', CFG.listas.fornecedores, [...Dashboard.prod, ...Dashboard.rep, ...Dashboard.ens].map(r => r.fornecedor), 'Todos');
-  preencherSelectComDados('fProjeto', CFG.listas.projetos, [...Dashboard.prod, ...Dashboard.rep, ...Dashboard.ens].map(r => r.projeto), 'Todos');
+  preencherSelectComDados('fProjeto', CFG.listas.projetos, [], 'Todos');
   preencherSelectComDados('fBitola', CFG.listas.bitolas, [...Dashboard.prod, ...Dashboard.rep, ...Dashboard.ens].map(r => U.bitolaDe(r)), 'Todas');
 }
 
@@ -743,12 +743,39 @@ function normalizarStatusDashboard(status) {
   return mapa[chave] || status || '';
 }
 
+function normalizarProjetoDashboard(projeto, registro = {}) {
+  const original = String(projeto || '').trim();
+  if (!original) return '';
+
+  const normalizado = U.norm(original);
+  const compacto = normalizado.replace(/[^A-Z0-9]/g, '');
+
+  if (compacto === 'FMT') return 'FMT';
+  if (compacto === 'FERRONORTE' || normalizado === 'FERRO NORTE') return 'FERRO NORTE';
+
+  if (normalizado.includes('MALHA PAULISTA')) {
+    const textoBitola = [
+      original,
+      registro.bitola,
+      registro.tipo,
+      registro.tipo_dormente,
+      registro.projeto,
+    ].filter(Boolean).join(' ');
+    const bitola = U.bitolaDe(textoBitola);
+
+    if (bitola === 'Bitola Mista') return 'MALHA PAULISTA BITOLA MISTA';
+    if (bitola === 'Bitola Larga') return 'MALHA PAULISTA BITOLA LARGA';
+  }
+
+  return original;
+}
+
 function mapProducao(r) {
   return {
     id: r.id,
     fornecedor: r.fornecedor || '',
     lote: r.lote || '',
-    projeto: r.projeto || '',
+    projeto: normalizarProjetoDashboard(r.projeto, r),
     bitola: r.bitola || '',
     tipo: r.tipo_dormente || '',
     total: valorBanco(r.total_produzido),
@@ -776,7 +803,7 @@ function mapReprovado(r) {
     periodoIni: dataBanco(r.periodo_inicio),
     periodoFim: dataBanco(r.periodo_fim),
     lote: r.lote || '',
-    projeto: r.projeto || '',
+    projeto: normalizarProjetoDashboard(r.projeto, r),
     bitola: r.bitola || '',
     tipo: r.tipo || '',
     motivoIndicador: r.motivo_indicador || '',
@@ -794,7 +821,7 @@ function mapEnsaio(r) {
     periodoIni: dataBanco(r.periodo_inicio),
     periodoFim: dataBanco(r.periodo_fim),
     fornecedor: r.fornecedor || '',
-    projeto: r.projeto || '',
+    projeto: normalizarProjetoDashboard(r.projeto, r),
     bitola: r.bitola || '',
     lote: r.lote_ensaiado || '',
     serieLiberada: r.serie_liberada || '',
