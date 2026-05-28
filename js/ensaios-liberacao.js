@@ -16,6 +16,7 @@ const RESULTADOS = ['Aprovado', 'Reprovado', 'Pendente'];
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!await Auth.exigirLogin()) return;
+  document.body.classList.add('pagina-ensaios-liberacao');
   App.montarLayout('ensaiosLiberacao', 'Ensaios de Liberação', 'Registro dos lotes ensaiados, série liberada e relatório iAuditor');
   App.acoesTopo(`
     <button class="btn btn-secundario" onclick="location.href='ensaios.html'">${ICN.ensaios}Fluxo de Liberação</button>

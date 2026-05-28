@@ -13,6 +13,7 @@ const Semanal = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+  document.body.classList.add('pagina-semanal');
   if (!await Auth.exigirLogin()) return;
   App.montarLayout('semanal', 'Indicador Semanal', 'Consolidação automática por semana operacional a partir dos dados lançados no Supabase');
   App.acoesTopo(`<button class="btn btn-secundario" onclick="carregarSemanal()">${ICN.check}Atualizar</button>`);

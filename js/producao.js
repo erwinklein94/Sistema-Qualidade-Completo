@@ -76,6 +76,7 @@ const CAMPOS_STATUS_AUTOMATICO = [
 let PRODUCAO_ENSAIOS_LIBERACAO = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
+  document.body.classList.add('pagina-producao');
   if (!await Auth.exigirLogin()) return;
   App.montarLayout('producao', 'Produção de Dormentes', 'Lançamento e controle de fabricação por lote');
   App.acoesTopo(`
