@@ -76,7 +76,7 @@ const App = {
     const sidebar = `
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-logo">
-          <img class="logo-rumo logo-rumo-negativo" src="assets/brand/rumo-logo-negativo.png" alt="Rumo">
+          <img class="logo-rumo logo-rumo-negativo" src="assets/rumo/logos/rumo-logo-branco.png" alt="Rumo">
           <div class="sub">Somos o Brasil em movimento</div>
         </div>
         <nav class="nav">${nav}</nav>
@@ -169,7 +169,7 @@ const App = {
   aplicarPadraoGraficos() {
     if (!window.Chart) return;
     const escuro = this.temaAtual() === 'escuro';
-    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.font.family = '"Cera Pro", Verdana, Geneva, Tahoma, sans-serif';
     Chart.defaults.font.size = 11;
     Chart.defaults.color = escuro ? '#d9e8f7' : '#5a6b7b';
     Chart.defaults.borderColor = escuro ? 'rgba(255,255,255,.14)' : '#e2e8f0';
@@ -180,20 +180,20 @@ const App = {
     if (this.temaAtual() !== 'escuro') return base;
     return {
       ...base,
-      azulEscuro: '#8DC63F',
+      azulEscuro: '#7FE06C',
       azulClaro: '#ffffff',
-      verde: '#8DC63F',
-      verdeClaro: '#A9E56D',
-      amarelo: '#FFD401',
+      verde: '#7FE06C',
+      verdeClaro: '#7FE06C',
+      amarelo: '#FBD300',
       cinza: '#b8c7d8',
       projetos: {
         'FMT': '#ffffff',
-        'FERRO NORTE': '#A9E56D',
-        'MALHA PAULISTA BITOLA MISTA': '#8DC63F',
-        'MALHA PAULISTA BITOLA LARGA': '#FFD401',
-        'MALHA PAULISTA': '#8DC63F'
+        'FERRO NORTE': '#7FE06C',
+        'MALHA PAULISTA BITOLA MISTA': '#7FE06C',
+        'MALHA PAULISTA BITOLA LARGA': '#FBD300',
+        'MALHA PAULISTA': '#7FE06C'
       },
-      paleta: ['#8DC63F', '#ffffff', '#FFD401', '#00A8E9', '#A9E56D', '#ff6b6b', '#b8c7d8', '#6dd6ff']
+      paleta: ['#7FE06C', '#ffffff', '#FBD300', '#32A6E6', '#7FE06C', '#ff6b6b', '#b8c7d8', '#6dd6ff']
     };
   },
 
