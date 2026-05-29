@@ -398,6 +398,95 @@ function totalRefugosReprovas(reprovas) {
   return (reprovas || []).reduce((s, r) => s + U.int(r.totalRefugos || 1), 0);
 }
 
+
+function formatarNumeroGrafico(valor) {
+  const n = Number(valor || 0);
+  if (!Number.isFinite(n)) return '';
+  return Math.round(n).toLocaleString('pt-BR');
+}
+
+function formatarPercentualGrafico(valor) {
+  const n = Number(valor || 0);
+  if (!Number.isFinite(n)) return '0%';
+  return n.toFixed(n >= 10 ? 0 : 1).replace('.', ',') + '%';
+}
+
+function deveOcultarRotuloGrafico(chart, valor) {
+  const n = Number(valor || 0);
+  if (!Number.isFinite(n) || n <= 0) return true;
+  const labels = chart?.data?.labels || [];
+  return labels.some(l => /^sem\s/i.test(String(l || '').trim()));
+}
+
+function pluginRotulosBarras(id) {
+  return {
+    id,
+    afterDatasetsDraw(chart) {
+      const ctx = chart.ctx;
+      const corTexto = App.cssVar('--cinza-texto', '#5a6b7b');
+      const topo = chart.chartArea?.top || 0;
+
+      ctx.save();
+      ctx.font = '700 10px "Cera Pro", Verdana, Geneva, Tahoma, sans-serif';
+      ctx.fillStyle = corTexto;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+
+      chart.data.datasets.forEach((dataset, datasetIndex) => {
+        const meta = chart.getDatasetMeta(datasetIndex);
+        if (!meta || meta.hidden || meta.type !== 'bar') return;
+
+        meta.data.forEach((barra, i) => {
+          const valor = dataset.data?.[i];
+          if (deveOcultarRotuloGrafico(chart, valor)) return;
+          const texto = formatarNumeroGrafico(valor);
+          const y = Math.max(topo + 12, barra.y - 6);
+          ctx.fillText(texto, barra.x, y);
+        });
+      });
+
+      ctx.restore();
+    }
+  };
+}
+
+function pluginRotulosPizza(id) {
+  return {
+    id,
+    afterDatasetsDraw(chart) {
+      const dataset = chart.data.datasets?.[0];
+      if (!dataset) return;
+      const meta = chart.getDatasetMeta(0);
+      if (!meta || meta.hidden) return;
+
+      const valores = (dataset.data || []).map(v => Number(v || 0));
+      const total = valores.reduce((s, v) => s + (Number.isFinite(v) ? v : 0), 0);
+      if (!total) return;
+
+      const ctx = chart.ctx;
+      ctx.save();
+      ctx.font = '700 10px "Cera Pro", Verdana, Geneva, Tahoma, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(0, 53, 103, .72)';
+      ctx.fillStyle = '#ffffff';
+
+      meta.data.forEach((arco, i) => {
+        const valor = valores[i];
+        if (deveOcultarRotuloGrafico(chart, valor)) return;
+        const percentual = total ? (valor / total) * 100 : 0;
+        const pos = arco.tooltipPosition ? arco.tooltipPosition() : { x: arco.x, y: arco.y };
+        const texto = `${formatarNumeroGrafico(valor)} (${formatarPercentualGrafico(percentual)})`;
+        ctx.strokeText(texto, pos.x, pos.y);
+        ctx.fillText(texto, pos.x, pos.y);
+      });
+
+      ctx.restore();
+    }
+  };
+}
+
 function desenharGraficos(prod, rep, ens, filtros) {
   destruir();
   const C = App.coresGrafico();
@@ -411,7 +500,8 @@ function desenharGraficos(prod, rep, ens, filtros) {
   charts.proj = new Chart(document.getElementById('chartProjeto'), {
     type: 'bar',
     data: { labels: Object.keys(porProj), datasets: [{ data: Object.values(porProj), backgroundColor: Object.keys(porProj).map(p => C.projetos[String(p).split(' · ')[0]] || C.azulClaro), borderRadius: 6 }] },
-    options: baseOpt({ legend: false })
+    options: baseOpt({ legend: false }),
+    plugins: [pluginRotulosBarras('rotuloValoresProjeto')]
   });
 
   const porMotivo = {};
@@ -423,7 +513,8 @@ function desenharGraficos(prod, rep, ens, filtros) {
   charts.mot = new Chart(document.getElementById('chartMotivos'), {
     type: 'doughnut',
     data: { labels: mLabels.length ? mLabels : ['Sem reprovas'], datasets: [{ data: mLabels.length ? Object.values(porMotivo) : [1], backgroundColor: mLabels.length ? mLabels.map((_, i) => C.paleta[i % C.paleta.length]) : ['#eef0f2'], borderWidth: 2, borderColor: App.cssVar('--chart-borda', '#fff') }] },
-    options: baseOpt({ legend: 'right' })
+    options: baseOpt({ legend: 'right' }),
+    plugins: [pluginRotulosPizza('rotuloValoresMotivos')]
   });
 
   const semanalProjeto = agregarSemanalProjeto(prod, rep, filtros);
@@ -481,7 +572,8 @@ function desenharGraficos(prod, rep, ens, filtros) {
   charts.stat = new Chart(document.getElementById('chartStatus'), {
     type: 'pie',
     data: { labels: sLabels.length ? sLabels : ['Sem lotes'], datasets: [{ data: sLabels.length ? Object.values(porStatus) : [1], backgroundColor: sLabels.length ? sLabels.map((s, i) => corStatus[s] || C.paleta[i % C.paleta.length]) : ['#eef0f2'], borderWidth: 2, borderColor: App.cssVar('--chart-borda', '#fff') }] },
-    options: baseOpt({ legend: 'right' })
+    options: baseOpt({ legend: 'right' }),
+    plugins: [pluginRotulosPizza('rotuloValoresStatus')]
   });
 
   const aprov = ens.filter(r => r.resultado === 'Aprovado').length;
@@ -490,7 +582,8 @@ function desenharGraficos(prod, rep, ens, filtros) {
   charts.ens = new Chart(document.getElementById('chartEnsaios'), {
     type: 'doughnut',
     data: { labels: ['Aprovados', 'Reprovados', 'Pendentes'], datasets: [{ data: [aprov, recus, pend], backgroundColor: [C.verde, C.erro, C.amarelo], borderWidth: 2, borderColor: App.cssVar('--chart-borda', '#fff') }] },
-    options: baseOpt({ legend: 'bottom' })
+    options: baseOpt({ legend: 'bottom' }),
+    plugins: [pluginRotulosPizza('rotuloValoresEnsaios')]
   });
 }
 
@@ -526,9 +619,10 @@ function graficoComparativo({ canvasId, labels, produzidos, refugos, percentuais
         { type: 'line', label: '% de reprova', data: pct, borderColor: C.amarelo, backgroundColor: C.amarelo, borderWidth: 2.5, tension: 0.3, pointRadius: 3, pointBackgroundColor: C.amarelo, yAxisID: 'y1', order: 1 }
       ]
     },
-    plugins: [rotuloPct],
+    plugins: [rotuloPct, pluginRotulosBarras(pluginId + 'Barras')],
     options: {
       responsive: true, maintainAspectRatio: false,
+      layout: { padding: { top: 18, right: 10, bottom: 6, left: 10 } },
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { position: 'top', labels: { color: corTexto, usePointStyle: true, padding: 14, font: { size: 12 } } },
@@ -646,6 +740,7 @@ function baseOpt({ legend }) {
   const corTexto = App.cssVar('--cinza-texto', '#5a6b7b');
   return {
     responsive: true, maintainAspectRatio: false,
+    layout: { padding: { top: 18, right: 12, bottom: 8, left: 12 } },
     plugins: {
       legend: legend ? { position: legend === true ? 'top' : legend, labels: { color: corTexto, usePointStyle: true, padding: 14, font: { size: 12 } } } : { display: false },
       tooltip: { backgroundColor: App.cssVar('--azul-escuro', '#003567'), padding: 10, cornerRadius: 8, titleFont: { weight: '700' } }
