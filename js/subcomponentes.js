@@ -278,11 +278,16 @@ const SubcomponentesApp = {
     const sub = document.querySelector('.topo-identidade .subtitulo');
     if (h1) h1.textContent = title;
     if (sub) sub.textContent = subtitle;
-    const alvo = document.getElementById('topoAcoes');
-    if (alvo) alvo.innerHTML = topActions();
+
+    // Usa o mesmo sistema de ações do topo das demais telas do Concreto:
+    // botões contextuais primeiro e, em seguida, o grupo padrão de exportação.
+    if (window.App?.acoesTopo) window.App.acoesTopo(topActions());
+    else {
+      const alvo = document.getElementById('topoAcoes');
+      if (alvo) alvo.innerHTML = topActions();
+    }
+
     $('#refreshBtn')?.addEventListener('click', () => this.refreshData());
-    $('#exportExcelBtn')?.addEventListener('click', exportDashboardExcel);
-    $('#exportPdfBtn')?.addEventListener('click', exportDashboardPdf);
     window.Auth?.montarStatusUsuario?.();
   },
   toggleMenu() { window.App?.alternarMenu?.(); },
@@ -777,14 +782,41 @@ function badge(status) {
 }
 
 function topActions() {
-  const exportButtons = state.active === 'dashboard' ? `
-    <span class="topo-divisor" aria-hidden="true"></span>
-    <button class="btn btn-secundario btn-sm topo-action" id="exportExcelBtn" type="button" title="Exportar dashboard filtrado para Excel">Excel</button>
-    <button class="btn btn-secundario btn-sm topo-action" id="exportPdfBtn" type="button" title="Exportar dashboard filtrado para PDF">PDF</button>` : '';
-  return `
-    <button class="btn btn-secundario btn-sm topo-action" id="refreshBtn" type="button" title="Recarregar dados do Supabase">✓<span>Atualizar</span></button>
-    ${exportButtons}
-  `;
+  const actions = [];
+  const iconRefresh = '<span aria-hidden="true">⟳</span>';
+
+  const addAction = (html) => { if (html) actions.push(html); };
+  const addWriteAction = (modal, label) => {
+    if (canWrite()) addAction(`<button class="btn btn-primario btn-sm topo-action" type="button" data-modal="${esc(modal)}">${ICN.add}<span>${esc(label)}</span></button>`);
+    else addAction(window.App?.avisoModoConsulta?.() || '<span class="badge badge-azul">Modo consulta</span>');
+  };
+
+  addAction(`<button class="btn btn-secundario btn-sm topo-action" id="refreshBtn" type="button" title="Recarregar dados do Supabase">${iconRefresh}<span>Atualizar</span></button>`);
+
+  if (state.active !== 'dashboard') {
+    addAction(`<a class="btn btn-secundario btn-sm topo-action" href="#dashboard" title="Voltar ao painel de Subcomponentes">${ICN.dashboard}<span>Painel</span></a>`);
+  }
+
+  if (state.active === 'cards') addWriteAction('estoque', 'Novo lote');
+  if (state.active === 'empresas') addWriteAction('empresa', 'Nova empresa');
+  if (state.active === 'materiais') addWriteAction('material', 'Novo material');
+  if (state.active === 'estoque') addWriteAction('estoque', 'Novo estoque');
+  if (state.active === 'inspecoes') addWriteAction('inspecao', 'Nova inspeção');
+
+  if (state.active === 'auditoria' && isAdmin()) {
+    addAction(`<button class="btn btn-secundario btn-sm topo-action" type="button" id="refreshAudit">${iconRefresh}<span>Auditoria</span></button>`);
+  }
+
+  if (state.active === 'usuarios' && isAdmin()) {
+    addAction(`<button class="btn btn-secundario btn-sm topo-action" type="button" id="refreshUsers">${iconRefresh}<span>Usuários</span></button>`);
+    addAction(`<button class="btn btn-primario btn-sm topo-action" type="button" id="newUserProfile">${ICN.add}<span>Perfil de usuário</span></button>`);
+  }
+
+  if (state.active === 'dados') {
+    addAction(`<button class="btn btn-primario btn-sm topo-action" type="button" id="downloadJsonTop">${ICN.download}<span>Backup JSON</span></button>`);
+  }
+
+  return actions.join('');
 }
 
 function hero() {
@@ -818,6 +850,7 @@ function render() {
   };
   try {
     $('#page').innerHTML = (views[state.active] || renderDashboard)();
+    registrarExportacaoAtual();
     bindPage();
     prepararTabelasMobile();
   } catch (error) {
@@ -914,7 +947,7 @@ function renderEmpresas() {
   ).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
   const active = records.filter((e) => e.status === 'Ativa').length;
   return `${hero()}
-    <div class="toolbar"><div class="contador">${fmt(records.length)} de ${fmt(state.db.empresas.length)} empresa(s)</div>${canWrite() ? '<button class="btn btn-primario" type="button" data-modal="empresa">＋ Nova empresa</button>' : '<span class="badge badge-azul">Perfil consulta: somente leitura</span>'}</div>
+    <div class="toolbar toolbar-resumo"><div class="contador">${fmt(records.length)} de ${fmt(state.db.empresas.length)} empresa(s)</div></div>
     <div class="grid-kpi">
       ${kpi('Empresas filtradas', fmt(records.length), `${fmt(active)} ativas`, 'var(--azul-claro)')}
       ${kpi('Fornecedores', fmt(records.filter((e) => norm(e.tipo).includes('FORNECEDOR')).length), 'empresas fornecedoras', 'var(--verde)')}
@@ -953,7 +986,7 @@ function renderMateriais() {
   const criticos = records.filter((m) => norm(m.criticidade).includes('ALTA')).length;
   const semEtm = records.filter((m) => !text(m.etm, '')).length;
   return `${hero()}
-    <div class="toolbar"><div class="contador">${fmt(records.length)} de ${fmt(state.db.materiais.length)} material(is)</div>${canWrite() ? '<button class="btn btn-primario" type="button" data-modal="material">＋ Novo material</button>' : '<span class="badge badge-azul">Perfil consulta: somente leitura</span>'}</div>
+    <div class="toolbar toolbar-resumo"><div class="contador">${fmt(records.length)} de ${fmt(state.db.materiais.length)} material(is)</div></div>
     <div class="grid-kpi">
       ${kpi('Materiais filtrados', fmt(records.length), 'cadastros técnicos', 'var(--azul-claro)')}
       ${kpi('Fornecedores', fmt(unique(records, (m) => empresaNomeById(state.db, m.fornecedorId) || m.fornecedorNome).length), 'com material vinculado', 'var(--verde)')}
@@ -1004,7 +1037,7 @@ function renderEstoque() {
   }).sort((a, b) => (b.data || '').localeCompare(a.data || ''));
   const saldo = records.reduce((s, r) => s + num(r.saldoAtual), 0);
   return `${hero()}
-    <div class="toolbar"><div class="contador">${fmt(records.length)} de ${fmt(state.db.estoque.length)} registro(s) de estoque</div>${canWrite() ? '<button class="btn btn-primario" type="button" data-modal="estoque">＋ Novo lançamento de estoque</button>' : '<span class="badge badge-azul">Perfil consulta: somente leitura</span>'}</div>
+    <div class="toolbar toolbar-resumo"><div class="contador">${fmt(records.length)} de ${fmt(state.db.estoque.length)} registro(s) de estoque</div></div>
     <div class="grid-kpi">
       ${kpi('Registros', fmt(records.length), 'entradas/lotes filtrados', 'var(--azul-claro)')}
       ${kpi('Entrada total', fmt(records.reduce((s, r) => s + num(r.quantidadeEntrada), 0)), 'quantidade recebida', 'var(--verde-claro)')}
@@ -1044,7 +1077,7 @@ function renderInspecoes() {
   const ins = records.reduce((s, r) => s + num(r.qtdInspecionado), 0);
   const nc = records.reduce((s, r) => s + num(r.qtdNc), 0);
   return `${hero()}
-    <div class="toolbar"><div class="contador">${fmt(records.length)} de ${fmt(state.db.inspecoes.length)} inspeção(ões)</div>${canWrite() ? '<button class="btn btn-primario" type="button" data-modal="inspecao">＋ Nova inspeção</button>' : '<span class="badge badge-azul">Perfil consulta: somente leitura</span>'}</div>
+    <div class="toolbar toolbar-resumo"><div class="contador">${fmt(records.length)} de ${fmt(state.db.inspecoes.length)} inspeção(ões)</div></div>
     <div class="grid-kpi">
       ${kpi('Inspeções', fmt(records.length), 'registros filtrados', 'var(--azul-claro)')}
       ${kpi('Qtd. inspecionada', fmt(ins), `amostra: ${fmt(records.reduce((s, r) => s + num(r.qtdAmostra), 0))}`, 'var(--verde)')}
@@ -1124,7 +1157,7 @@ function renderCards() {
       <div class="campo"><label>Com saldo?</label><select data-filter="cards.hasStock">${optionList(['Sim', 'Não'], f.hasStock, 'Todos')}</select></div>
       <button class="btn btn-secundario" data-clear-filters="cards" type="button">Limpar filtros</button>
     </div>
-    <div class="toolbar"><div class="contador">${fmt(cards.length)} card(s) encontrado(s)</div>${canWrite() ? '<button class="btn btn-primario" type="button" data-modal="estoque">＋ Novo lote</button>' : '<span class="badge badge-azul">Perfil consulta: somente leitura</span>'}</div>
+    <div class="toolbar toolbar-resumo"><div class="contador">${fmt(cards.length)} card(s) encontrado(s)</div></div>
     ${cards.length ? `<div class="subcards">${cards.map(cardHtml).join('')}</div>` : empty('Nenhum card encontrado', 'Ajuste os filtros ou cadastre estoque/inspeções.')}`;
 }
 function cardHtml(c) {
@@ -1155,7 +1188,7 @@ function renderAuditoria() {
   const tabelas = unique(state.auditoria || [], (r) => r.tabela).filter(Boolean);
   const deletes = registros.filter((r) => r.acao === 'DELETE').length;
   return `${hero()}
-    <div class="toolbar"><div class="contador">${fmt(registros.length)} evento(s) de auditoria</div><button class="btn btn-secundario" type="button" id="refreshAudit">Atualizar auditoria</button></div>
+    <div class="toolbar toolbar-resumo"><div class="contador">${fmt(registros.length)} evento(s) de auditoria</div></div>
     <div class="grid-kpi">
       ${kpi('Eventos', fmt(registros.length), 'registros filtrados', 'var(--azul-claro)')}
       ${kpi('Adições', fmt(registros.filter((r) => r.acao === 'INSERT').length), 'cadastros realizados', 'var(--verde)')}
@@ -1193,7 +1226,7 @@ function renderUsuarios() {
     matches(`${u.nome} ${u.email} ${u.perfil} ${u.id}`, f.search)
   ).sort((a, b) => String(a.email || '').localeCompare(String(b.email || ''), 'pt-BR'));
   return `${hero()}
-    <div class="toolbar"><div class="contador">${fmt(registros.length)} usuário(s) do sistema</div><div class="form-acoes" style="margin-top:0"><button class="btn btn-secundario" type="button" id="refreshUsers">Atualizar usuários</button><button class="btn btn-primario" type="button" id="newUserProfile">＋ Perfil de usuário</button></div></div>
+    <div class="toolbar toolbar-resumo"><div class="contador">${fmt(registros.length)} usuário(s) do sistema</div></div>
     <div class="aviso-info"><span>🔐</span><div><strong>Perfis:</strong> admin gerencia usuários, auditoria e exclusões; fiscalização cadastra e edita registros operacionais; consulta apenas visualiza e exporta.</div></div>
     <div class="barra-filtros">
       <div class="campo"><label>Perfil</label><select data-filter="usuarios.perfil">${optionList(PERFIS_USUARIO, f.perfil, 'Todos')}</select></div>
@@ -1348,6 +1381,68 @@ function lineChart(data) {
   }).join('')}</div>`;
 }
 
+function registrarExportacaoAtual() {
+  if (!window.Exportacoes?.registrar) return;
+
+  if (state.active === 'cards') {
+    const f = state.filters.cards;
+    const cards = combineCards().filter((c) =>
+      (!f.query || matches(`${c.name} ${c.empresas.join(' ')} ${c.status.join(' ')}`, f.query)) &&
+      (!f.hasNc || (f.hasNc === 'sim' ? c.qtdNc > 0 : c.qtdNc === 0)) &&
+      (!f.hasStock || (f.hasStock === 'sim' ? c.saldoEstimado > 0 : c.saldoEstimado === 0)) &&
+      (!f.empresa || c.empresas.includes(f.empresa))
+    );
+    window.Exportacoes.registrar({
+      titulo: 'Cards por subcomponente',
+      nomeArquivo: 'subcomponentes-cards',
+      secoes: [{
+        titulo: 'Cards filtrados',
+        columns: [
+          { key: 'name', label: 'Subcomponente' },
+          { key: 'totalEntrada', label: 'Entrada total' },
+          { key: 'saldoEstimado', label: 'Saldo atual' },
+          { key: 'qtdInspecionado', label: 'Qtd. inspecionada' },
+          { key: 'qtdNc', label: 'Qtd. NC' },
+          { key: 'ncRateFmt', label: 'Taxa NC' },
+          { key: 'lotesFmt', label: 'Lotes estoque' },
+          { key: 'empresasFmt', label: 'Empresas' },
+          { key: 'statusFmt', label: 'Status' }
+        ],
+        rows: cards.map((c) => ({
+          ...c,
+          ncRateFmt: pct(c.ncRate),
+          lotesFmt: c.lotes.join(', '),
+          empresasFmt: c.empresas.join(', '),
+          statusFmt: c.status.join(', ')
+        }))
+      }]
+    });
+    return;
+  }
+
+  if (state.active === 'dados') {
+    window.Exportacoes.registrar({
+      titulo: 'Dados de Subcomponentes',
+      nomeArquivo: 'subcomponentes-resumo-base',
+      secoes: [{
+        titulo: 'Resumo da base',
+        columns: [{ key: 'indicador', label: 'Indicador' }, { key: 'valor', label: 'Valor' }],
+        rows: [
+          { indicador: 'Empresas', valor: state.db.empresas.length },
+          { indicador: 'Materiais', valor: state.db.materiais.length },
+          { indicador: 'Estoque', valor: state.db.estoque.length },
+          { indicador: 'Inspeções', valor: state.db.inspecoes.length },
+          { indicador: 'Base', valor: DB.usingSupabase() ? 'Supabase' : 'localStorage' }
+        ]
+      }]
+    });
+    return;
+  }
+
+  // Nas demais abas há tabela visível; deixa o exportador padrão do Concreto ler a tabela filtrada.
+  window.Exportacoes.registrar(null);
+}
+
 function bindPage() {
   $$('[data-filter]').forEach((el) => {
     el.addEventListener('input', () => {
@@ -1365,6 +1460,7 @@ function bindPage() {
   $$('[data-edit]').forEach((btn) => btn.addEventListener('click', () => openModal(btn.dataset.edit, btn.dataset.id)));
   $$('[data-delete]').forEach((btn) => btn.addEventListener('click', () => deleteRecord(btn.dataset.delete, btn.dataset.id)));
   $('#downloadJson')?.addEventListener('click', downloadJson);
+  $('#downloadJsonTop')?.addEventListener('click', downloadJson);
   $('#downloadCsvMateriais')?.addEventListener('click', () => downloadCsv('materiais'));
   $('#downloadCsvEstoque')?.addEventListener('click', () => downloadCsv('estoque'));
   $('#downloadCsvInspecoes')?.addEventListener('click', () => downloadCsv('inspecoes'));
@@ -1808,6 +1904,7 @@ function traduzErroBanco(error) {
 }
 
 async function bootstrap() {
+  document.body.classList.add('pagina-subcomponentes');
   if (window.Auth?.exigirLogin) {
     const autorizado = await window.Auth.exigirLogin();
     if (!autorizado) return;
