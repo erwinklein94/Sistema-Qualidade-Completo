@@ -32,6 +32,16 @@ const App = {
       { k: 'sub-dados', t: 'Dados Subcomponentes', ic: ICN.config, href: 'subcomponentes.html#dados', group: 'subcomponentes', adminOnly: true },
 
       {
+        sec: 'FERRAMENTAS',
+        group: 'ferramentas',
+        desc: 'Apoio aos fiscais: leitura, data books, estudo e guia externo'
+      },
+      { k: 'ferramenta-iauditor', t: 'Leitor de Iauditor', ic: ICN.olho, href: 'leitor-iauditor.html', group: 'ferramentas' },
+      { k: 'ferramenta-databooks', t: 'Data books', ic: ICN.download, href: 'data-books.html', group: 'ferramentas' },
+      { k: 'ferramenta-flashcards', t: 'Flash-Cards', ic: ICN.ensaios, href: 'flash-cards.html', group: 'ferramentas' },
+      { k: 'ferramenta-guia-inspetor', t: 'Guia do Inspetor Padrão', ic: ICN.alerta, href: 'https://www.guiadoinspetorpadrao.com.br', group: 'ferramentas', external: true },
+
+      {
         sec: 'ADMINISTRAÇÃO DO SISTEMA',
         group: 'sistema',
         desc: 'Usuários, auditoria, banco e dados gerais'
@@ -72,7 +82,8 @@ const App = {
         return;
       }
       const classes = [m.k === this.paginaAtiva ? 'ativo' : '', m.group ? `nav-link--${m.group}` : ''].filter(Boolean).join(' ');
-      nav += `<a href="${m.href}" class="${classes}" data-menu-grupo="${m.group || ''}" onclick="App.fecharMenu()">${m.ic}<span>${m.t}</span></a>`;
+      const externalAttrs = m.external ? ' data-external="true" title="Abrir ferramenta externa"' : '';
+      nav += `<a href="${m.href}" class="${classes}" data-menu-grupo="${m.group || ''}" onclick="App.fecharMenu()"${externalAttrs}>${m.ic}<span>${m.t}</span></a>`;
     });
     return nav;
   },
@@ -107,7 +118,7 @@ const App = {
           <div class="sub">Somos o Brasil em movimento</div>
         </div>
         <nav class="nav">${nav}</nav>
-        <div class="sidebar-rodape"><span>Qualidade ferroviária</span><strong>Concreto + Subcomponentes</strong><small>RLS · Auditoria · Supabase</small></div>
+        <div class="sidebar-rodape"><span>Qualidade ferroviária</span><strong>Concreto + Subcomponentes + Ferramentas</strong><small>RLS · Auditoria · Supabase</small></div>
       </aside>
       <div class="backdrop-mobile" id="backdrop" onclick="App.fecharMenu()"></div>`;
 
