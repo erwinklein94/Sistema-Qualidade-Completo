@@ -37,7 +37,7 @@ const App = {
         desc: 'Apoio aos fiscais: leitura, data books, estudo e guia externo'
       },
       { k: 'ferramenta-iauditor', t: 'Leitor de Iauditor', ic: ICN.olho, href: 'leitor-iauditor.html', group: 'ferramentas' },
-      { k: 'ferramenta-databooks', t: 'Data books', ic: ICN.download, href: 'data-books.html', group: 'ferramentas' },
+      { k: 'ferramenta-databooks', t: 'Data books', ic: ICN.download, href: 'data-books.html', group: 'ferramentas', adminOnly: true },
       { k: 'ferramenta-flashcards', t: 'Flash-Cards', ic: ICN.ensaios, href: 'flash-cards.html', group: 'ferramentas' },
       { k: 'ferramenta-guia-inspetor', t: 'Guia do Inspetor Padrão', ic: ICN.alerta, href: 'https://www.guiadoinspetorpadrao.com.br', group: 'ferramentas', external: true },
 

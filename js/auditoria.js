@@ -18,6 +18,7 @@ const AUDITORIA_TABELA_META = {
   materiais_subcomponentes: { rotulo: 'Subcomponentes · Materiais', classe: 'auditoria-area-subcomponentes' },
   estoque_subcomponentes: { rotulo: 'Subcomponentes · Estoque', classe: 'auditoria-area-subcomponentes' },
   inspecoes_subcomponentes: { rotulo: 'Subcomponentes · Inspeções', classe: 'auditoria-area-subcomponentes' },
+  data_books_dormentes: { rotulo: 'Ferramentas · Data books', classe: 'auditoria-area-sistema' },
   usuarios_app: { rotulo: 'Usuários', classe: 'auditoria-area-sistema' },
 };
 

@@ -5831,3 +5831,284 @@ body.pagina-subcomponentes .topo .badge {
 @media (max-width: 980px) {
   .ferramenta-hero { grid-template-columns: 1fr; }
 }
+
+
+/* =====================================================================
+   DATA BOOKS — Ferramentas / Admin (20260531-databooks-admin-v1)
+   ===================================================================== */
+.pagina-data-books {
+  max-width: 100%;
+}
+
+.data-books-hero {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  background:
+    radial-gradient(circle at top right, rgba(50,166,230,.12), transparent 34%),
+    var(--cinza-card);
+}
+
+.data-books-hero h2 {
+  font-size: 24px;
+  line-height: 1.15;
+  margin: 8px 0 8px;
+  color: var(--azul-escuro);
+}
+
+.data-books-hero p {
+  color: var(--cinza-texto);
+  max-width: 880px;
+}
+
+.data-books-hero-info {
+  min-width: 230px;
+  border: 1px solid var(--cinza-borda);
+  border-radius: var(--raio-sm);
+  padding: 15px 16px;
+  background: rgba(127, 224, 108, .12);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.data-books-hero-info strong {
+  color: var(--azul-escuro);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+}
+
+.data-books-hero-info span {
+  color: var(--cinza-texto);
+  font-size: 13px;
+}
+
+.data-books-kpis {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.data-books-filtros {
+  align-items: end;
+}
+
+.data-books-filtros .campo-grande {
+  min-width: min(420px, 100%);
+  flex: 2 1 360px;
+}
+
+.data-books-filtros .campo-acoes {
+  justify-content: flex-end;
+}
+
+.data-books-card-tabela {
+  margin-top: 18px;
+}
+
+.data-books-tabela-wrap {
+  max-height: calc(100vh - 310px);
+  overflow: auto;
+}
+
+.tabela-data-books {
+  min-width: 3300px;
+  font-size: 12px;
+}
+
+.tabela-data-books thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  white-space: nowrap;
+}
+
+.tabela-data-books thead tr.data-books-grupos th {
+  top: 0;
+  background: var(--azul-escuro);
+  color: var(--branco);
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  border-right: 1px solid rgba(255,255,255,.22);
+}
+
+.tabela-data-books thead tr:not(.data-books-grupos) th {
+  top: 32px;
+  background: var(--branco);
+  color: var(--azul-escuro);
+  border-bottom: 1px solid var(--cinza-borda);
+}
+
+.tabela-data-books tbody td {
+  vertical-align: top;
+  max-width: 230px;
+}
+
+.tabela-data-books .acoes-linha {
+  position: sticky;
+  right: 0;
+  background: var(--cinza-card);
+  box-shadow: -10px 0 14px rgba(0, 53, 103, .07);
+  min-width: 245px;
+  z-index: 2;
+}
+
+.tabela-data-books tbody tr:hover .acoes-linha {
+  background: rgba(50,166,230,.08);
+}
+
+.valor-forte {
+  font-weight: 800;
+  color: var(--azul-escuro);
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.linha-destaque {
+  animation: dataBookHighlight 1.8s ease;
+}
+
+@keyframes dataBookHighlight {
+  0% { box-shadow: inset 0 0 0 999px rgba(127,224,108,.28); }
+  100% { box-shadow: inset 0 0 0 999px transparent; }
+}
+
+.modal-data-book {
+  width: min(1180px, calc(100vw - 28px));
+  max-height: calc(100vh - 48px);
+}
+
+.modal-data-book .modal-corpo {
+  max-height: calc(100vh - 132px);
+  overflow: auto;
+}
+
+.data-books-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.data-books-fieldset {
+  border: 1px solid var(--cinza-borda);
+  border-radius: var(--raio-sm);
+  padding: 18px;
+  background: rgba(242,245,246,.5);
+}
+
+.data-books-fieldset legend {
+  padding: 0 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  font-weight: 800;
+  color: var(--azul-escuro);
+}
+
+.data-books-fieldset .form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+}
+
+.data-books-fieldset .campo-full {
+  grid-column: 1 / -1;
+}
+
+.data-books-fieldset input,
+.data-books-fieldset textarea,
+.data-books-filtros input,
+.data-books-filtros select {
+  width: 100%;
+}
+
+.data-books-detalhes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: 16px;
+}
+
+.data-books-detalhe-grupo {
+  border: 1px solid var(--cinza-borda);
+  border-radius: var(--raio-sm);
+  background: var(--cinza-card);
+  overflow: hidden;
+}
+
+.data-books-detalhe-grupo h3 {
+  padding: 12px 14px;
+  background: rgba(0,56,101,.06);
+  color: var(--azul-escuro);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+}
+
+.data-books-detalhe-grupo dl {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.data-books-detalhe-grupo dl div {
+  padding: 11px 14px;
+  border-top: 1px solid var(--cinza-borda);
+}
+
+.data-books-detalhe-grupo dt {
+  color: var(--cinza-texto-claro);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.data-books-detalhe-grupo dd {
+  color: var(--azul-escuro);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+body[data-tema="escuro"] .data-books-hero,
+body[data-tema="escuro"] .data-books-fieldset,
+body[data-tema="escuro"] .data-books-detalhe-grupo,
+body[data-tema="escuro"] .tabela-data-books .acoes-linha {
+  background: var(--cinza-card);
+}
+
+body[data-tema="escuro"] .tabela-data-books thead tr:not(.data-books-grupos) th {
+  background: var(--cinza-card);
+  color: var(--branco);
+}
+
+body[data-tema="escuro"] .data-books-detalhe-grupo h3 {
+  background: rgba(127,224,108,.12);
+}
+
+@media (max-width: 860px) {
+  .data-books-hero {
+    flex-direction: column;
+  }
+
+  .data-books-hero-info {
+    min-width: 0;
+  }
+
+  .modal-data-book {
+    width: calc(100vw - 16px);
+  }
+
+  .data-books-fieldset {
+    padding: 14px;
+  }
+
+  .data-books-tabela-wrap {
+    max-height: none;
+  }
+}
