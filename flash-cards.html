@@ -5,17 +5,182 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Flash-Cards · Controle de Dormentes Rumo</title>
   <link rel="icon" type="image/png" href="assets/brand/favicon-rumo.png">
-  <link rel="stylesheet" href="css/style.css?v=20260531-ferramentas-menu-v1">
+  <link rel="stylesheet" href="css/style.css?v=20260531-flash-cards-integrado-v1">
+  <link rel="stylesheet" href="css/flash-cards-integrado.css?v=20260531-flash-cards-integrado-v1">
 </head>
-<body data-ferramenta="flashcards">
+<body class="pagina-flash-cards">
   <div class="app" id="app">
     <main class="conteudo" id="conteudo">
-      <div class="pagina" id="paginaFerramenta">
-        <div class="vazio">
-          <div class="loader"></div>
-          <h3>Carregando Flash-Cards</h3>
-          <p>Preparando a área de ferramentas.</p>
+      <div class="pagina" id="paginaFlashCards">
+        <div id="flashcardsAppRoot" class="flashcards-integrado" data-flash-theme="light">
+        <div class="app-shell">
+          <main class="content">
+<section id="landingPanels" class="landing-panels no-print">
+          <article class="panel intro-panel">
+            <div class="intro-copy">
+              <span class="eyebrow">Rumo • trilha rápida</span>
+              <h1>Mini-Curso Qualidade dos Materiais</h1>
+              <p>Estude os procedimentos, pratique com flashcards e conclua com um simulado objetivo.</p>
+              <div class="hero-tags" aria-label="Recursos do curso">
+                <span>Flashcards</span>
+                <span>Simulado</span>
+                <span>Parecer final</span>
+              </div>
+            </div>
+            <div class="intro-visual" aria-hidden="true">
+              <img src="assets/brand/icon-qualidade.png" alt="" />
+              <span></span>
+            </div>
+          </article>
+
+          <section id="registrationPanel" class="panel registration-card">
+            <div class="section-head">
+              <div>
+                <span class="section-kicker">cadastro inicial</span>
+                <h2>Identificação do fiscal</h2>
+                <p class="muted">Esses dados aparecem no parecer final do mini curso.</p>
+              </div>
+            </div>
+
+            <form id="registrationForm" class="form-grid">
+              <label>
+                Nome do fiscal
+                <input id="studentName" name="studentName" type="text" placeholder="Ex.: João da Silva" autocomplete="name" required />
+              </label>
+
+              <label>
+                Qual área atua
+                <select id="studentArea" name="studentArea" required></select>
+              </label>
+
+              <label>
+                Área para estudar / testar
+                <select id="trainingArea" name="trainingArea" required></select>
+              </label>
+
+              <div class="form-action">
+                <button class="success full" type="submit">Começar mini curso</button>
+              </div>
+            </form>
+          </section>
+        </section>
+
+        <section id="coursePanel" class="course hidden">
+          <div class="quick-save no-print">
+            <div>
+              <strong id="studentBadge">Fiscal: —</strong>
+              <p id="studentSubline">Área de atuação: —</p>
+            </div>
+            <div class="actions">
+              <button id="backToRegisterBtn" class="outline" type="button">Editar cadastro</button>
+              <button id="resetAllBtn" class="ghost" type="button">Limpar dados</button>
+            </div>
+          </div>
+
+          <section class="metrics no-print" aria-label="Indicadores do curso">
+            <article class="metric-card">
+              <div class="metric-icon">📚</div>
+              <span>Flashcards</span>
+              <strong id="cardsMetric">0</strong>
+              <p>situações extraídas do procedimento</p>
+            </article>
+            <article class="metric-card">
+              <div class="metric-icon">✅</div>
+              <span>Simulado</span>
+              <strong>10</strong>
+              <p>questões com quatro alternativas</p>
+            </article>
+            <article class="metric-card">
+              <div class="metric-icon">🛤️</div>
+              <span>Área selecionada</span>
+              <strong id="areaMetric" class="metric-text">—</strong>
+              <p id="documentMetric">—</p>
+            </article>
+            <article class="metric-card">
+              <div class="metric-icon">🎯</div>
+              <span>Progresso</span>
+              <strong id="progressMetric">0%</strong>
+              <p>avance os cards antes do teste</p>
+            </article>
+          </section>
+
+          <section id="studyPanel" class="panel flashcard-panel no-print">
+            <div class="section-head compact-head">
+              <div>
+                <span class="section-kicker">etapa 1</span>
+                <h2>Estudo com flashcards</h2>
+                <p class="muted">Clique no card para virar. Use Próximo e Voltar para navegar.</p>
+              </div>
+              <div class="card-counter" id="cardCounter">Card 1 de 1</div>
+            </div>
+
+            <div class="progress-track" aria-hidden="true">
+              <div id="cardProgressBar" class="progress-bar"></div>
+            </div>
+
+            <button id="flashcard" class="flashcard" type="button" aria-label="Virar flashcard">
+              <div class="flashcard-inner">
+                <article class="flashcard-face flashcard-front">
+                  <span class="pill" id="cardCategoryFront">Pergunta</span>
+                  <h3 id="cardQuestion">—</h3>
+                  <p id="cardHint" class="card-hint">Toque no card para ver a resposta.</p>
+                </article>
+                <article class="flashcard-face flashcard-back">
+                  <span class="pill success-pill" id="cardCategoryBack">Resposta</span>
+                  <h3>Conduta correta</h3>
+                  <p id="cardAnswer">—</p>
+                </article>
+              </div>
+            </button>
+
+            <div class="flashcard-controls">
+              <button id="prevCardBtn" class="outline" type="button">← Voltar</button>
+              <button id="flipCardBtn" type="button">Virar card</button>
+              <button id="nextCardBtn" type="button">Próximo →</button>
+            </div>
+
+            <div class="study-footer">
+              <p class="muted">Ao terminar os cards, faça o simulado para emitir o parecer final.</p>
+              <button id="goQuizBtn" class="success" type="button">Ir para o simulado</button>
+            </div>
+          </section>
+
+          <section id="quizPanel" class="panel quiz-panel hidden">
+            <div class="section-head">
+              <div>
+                <span class="section-kicker">etapa 2</span>
+                <h2>Simulado final</h2>
+                <p class="muted">Responda as 10 questões. O resultado aparece na hora, com parecer para comprovação.</p>
+              </div>
+              <button id="backToCardsBtn" class="outline no-print" type="button">Voltar aos cards</button>
+            </div>
+
+            <form id="quizForm" class="quiz-list"></form>
+
+            <div class="quiz-actions no-print">
+              <button id="gradeQuizBtn" class="success" type="button">Corrigir simulado</button>
+              <button id="clearQuizBtn" class="outline" type="button">Limpar respostas</button>
+            </div>
+          </section>
+
+          <section id="resultPanel" class="panel result-panel hidden">
+            <div class="certificate">
+              <span class="section-kicker">parecer final</span>
+              <h2>Comprovante do mini curso</h2>
+              <div id="resultSummary" class="result-summary"></div>
+              <div id="answerReview" class="answer-review"></div>
+            </div>
+
+            <div class="result-actions no-print">
+              <button id="printResultBtn" class="success" type="button">Imprimir / salvar PDF</button>
+              <button id="retryQuizBtn" class="outline" type="button">Refazer simulado</button>
+              <button id="restartCourseBtn" class="outline" type="button">Novo cadastro</button>
+            </div>
+          </section>
+        </section>
+          </main>
         </div>
+      </div>
       </div>
     </main>
   </div>
@@ -25,14 +190,21 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');}</script>
-  <script src="js/supabase-config.js?v=20260523-3"></script>
-  <script src="js/auth.js?v=20260526-menu-admin-fix"></script>
+  <script src="js/supabase-config.js?v=20260531-flash-cards-integrado-v1"></script>
+  <script src="js/auth.js?v=20260531-flash-cards-integrado-v1"></script>
   <script>Auth.exigirLogin();</script>
-  <script src="js/config.js?v=20260531-ferramentas-menu-v1"></script>
-  <script src="js/store.js?v=20260531-ferramentas-menu-v1"></script>
-  <script src="js/store-supabase.js?v=20260531-ferramentas-menu-v1"></script>
-  <script src="js/exportacoes.js?v=20260528-dashboard-pdf-graficos"></script>
-  <script src="js/comum.js?v=20260531-ferramentas-menu-v1"></script>
-  <script src="js/ferramentas.js?v=20260531-ferramentas-menu-v1"></script>
+  <script src="js/config.js?v=20260531-flash-cards-integrado-v1"></script>
+  <script src="js/store.js?v=20260531-flash-cards-integrado-v1"></script>
+  <script src="js/store-supabase.js?v=20260531-flash-cards-integrado-v1"></script>
+  <script src="js/comum.js?v=20260531-flash-cards-integrado-v1"></script>
+  <script>
+    App.montarLayout('ferramenta-flashcards', 'Flash-Cards', 'Mini curso, revisão de procedimentos e simulado para os fiscais da qualidade.');
+    App.acoesTopo(`
+      <button id="themeToggle" class="btn btn-secundario btn-sm" type="button">🌙 Tema escuro</button>
+      <button class="btn btn-secundario btn-sm" type="button" onclick="location.reload()">Atualizar</button>
+    `);
+  </script>
+  <script src="js/flash-cards-dados.js?v=20260531-flash-cards-integrado-v1"></script>
+  <script src="js/flash-cards.js?v=20260531-flash-cards-integrado-v1"></script>
 </body>
 </html>
