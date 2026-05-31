@@ -1,3 +1,4 @@
+// 20260531-topo-limpo-v1: botão de atalho externo removido de todo o cabeçalho global.
 /* =====================================================================
    COMUM.JS — Layout (sidebar/topo), toasts e utilitários compartilhados
    ===================================================================== */
@@ -133,7 +134,6 @@ const App = {
           </div>
         </div>
         <div class="topo-acoes">
-          <a class="btn btn-secundario btn-sm hub-link" href="https://erwinklein94.github.io/Projeto-Hub-Qualidade/" title="Abrir Hub de Qualidade">Hub Qualidade</a>
           <button class="btn btn-secundario btn-sm tema-toggle" id="botaoTema" type="button" onclick="App.alternarTema()" aria-pressed="false" title="Alternar tema">${ICN.tema}<span>Tema escuro</span></button>
           <div class="usuario-auth" id="areaUsuario"></div>
           <div class="topo-acoes" id="topoAcoes">${window.Exportacoes && paginaAtiva !== 'banco' ? window.Exportacoes.botoes() : ''}</div>

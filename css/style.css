@@ -5090,7 +5090,7 @@ body.pagina-painel-series .fluxo-horizontal-wrap {
 
 /* =====================================================================
    Alinhamento do topo — ações agrupadas à direita
-   Mantém o bloco de identidade à esquerda e empurra Hub/Tema/Usuário/ações
+   Mantém o bloco de identidade à esquerda e empurra Tema/Usuário/ações
    para a lateral direita em telas de desktop.
    ===================================================================== */
 @media (min-width: 981px) {
@@ -5131,7 +5131,7 @@ body.pagina-painel-series .fluxo-horizontal-wrap {
 
 /* =====================================================================
    Fluxo de Liberação — ações do topo alinhadas à direita
-   Agrupa Hub/Tema/Usuário/Sair e botões da página no canto direito.
+   Agrupa Tema/Usuário/Sair e botões da página no canto direito.
    ===================================================================== */
 @media (min-width: 981px) {
   body.pagina-fluxo .topo {
