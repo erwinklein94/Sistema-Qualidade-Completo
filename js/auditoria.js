@@ -14,6 +14,11 @@ const AUDITORIA_TABELA_META = {
   producao_lotes: { rotulo: 'Produção', classe: 'auditoria-area-producao' },
   reprovados: { rotulo: 'Reprovados', classe: 'auditoria-area-reprovados' },
   ensaios_liberacao: { rotulo: 'Ensaios de Liberação', classe: 'auditoria-area-ensaios' },
+  empresas_subcomponentes: { rotulo: 'Subcomponentes · Empresas', classe: 'auditoria-area-subcomponentes' },
+  materiais_subcomponentes: { rotulo: 'Subcomponentes · Materiais', classe: 'auditoria-area-subcomponentes' },
+  estoque_subcomponentes: { rotulo: 'Subcomponentes · Estoque', classe: 'auditoria-area-subcomponentes' },
+  inspecoes_subcomponentes: { rotulo: 'Subcomponentes · Inspeções', classe: 'auditoria-area-subcomponentes' },
+  usuarios_app: { rotulo: 'Usuários', classe: 'auditoria-area-sistema' },
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -109,6 +114,13 @@ function textoAuditoriaBusca(r) {
     o.serie_liberada,
     o.fornecedor,
     o.bitola,
+    o.nome,
+    o.email,
+    o.subcomponente,
+    o.cod_sap,
+    o.empresa_nome,
+    o.fornecedor_nome,
+    o.status_estoque,
     resumoAuditoriaTexto(r),
   ].filter(Boolean).join(' ').toLowerCase();
 }
@@ -232,15 +244,23 @@ function registroBloco(r) {
   const lote = o.lote || o.lote_ensaiado || '';
   const projeto = o.projeto || '';
   const serie = o.serie || o.serie_liberada || '';
-  const fornecedor = o.fornecedor || '';
+  const fornecedor = o.fornecedor || o.fornecedor_nome || o.empresa_nome || '';
   const bitola = o.bitola || '';
+  const subcomponente = o.subcomponente || '';
+  const sap = o.cod_sap || '';
+  const usuario = o.email || o.nome || '';
+  const status = o.status || o.status_estoque || '';
 
   const linhas = [
     lote && `<span><b>Lote</b> ${U.esc(lote)}</span>`,
     projeto && `<span><b>Projeto</b> ${U.esc(projeto)}</span>`,
     serie && `<span><b>Série</b> ${U.esc(serie)}</span>`,
-    fornecedor && `<span><b>Fornecedor</b> ${U.esc(fornecedor)}</span>`,
+    subcomponente && `<span><b>Subcomponente</b> ${U.esc(subcomponente)}</span>`,
+    sap && `<span><b>SAP</b> ${U.esc(sap)}</span>`,
+    fornecedor && `<span><b>Fornecedor/Empresa</b> ${U.esc(fornecedor)}</span>`,
     bitola && `<span><b>Bitola</b> ${U.esc(bitola)}</span>`,
+    status && `<span><b>Status</b> ${U.esc(status)}</span>`,
+    usuario && `<span><b>Usuário</b> ${U.esc(usuario)}</span>`,
   ].filter(Boolean);
 
   if (linhas.length) return `<div class="auditoria-registro">${linhas.join('')}</div>`;

@@ -5569,3 +5569,10 @@ body[data-tema="escuro"] .topo h1,
 body[data-tema="escuro"] .card-titulo,
 body[data-tema="escuro"] .campo label { color: #fff; }
 body[data-tema="escuro"] .hub-link:hover { color: var(--rumo-azul-noite); background: var(--rumo-verde-claro); }
+
+/* ===================== INTEGRAÇÃO SUBCOMPONENTES ===================== */
+.auditoria-area-subcomponentes { background: #e9f8e5; color: #1a6b30; }
+.auditoria-area-sistema { background: #fff6d1; color: #5f4d00; }
+body[data-tema="escuro"] .auditoria-area-subcomponentes { background: rgba(127,224,108,.18); color: var(--verde-claro); }
+body[data-tema="escuro"] .auditoria-area-sistema { background: rgba(251,211,0,.18); color: var(--amarelo); }
+.subcomponentes-page .periodo-dashboard-info { margin-bottom: 18px; }
