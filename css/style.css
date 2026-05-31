@@ -6112,3 +6112,164 @@ body[data-tema="escuro"] .data-books-detalhe-grupo h3 {
     max-height: none;
   }
 }
+
+/* =====================================================================
+   DATA BOOKS — Registros mais amplos (20260531-databooks-registros-amplos-v2)
+   Objetivo: deixar a janela de registros mais aberta, com mais linhas e
+   mais colunas visíveis sem depender tanto de rolagem interna.
+   ===================================================================== */
+body[data-pagina="data-books"] .pagina-data-books {
+  max-width: none;
+  padding: 16px 24px 36px;
+}
+
+/* O cabeçalho superior do sistema já explica a página; removemos o bloco
+   introdutório interno para liberar área útil para a tabela. */
+body[data-pagina="data-books"] .data-books-hero {
+  display: none;
+}
+
+body[data-pagina="data-books"] .data-books-kpis {
+  grid-template-columns: repeat(5, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+body[data-pagina="data-books"] .data-books-kpis .kpi {
+  padding: 12px 14px;
+  min-height: 0;
+}
+
+body[data-pagina="data-books"] .data-books-kpis .kpi span,
+body[data-pagina="data-books"] .data-books-kpis .kpi small {
+  font-size: 11px;
+}
+
+body[data-pagina="data-books"] .data-books-kpis .kpi strong {
+  font-size: 25px;
+  line-height: 1;
+}
+
+body[data-pagina="data-books"] .card:has(.data-books-filtros) {
+  padding: 12px 16px 14px;
+  margin-bottom: 10px;
+}
+
+body[data-pagina="data-books"] .card:has(.data-books-filtros) .card-titulo {
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+body[data-pagina="data-books"] .data-books-filtros {
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+body[data-pagina="data-books"] .data-books-filtros .campo {
+  min-width: 170px;
+}
+
+body[data-pagina="data-books"] .data-books-filtros .campo-grande {
+  min-width: min(330px, 100%);
+  flex: 2 1 320px;
+}
+
+body[data-pagina="data-books"] .data-books-card-tabela {
+  margin-top: 10px;
+  padding: 12px 16px 16px;
+  min-height: calc(100vh - 240px);
+  display: flex;
+  flex-direction: column;
+}
+
+body[data-pagina="data-books"] .data-books-card-tabela .card-titulo {
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  flex: 0 0 auto;
+}
+
+body[data-pagina="data-books"] .data-books-tabela-wrap {
+  flex: 1 1 auto;
+  height: calc(100vh - 300px);
+  min-height: 520px;
+  max-height: none;
+  overflow: auto;
+  border-radius: 14px;
+}
+
+body[data-pagina="data-books"] .tabela-data-books {
+  min-width: 2850px;
+  font-size: 11px;
+}
+
+body[data-pagina="data-books"] .tabela-data-books thead th {
+  padding: 8px 9px;
+  line-height: 1.15;
+}
+
+body[data-pagina="data-books"] .tabela-data-books thead tr.data-books-grupos th {
+  font-size: 10.5px;
+  height: 30px;
+}
+
+body[data-pagina="data-books"] .tabela-data-books thead tr:not(.data-books-grupos) th {
+  top: 30px;
+}
+
+body[data-pagina="data-books"] .tabela-data-books tbody td {
+  padding: 7px 9px;
+  line-height: 1.25;
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body[data-pagina="data-books"] .tabela-data-books tbody td:hover {
+  overflow: visible;
+  white-space: normal;
+  position: relative;
+  z-index: 5;
+  background: var(--branco);
+}
+
+body[data-pagina="data-books"] .tabela-data-books .acoes-linha {
+  min-width: 210px;
+  width: 210px;
+  padding-inline: 8px;
+}
+
+body[data-pagina="data-books"] .tabela-data-books .acoes-linha .btn-sm {
+  padding: 5px 8px;
+  font-size: 11px;
+  gap: 4px;
+}
+
+@media (max-width: 1100px) {
+  body[data-pagina="data-books"] .data-books-kpis {
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
+  }
+
+  body[data-pagina="data-books"] .data-books-tabela-wrap {
+    min-height: 420px;
+    height: calc(100vh - 260px);
+  }
+}
+
+@media (max-width: 760px) {
+  body[data-pagina="data-books"] .pagina-data-books {
+    padding: 12px 12px 28px;
+  }
+
+  body[data-pagina="data-books"] .data-books-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-pagina="data-books"] .data-books-card-tabela {
+    min-height: auto;
+  }
+
+  body[data-pagina="data-books"] .data-books-tabela-wrap {
+    height: auto;
+    min-height: 420px;
+  }
+}
