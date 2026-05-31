@@ -6273,3 +6273,93 @@ body[data-pagina="data-books"] .tabela-data-books .acoes-linha .btn-sm {
     min-height: 420px;
   }
 }
+
+/* =====================================================================
+   PERFORMANCE — Data books resumido e paginado (20260531-performance-v1)
+   ===================================================================== */
+body[data-pagina="data-books"] .data-books-card-titulo-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+body[data-pagina="data-books"] .data-books-paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+body[data-pagina="data-books"] .data-books-paginacao-bottom {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cinza-borda);
+}
+
+body[data-pagina="data-books"] .data-books-page-info {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--cinza-texto);
+  white-space: nowrap;
+}
+
+body[data-pagina="data-books"] .data-books-page-select {
+  height: 32px;
+  border: 1px solid var(--cinza-borda);
+  border-radius: 999px;
+  padding: 0 10px;
+  background: var(--branco);
+  color: var(--azul-escuro);
+  font-weight: 800;
+  font-size: 12px;
+}
+
+body[data-pagina="data-books"] .data-books-tabela-wrap {
+  min-height: 560px;
+  height: calc(100vh - 265px);
+}
+
+body[data-pagina="data-books"] .tabela-data-books {
+  min-width: 1180px;
+  width: 100%;
+  font-size: 12px;
+}
+
+body[data-pagina="data-books"] .tabela-data-books thead tr.data-books-grupos {
+  display: none;
+}
+
+body[data-pagina="data-books"] .tabela-data-books thead th,
+body[data-pagina="data-books"] .tabela-data-books thead tr:not(.data-books-grupos) th {
+  top: 0;
+  background: var(--azul-escuro);
+  color: var(--branco);
+  padding: 9px 10px;
+}
+
+body[data-pagina="data-books"] .tabela-data-books tbody td {
+  max-width: 250px;
+  padding: 9px 10px;
+}
+
+body[data-pagina="data-books"] .tabela-data-books .acoes-linha {
+  min-width: 230px;
+  width: 230px;
+}
+
+body[data-pagina="data-books"] .vazio.compacto {
+  min-height: 180px;
+  padding: 26px;
+}
+
+@media (max-width: 1100px) {
+  body[data-pagina="data-books"] .data-books-card-titulo-flex {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  body[data-pagina="data-books"] .data-books-paginacao {
+    justify-content: flex-start;
+  }
+}

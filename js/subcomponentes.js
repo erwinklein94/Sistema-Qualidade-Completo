@@ -1406,12 +1406,21 @@ function lineChart(data) {
   }).join('')}</div>`;
 }
 
+let subcomponentesFiltroTimer = null;
+
 function bindPage() {
   $$('[data-filter]').forEach((el) => {
     el.addEventListener('input', () => {
       const [scope, key] = el.dataset.filter.split('.');
       if (state.filters[scope]) state.filters[scope][key] = el.value;
-      render();
+
+      const isBuscaTexto = el.matches('input[type="search"], input[type="text"]') || String(key || '').toLowerCase().includes('search') || String(key || '').toLowerCase().includes('query');
+      if (isBuscaTexto) {
+        clearTimeout(subcomponentesFiltroTimer);
+        subcomponentesFiltroTimer = setTimeout(render, 180);
+      } else {
+        render();
+      }
     });
   });
   $$('[data-clear-filters]').forEach((btn) => btn.addEventListener('click', () => {
@@ -1876,7 +1885,8 @@ async function bootstrap() {
   }
   SubcomponentesApp.init();
   await DB.init();
-  await DB.loadAdminData();
+  if (state.active === 'auditoria') await DB.loadAudit();
+  if (state.active === 'usuarios') await DB.loadUsers();
   render();
 }
 

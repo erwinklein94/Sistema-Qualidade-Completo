@@ -1,10 +1,16 @@
 /* =====================================================================
    DATA-BOOKS.JS — Data books de dormentes salvos no Supabase
-   Acesso restrito a ADMIN.
+   Otimização 20260531-performance-v1:
+   - tabela principal resumida;
+   - detalhes completos carregados sob demanda;
+   - paginação no Supabase;
+   - exportação completa apenas quando o usuário pede.
    ===================================================================== */
 
 const DataBooks = (() => {
   const TABELA = 'data_books_dormentes';
+  const PAGE_SIZE = 50;
+  const MAX_EXPORT_ROWS = 10000;
 
   const GRUPOS = [
     {
@@ -76,7 +82,17 @@ const DataBooks = (() => {
 
   const CAMPOS = GRUPOS.flatMap(g => g.campos.map(([key, label, type]) => ({ key, label, type, grupo: g.titulo })));
 
-  const COLUNAS_TABELA = [
+  const SUMMARY_COLUMNS = [
+    'cliente',
+    'tipo_dormente',
+    'lote',
+    'data_producao',
+    'nota_fiscal',
+    'numero_bobina',
+    'modulo_elasticidade'
+  ];
+
+  const EXPORT_COLUMNS = [
     'cliente',
     'tipo_dormente',
     'lote',
@@ -102,19 +118,38 @@ const DataBooks = (() => {
     'torque_nm',
     'arrancamento_kn',
     'carga_aderencia_kn',
-    'deslocamento_fio_aco_mm'
+    'deslocamento_fio_aco_mm',
+    'fonte',
+    'fonte_referencia',
+    'observacoes'
+  ];
+
+  const SEARCH_COLUMNS = [
+    'cliente',
+    'tipo_dormente',
+    'lote',
+    'lotes_chumbadores',
+    'nota_fiscal',
+    'numero_bobina',
+    'modulo_elasticidade',
+    'fonte_referencia'
   ];
 
   const state = {
     dados: [],
     filtrados: [],
+    total: 0,
+    page: 1,
+    pageSize: PAGE_SIZE,
+    opcoes: { clientes: [], tipos: [], anos: [] },
     filtros: {
       busca: '',
       cliente: '',
       tipo: '',
       ano: ''
     },
-    carregando: false
+    carregando: false,
+    debounceBusca: null
   };
 
   function db() {
@@ -149,6 +184,7 @@ const DataBooks = (() => {
     `);
 
     renderEstrutura();
+    await carregarOpcoes();
     await carregar();
   }
 
@@ -173,7 +209,7 @@ const DataBooks = (() => {
         <div>
           <span class="ferramenta-etiqueta">Ferramentas · Admin</span>
           <h2>Data books de dormentes</h2>
-          <p>Consulta e manutenção dos dados técnicos extraídos dos Data books CAVAN, salvos no Supabase com RLS e auditoria.</p>
+          <p>A tabela principal foi otimizada: mostra as colunas-chave e carrega os detalhes técnicos completos apenas ao clicar em <strong>Ver</strong>.</p>
         </div>
         <div class="data-books-hero-info">
           <strong>Somente ADMIN</strong>
@@ -213,9 +249,12 @@ const DataBooks = (() => {
       </section>
 
       <section class="card data-books-card-tabela">
-        <div class="card-titulo">
-          <span class="acento">Registros</span>
-          <span class="card-sub">todas as colunas técnicas solicitadas</span>
+        <div class="card-titulo data-books-card-titulo-flex">
+          <div>
+            <span class="acento">Registros</span>
+            <span class="card-sub">visualização resumida; detalhes completos no botão Ver</span>
+          </div>
+          <div class="data-books-paginacao" id="dataBooksPaginacaoTop"></div>
         </div>
         <div class="tabela-wrap data-books-tabela-wrap">
           <table class="tabela tabela-data-books" id="tabelaDataBooks">
@@ -223,28 +262,56 @@ const DataBooks = (() => {
             <tbody id="tbodyDataBooks"></tbody>
           </table>
         </div>
+        <div class="data-books-paginacao data-books-paginacao-bottom" id="dataBooksPaginacaoBottom"></div>
       </section>
     `;
+    preencherFiltros();
     renderCabecalhoTabela();
+  }
+
+  async function carregarOpcoes() {
+    if (!admin()) return;
+    try {
+      const { data, error } = await db()
+        .from(TABELA)
+        .select('cliente,tipo_dormente,data_producao')
+        .order('cliente', { ascending: true })
+        .limit(5000);
+      if (error) throw error;
+      state.opcoes.clientes = ordenarUnicos((data || []).map(r => r.cliente));
+      state.opcoes.tipos = ordenarUnicos((data || []).map(r => r.tipo_dormente));
+      state.opcoes.anos = ordenarUnicos((data || []).map(r => String(r.data_producao || '').slice(0, 4)).filter(Boolean)).reverse();
+      preencherFiltros();
+    } catch (err) {
+      console.warn('Não foi possível carregar opções dos filtros de Data books.', err);
+    }
   }
 
   async function carregar() {
     if (!admin()) return;
     state.carregando = true;
     setStatus('Carregando Data books...');
+    renderTabelaCarregando();
     try {
-      const { data, error } = await db()
-        .from(TABELA)
-        .select('*')
+      const from = (state.page - 1) * state.pageSize;
+      const to = from + state.pageSize - 1;
+      const selectCols = ['id', ...SUMMARY_COLUMNS].join(',');
+      let query = queryFiltrada(selectCols, { count: 'exact' })
         .order('data_producao', { ascending: false, nullsFirst: false })
         .order('lote', { ascending: true })
-        .limit(5000);
+        .range(from, to);
 
+      const { data, error, count } = await query;
       if (error) throw error;
       state.dados = data || [];
-      preencherFiltros();
-      aplicarFiltros();
-      App.toast('Data books carregados do Supabase.', 'sucesso');
+      state.filtrados = state.dados;
+      state.total = Number(count || 0);
+
+      renderKpis();
+      renderTabela();
+      renderPaginacao();
+      registrarExportacao();
+      setStatus(`${state.total} registro(s) encontrado(s). Página ${state.page} de ${totalPaginas()}.`);
     } catch (err) {
       console.error('Erro ao carregar Data books', err);
       renderErro(err);
@@ -253,12 +320,36 @@ const DataBooks = (() => {
     }
   }
 
+  function queryFiltrada(selectCols = '*', options = undefined) {
+    let query = db().from(TABELA).select(selectCols, options);
+    const f = state.filtros;
+    if (f.cliente) query = query.eq('cliente', f.cliente);
+    if (f.tipo) query = query.eq('tipo_dormente', f.tipo);
+    if (f.ano) {
+      query = query.gte('data_producao', `${f.ano}-01-01`).lte('data_producao', `${f.ano}-12-31`);
+    }
+    const busca = normalizarTextoSupabase(f.busca);
+    if (busca) {
+      const pattern = `%${busca}%`;
+      query = query.or(SEARCH_COLUMNS.map(c => `${c}.ilike.${pattern}`).join(','));
+    }
+    return query;
+  }
+
+  function normalizarTextoSupabase(v) {
+    return String(v || '')
+      .trim()
+      .replace(/[,%]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .slice(0, 80);
+  }
+
   function renderErro(err) {
     const tbody = document.getElementById('tbodyDataBooks');
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="${COLUNAS_TABELA.length + 1}">
+          <td colspan="${SUMMARY_COLUMNS.length + 1}">
             <div class="vazio">
               ${ICN.alerta}
               <h3>Não foi possível carregar os Data books</h3>
@@ -270,17 +361,26 @@ const DataBooks = (() => {
       `;
     }
     setStatus('Erro ao carregar.');
+    renderPaginacao();
     App.toast('Erro ao carregar Data books.', 'erro');
   }
 
-  function preencherFiltros() {
-    const clientes = ordenarUnicos(state.dados.map(r => r.cliente));
-    const tipos = ordenarUnicos(state.dados.map(r => r.tipo_dormente));
-    const anos = ordenarUnicos(state.dados.map(r => String(r.data_producao || '').slice(0, 4)).filter(Boolean)).reverse();
+  function renderTabelaCarregando() {
+    const tbody = document.getElementById('tbodyDataBooks');
+    if (!tbody) return;
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="${SUMMARY_COLUMNS.length + 1}">
+          <div class="vazio compacto"><div class="loader"></div><h3>Carregando página...</h3></div>
+        </td>
+      </tr>
+    `;
+  }
 
-    setOptions('filtroClienteDataBooks', clientes, 'Todos os clientes', state.filtros.cliente);
-    setOptions('filtroTipoDataBooks', tipos, 'Todos os tipos', state.filtros.tipo);
-    setOptions('filtroAnoDataBooks', anos, 'Todos os anos', state.filtros.ano);
+  function preencherFiltros() {
+    setOptions('filtroClienteDataBooks', state.opcoes.clientes, 'Todos os clientes', state.filtros.cliente);
+    setOptions('filtroTipoDataBooks', state.opcoes.tipos, 'Todos os tipos', state.filtros.tipo);
+    setOptions('filtroAnoDataBooks', state.opcoes.anos, 'Todos os anos', state.filtros.ano);
   }
 
   function setOptions(id, arr, placeholder, selecionado) {
@@ -296,65 +396,62 @@ const DataBooks = (() => {
 
   function setFiltro(campo, valor) {
     state.filtros[campo] = String(valor || '').trim();
-    aplicarFiltros();
+    state.page = 1;
+    if (campo === 'busca') {
+      clearTimeout(state.debounceBusca);
+      state.debounceBusca = setTimeout(() => carregar(), 280);
+      return;
+    }
+    carregar();
   }
 
   function limparFiltros() {
     state.filtros = { busca: '', cliente: '', tipo: '', ano: '' };
+    state.page = 1;
     const busca = document.getElementById('filtroBuscaDataBooks');
     if (busca) busca.value = '';
     preencherFiltros();
-    aplicarFiltros();
+    carregar();
   }
 
-  function aplicarFiltros() {
-    const busca = normalizarBusca(state.filtros.busca);
-    state.filtrados = state.dados.filter(r => {
-      if (state.filtros.cliente && r.cliente !== state.filtros.cliente) return false;
-      if (state.filtros.tipo && r.tipo_dormente !== state.filtros.tipo) return false;
-      if (state.filtros.ano && String(r.data_producao || '').slice(0, 4) !== state.filtros.ano) return false;
-      if (busca) return textoBusca(r).includes(busca);
-      return true;
-    });
-
-    renderKpis();
-    renderTabela();
-    registrarExportacao();
-    setStatus(`${state.filtrados.length} de ${state.dados.length} registro(s) exibido(s).`);
+  function paginaAnterior() {
+    if (state.page <= 1) return;
+    state.page -= 1;
+    carregar();
   }
 
-  function textoBusca(r) {
-    return normalizarBusca([
-      r.cliente,
-      r.tipo_dormente,
-      r.lote,
-      r.lotes_chumbadores,
-      r.nota_fiscal,
-      r.numero_bobina,
-      r.modulo_elasticidade,
-      r.fonte_referencia
-    ].join(' '));
+  function proximaPagina() {
+    if (state.page >= totalPaginas()) return;
+    state.page += 1;
+    carregar();
   }
 
-  function normalizarBusca(s) {
-    return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  function irPagina(p) {
+    const pagina = Math.max(1, Math.min(totalPaginas(), Number(p) || 1));
+    if (pagina === state.page) return;
+    state.page = pagina;
+    carregar();
+  }
+
+  function totalPaginas() {
+    return Math.max(1, Math.ceil(state.total / state.pageSize));
   }
 
   function renderKpis() {
     const alvo = document.getElementById('dataBooksKpis');
     if (!alvo) return;
-    const lista = state.filtrados;
+    const lista = state.dados;
     const clientes = new Set(lista.map(r => r.cliente).filter(Boolean)).size;
     const tipos = new Set(lista.map(r => r.tipo_dormente).filter(Boolean)).size;
     const lotes = new Set(lista.map(r => r.lote).filter(Boolean)).size;
     const bobinas = new Set(lista.map(r => r.numero_bobina).filter(Boolean)).size;
 
     alvo.innerHTML = `
-      <article class="kpi"><span>Total filtrado</span><strong>${lista.length}</strong><small>registros de Data books</small></article>
-      <article class="kpi"><span>Clientes</span><strong>${clientes}</strong><small>clientes distintos</small></article>
-      <article class="kpi"><span>Tipos</span><strong>${tipos}</strong><small>tipos de dormente</small></article>
-      <article class="kpi"><span>Lotes</span><strong>${lotes}</strong><small>lotes de produção</small></article>
-      <article class="kpi"><span>Bobinas</span><strong>${bobinas}</strong><small>números de bobina</small></article>
+      <article class="kpi"><span>Total encontrado</span><strong>${state.total}</strong><small>resultado(s) nos filtros</small></article>
+      <article class="kpi"><span>Na página</span><strong>${lista.length}</strong><small>até ${state.pageSize} por página</small></article>
+      <article class="kpi"><span>Clientes</span><strong>${clientes}</strong><small>nesta página</small></article>
+      <article class="kpi"><span>Tipos</span><strong>${tipos}</strong><small>nesta página</small></article>
+      <article class="kpi"><span>Bobinas</span><strong>${bobinas}</strong><small>nesta página</small></article>
     `;
   }
 
@@ -362,16 +459,9 @@ const DataBooks = (() => {
     const thead = document.getElementById('theadDataBooks');
     if (!thead) return;
     thead.innerHTML = `
-      <tr class="data-books-grupos">
-        <th colspan="5">Informações Gerais do Lote</th>
-        <th colspan="3">Corte de Aço</th>
-        <th colspan="7">Concreto / Resistência</th>
-        <th colspan="3">Temperatura</th>
-        <th colspan="8">Ensaio Estático</th>
-        <th rowspan="2">Ações</th>
-      </tr>
       <tr>
-        ${COLUNAS_TABELA.map(k => `<th>${U.esc(labelDe(k))}</th>`).join('')}
+        ${SUMMARY_COLUMNS.map(k => `<th>${U.esc(labelDe(k))}</th>`).join('')}
+        <th>Ações</th>
       </tr>
     `;
   }
@@ -380,10 +470,10 @@ const DataBooks = (() => {
     const tbody = document.getElementById('tbodyDataBooks');
     if (!tbody) return;
 
-    if (!state.filtrados.length) {
+    if (!state.dados.length) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="${COLUNAS_TABELA.length + 1}">
+          <td colspan="${SUMMARY_COLUMNS.length + 1}">
             <div class="vazio">
               ${ICN.vazioBox}
               <h3>Nenhum Data book encontrado</h3>
@@ -395,9 +485,9 @@ const DataBooks = (() => {
       return;
     }
 
-    tbody.innerHTML = state.filtrados.map(r => `
+    tbody.innerHTML = state.dados.map(r => `
       <tr>
-        ${COLUNAS_TABELA.map(k => `<td>${valorTabela(r, k)}</td>`).join('')}
+        ${SUMMARY_COLUMNS.map(k => `<td>${valorTabela(r, k)}</td>`).join('')}
         <td class="acoes-linha">
           <button class="btn btn-secundario btn-sm" type="button" onclick="DataBooks.ver('${r.id}')">${ICN.olho}<span>Ver</span></button>
           <button class="btn btn-secundario btn-sm" type="button" onclick="DataBooks.editar('${r.id}')">${ICN.edit}<span>Editar</span></button>
@@ -405,6 +495,24 @@ const DataBooks = (() => {
         </td>
       </tr>
     `).join('');
+  }
+
+  function renderPaginacao() {
+    const total = totalPaginas();
+    const inicio = state.total ? ((state.page - 1) * state.pageSize) + 1 : 0;
+    const fim = Math.min(state.total, state.page * state.pageSize);
+    const html = `
+      <span class="data-books-page-info">${inicio}-${fim} de ${state.total}</span>
+      <button class="btn btn-secundario btn-sm" type="button" onclick="DataBooks.paginaAnterior()" ${state.page <= 1 ? 'disabled' : ''}>Anterior</button>
+      <select class="data-books-page-select" onchange="DataBooks.irPagina(this.value)" aria-label="Página">
+        ${Array.from({ length: total }, (_, i) => i + 1).map(p => `<option value="${p}" ${p === state.page ? 'selected' : ''}>Página ${p}</option>`).join('')}
+      </select>
+      <button class="btn btn-secundario btn-sm" type="button" onclick="DataBooks.proximaPagina()" ${state.page >= total ? 'disabled' : ''}>Próxima</button>
+    `;
+    ['dataBooksPaginacaoTop', 'dataBooksPaginacaoBottom'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = html;
+    });
   }
 
   function valorTabela(r, key) {
@@ -428,14 +536,24 @@ const DataBooks = (() => {
     return state.dados.find(r => r.id === id) || null;
   }
 
+  async function buscarRegistro(id) {
+    const { data, error } = await db().from(TABELA).select('*').eq('id', id).single();
+    if (error) throw error;
+    return data;
+  }
+
   function abrirNovo() {
     abrirFormulario();
   }
 
-  function editar(id) {
-    const r = obter(id);
-    if (!r) return App.toast('Registro não encontrado.', 'erro');
-    abrirFormulario(r);
+  async function editar(id) {
+    try {
+      const r = await buscarRegistro(id);
+      abrirFormulario(r);
+    } catch (err) {
+      console.error('Erro ao abrir edição', err);
+      App.toast('Registro não encontrado ou indisponível.', 'erro');
+    }
   }
 
   function abrirFormulario(registro = null) {
@@ -520,16 +638,14 @@ const DataBooks = (() => {
 
     try {
       let query;
-      if (id) {
-        query = db().from(TABELA).update(payload).eq('id', id);
-      } else {
-        query = db().from(TABELA).insert(payload);
-      }
+      if (id) query = db().from(TABELA).update(payload).eq('id', id);
+      else query = db().from(TABELA).insert(payload);
       const { data, error } = await query.select().single();
       if (error) throw error;
 
       fecharFormulario();
       App.toast('Data book salvo no Supabase.', 'sucesso');
+      await carregarOpcoes();
       await carregar();
       if (data?.id) {
         const linha = document.querySelector(`button[onclick*="${data.id}"]`);
@@ -548,15 +664,15 @@ const DataBooks = (() => {
 
   async function excluir(id) {
     if (!admin()) return App.toast('Apenas ADMIN pode excluir Data books.', 'erro');
-    const r = obter(id);
-    if (!r) return App.toast('Registro não encontrado.', 'erro');
-
+    const r = obter(id) || { lote: '' };
     if (!App.confirmar(`Excluir o Data book do lote ${r.lote || 'sem lote'}? Essa ação será auditada.`)) return;
 
     try {
       const { error } = await db().from(TABELA).delete().eq('id', id);
       if (error) throw error;
       App.toast('Data book excluído.', 'sucesso');
+      if (state.page > 1 && state.dados.length === 1) state.page -= 1;
+      await carregarOpcoes();
       await carregar();
     } catch (err) {
       console.error('Erro ao excluir Data book', err);
@@ -564,10 +680,17 @@ const DataBooks = (() => {
     }
   }
 
-  function ver(id) {
-    const r = obter(id);
-    if (!r) return App.toast('Registro não encontrado.', 'erro');
+  async function ver(id) {
+    try {
+      const r = await buscarRegistro(id);
+      abrirDetalhe(r);
+    } catch (err) {
+      console.error('Erro ao abrir detalhe', err);
+      App.toast('Não foi possível abrir os detalhes deste Data book.', 'erro');
+    }
+  }
 
+  function abrirDetalhe(r) {
     const modal = document.getElementById('modalDetalheDataBook');
     if (!modal) return;
 
@@ -614,41 +737,62 @@ const DataBooks = (() => {
 
   function registrarExportacao() {
     if (!window.Exportacoes?.registrar) return;
-    const columns = COLUNAS_TABELA.map(k => ({ key: k, label: labelDe(k) }));
+    const columns = SUMMARY_COLUMNS.map(k => ({ key: k, label: labelDe(k) }));
     Exportacoes.registrar({
-      titulo: 'Data books de dormentes',
-      nomeArquivo: 'data-books-dormentes',
+      titulo: 'Data books de dormentes — página atual',
+      nomeArquivo: 'data-books-dormentes-pagina-atual',
       xlsxSomenteDados: true,
-      filtros: [
-        { campo: 'Busca', valor: state.filtros.busca || 'Todos' },
-        { campo: 'Cliente', valor: state.filtros.cliente || 'Todos' },
-        { campo: 'Tipo de Dormente', valor: state.filtros.tipo || 'Todos' },
-        { campo: 'Ano', valor: state.filtros.ano || 'Todos' }
-      ],
+      filtros: filtrosExportacao(),
       secoes: [{
-        titulo: 'Data books',
+        titulo: `Página ${state.page}`,
         columns,
-        rows: state.filtrados.map(r => {
+        rows: state.dados.map(r => {
           const row = {};
           columns.forEach(c => row[c.key] = c.key === 'data_producao' ? U.dataBR(r[c.key]) : (r[c.key] || ''));
           return row;
         })
       }],
-      observacao: 'Fonte: tabela public.data_books_dormentes no Supabase. Acesso restrito a ADMIN.'
+      observacao: 'Fonte: tabela public.data_books_dormentes no Supabase. Exportação Excel/PDF usa a página atual para manter a navegação leve. Use o botão CSV para exportar todos os registros filtrados.'
     });
   }
 
-  function exportarCSV() {
-    if (!state.filtrados.length) {
-      App.toast('Não há dados filtrados para exportar.', 'aviso');
-      return;
+  function filtrosExportacao() {
+    return [
+      { campo: 'Busca', valor: state.filtros.busca || 'Todos' },
+      { campo: 'Cliente', valor: state.filtros.cliente || 'Todos' },
+      { campo: 'Tipo de Dormente', valor: state.filtros.tipo || 'Todos' },
+      { campo: 'Ano', valor: state.filtros.ano || 'Todos' },
+      { campo: 'Página', valor: `${state.page} de ${totalPaginas()}` }
+    ];
+  }
+
+  async function exportarCSV() {
+    try {
+      setStatus('Gerando CSV completo dos filtros...');
+      let query = queryFiltrada(EXPORT_COLUMNS.join(','))
+        .order('data_producao', { ascending: false, nullsFirst: false })
+        .order('lote', { ascending: true })
+        .limit(MAX_EXPORT_ROWS);
+      const { data, error } = await query;
+      if (error) throw error;
+      const rows = data || [];
+      if (!rows.length) {
+        App.toast('Não há dados filtrados para exportar.', 'aviso');
+        return;
+      }
+      const headers = EXPORT_COLUMNS.map(labelDe);
+      const linhas = rows.map(r => EXPORT_COLUMNS.map(k => k === 'data_producao' ? U.dataBR(r[k]) : (r[k] || '')));
+      const csv = [headers, ...linhas].map(row => row.map(csvCell).join(';')).join('\n');
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      baixar(blob, `data_books_dormentes_${stamp()}.csv`);
+      App.toast(`CSV gerado com ${rows.length} registro(s).`, 'sucesso');
+      if (rows.length >= MAX_EXPORT_ROWS) App.toast('Exportação limitada a 10.000 registros. Refine os filtros para reduzir o volume.', 'aviso');
+    } catch (err) {
+      console.error('Erro ao exportar CSV', err);
+      App.toast(err?.message || 'Não foi possível gerar o CSV.', 'erro');
+    } finally {
+      setStatus(`${state.total} registro(s) encontrado(s). Página ${state.page} de ${totalPaginas()}.`);
     }
-    const headers = COLUNAS_TABELA.map(labelDe);
-    const linhas = state.filtrados.map(r => COLUNAS_TABELA.map(k => k === 'data_producao' ? U.dataBR(r[k]) : (r[k] || '')));
-    const csv = [headers, ...linhas].map(row => row.map(csvCell).join(';')).join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-    baixar(blob, `data_books_dormentes_${stamp()}.csv`);
-    App.toast('CSV gerado com os dados filtrados.', 'sucesso');
   }
 
   function csvCell(v) {
@@ -675,6 +819,9 @@ const DataBooks = (() => {
     carregar,
     setFiltro,
     limparFiltros,
+    paginaAnterior,
+    proximaPagina,
+    irPagina,
     abrirNovo,
     editar,
     ver,
