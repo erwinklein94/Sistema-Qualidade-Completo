@@ -1046,3 +1046,60 @@
 @media (max-width: 1180px) {
   .iauditor-app .sidebar { position: static; min-height: auto; }
 }
+
+
+/* =========================================================
+   Integração no sistema principal Concreto
+   Remove o menu interno herdado do app original do iAuditor.
+   A navegação agora fica somente no cabeçalho padrão do sistema.
+   Isso evita sobreposição visual dos cards/painéis dentro da aba.
+   Versão: 20260531-leitor-iauditor-layout-sem-sobreposicao-v2
+   ========================================================= */
+.iauditor-app .app-shell,
+.iauditor-app .app-shell[style] {
+  display: block !important;
+  grid-template-columns: 1fr !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+
+.iauditor-app .sidebar {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+}
+
+.iauditor-app .workspace {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+.iauditor-app .workspace__main {
+  width: 100%;
+}
+
+.iauditor-app .history-head,
+.iauditor-app .history-filters-card,
+.iauditor-app .history-results,
+.iauditor-app .upload-panel,
+.iauditor-app .reports-panel,
+.iauditor-app .page-hero,
+.iauditor-app .kpi-grid {
+  max-width: 100%;
+}
+
+.iauditor-app .history-filters {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+}
+
+.iauditor-app .foot {
+  display: none !important;
+}
