@@ -5578,88 +5578,38 @@ body[data-tema="escuro"] .auditoria-area-sistema { background: rgba(251,211,0,.1
 .subcomponentes-page .periodo-dashboard-info { margin-bottom: 18px; }
 
 
-/* =====================================================================
-   Subcomponentes integrado — cabeçalho e botões no mesmo padrão Concreto
-   ===================================================================== */
-@media (min-width: 981px) {
-  body.pagina-subcomponentes .topo {
-    display: grid !important;
-    grid-template-columns: minmax(340px, max-content) minmax(0, 1fr);
-    align-items: center;
-    column-gap: 28px;
-  }
-
-  body.pagina-subcomponentes .topo > .flex {
-    grid-column: 1;
-    min-width: 0;
-    max-width: 430px;
-  }
-
-  body.pagina-subcomponentes .topo > .topo-acoes {
-    grid-column: 2;
-    justify-self: end;
-    margin-left: auto !important;
-    width: min(820px, 100%) !important;
-    max-width: 820px;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end !important;
-    align-items: center;
-    align-content: center;
-    gap: 8px;
-    text-align: right;
-  }
-
-  body.pagina-subcomponentes .topo > .topo-acoes > #topoAcoes {
-    flex: 0 1 auto;
-    width: auto !important;
-    max-width: 100%;
-    margin-left: 0 !important;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end !important;
-    align-items: center;
-    gap: 8px;
-  }
-
-  body.pagina-subcomponentes .topo > .topo-acoes > .btn,
-  body.pagina-subcomponentes .topo > .topo-acoes > a.btn,
-  body.pagina-subcomponentes .topo > .topo-acoes > .usuario-auth,
-  body.pagina-subcomponentes .topo > .topo-acoes > #topoAcoes > .btn,
-  body.pagina-subcomponentes .topo > .topo-acoes > #topoAcoes > a.btn,
-  body.pagina-subcomponentes .topo > .topo-acoes > #topoAcoes > .badge {
-    flex: 0 0 auto;
-  }
-
-  body.pagina-subcomponentes .topo > .topo-acoes .exportacoes-grupo {
-    flex: 0 0 auto;
-    justify-content: flex-end;
-  }
+/* ===== SUBCOMPONENTES — PADRONIZAÇÃO DE TOPO E AÇÕES (20260531-v4) ===== */
+body.pagina-subcomponentes .topo {
+  display: flex !important;
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
-
-body.pagina-subcomponentes .topo-action .ic {
-  width: 15px;
-  height: 15px;
+body.pagina-subcomponentes #topoAcoes {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
-
-body.pagina-subcomponentes .toolbar-resumo {
+body.pagina-subcomponentes .exportacoes-grupo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+body.pagina-subcomponentes .toolbar-contador {
   justify-content: flex-start;
-  margin-bottom: 14px;
+  margin: 0 0 14px;
 }
-
-body.pagina-subcomponentes .toolbar-resumo .contador {
-  margin-right: auto;
+body.pagina-subcomponentes .toolbar-contador .contador {
+  color: var(--cinza-texto);
+  font-weight: 800;
 }
-
-@media (max-width: 760px) {
-  body.pagina-subcomponentes .topo > .topo-acoes > #topoAcoes,
-  body.pagina-subcomponentes .topo > .topo-acoes .exportacoes-grupo {
+body.pagina-subcomponentes .topo .badge {
+  align-self: center;
+}
+@media (max-width: 960px) {
+  body.pagina-subcomponentes #topoAcoes,
+  body.pagina-subcomponentes .exportacoes-grupo {
     width: 100%;
-  }
-
-  body.pagina-subcomponentes .topo > .topo-acoes > #topoAcoes > .btn,
-  body.pagina-subcomponentes .topo > .topo-acoes > #topoAcoes > a.btn {
-    flex: 1 1 150px;
-    justify-content: center;
   }
 }
