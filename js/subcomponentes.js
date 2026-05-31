@@ -272,10 +272,9 @@ const SubcomponentesApp = {
   },
   renderNav() {
     if ((state.active === 'auditoria' || state.active === 'usuarios') && !isAdmin()) state.active = 'dashboard';
-    const app = appShell();
-    if (app) {
-      app.paginaAtiva = `sub-${state.active}`;
-      app.atualizarMenuPorPermissoes?.();
+    if (window.App) {
+      window.App.paginaAtiva = `sub-${state.active}`;
+      window.App.atualizarMenuPorPermissoes?.();
     }
   },
   setHeader() {
@@ -1872,9 +1871,8 @@ async function bootstrap() {
     const autorizado = await window.Auth.exigirLogin();
     if (!autorizado) return;
   }
-  const app = appShell();
-  if (app?.montarLayout && !document.querySelector('.sidebar')) {
-    app.montarLayout('sub-dashboard', 'Subcomponentes', 'Controle de materiais, empresas, estoque e inspeções.');
+  if (appShell()?.montarLayout && !document.querySelector('.sidebar')) {
+    window.App.montarLayout('sub-dashboard', 'Subcomponentes', 'Controle de materiais, empresas, estoque e inspeções.');
   }
   SubcomponentesApp.init();
   await DB.init();

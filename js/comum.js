@@ -5,28 +5,41 @@
 const App = {
   menuBase() {
     return [
-      { sec: 'Painel' },
-      { k: 'dashboard', t: 'Dashboard', ic: ICN.dashboard, href: 'index.html' },
-      { k: 'semanal', t: 'Indicador Semanal', ic: ICN.semanal, href: 'semanal.html' },
-      { k: 'painelSeries', t: 'Fluxo de Liberação', ic: ICN.ensaios, href: 'ensaios.html' },
-      { k: 'fluxoLiberacao', t: 'Painel de séries', ic: ICN.trem, href: 'fluxo-liberacao.html' },
-      { sec: 'Lançamentos' },
-      { k: 'producao', t: 'Produção', ic: ICN.producao, href: 'producao.html' },
-      { k: 'ensaiosLiberacao', t: 'Ensaios de Liberação', ic: ICN.check, href: 'ensaios-liberacao.html' },
-      { k: 'reprovados', t: 'Reprovados', ic: ICN.reprova, href: 'reprovados.html' },
-      { sec: 'Subcomponentes' },
-      { k: 'sub-dashboard', t: 'Dashboard', ic: ICN.dashboard, href: 'subcomponentes.html#dashboard' },
-      { k: 'sub-cards', t: 'Cards por subcomponente', ic: ICN.ensaios, href: 'subcomponentes.html#cards' },
-      { k: 'sub-empresas', t: 'Empresas', ic: ICN.config, href: 'subcomponentes.html#empresas' },
-      { k: 'sub-materiais', t: 'Materiais', ic: ICN.producao, href: 'subcomponentes.html#materiais' },
-      { k: 'sub-estoque', t: 'Estoque', ic: ICN.trem, href: 'subcomponentes.html#estoque' },
-      { k: 'sub-inspecoes', t: 'Inspeções', ic: ICN.check, href: 'subcomponentes.html#inspecoes' },
-      { k: 'sub-dados', t: 'Dados Subcomponentes', ic: ICN.config, href: 'subcomponentes.html#dados', adminOnly: true },
-      { sec: 'Sistema' },
-      { k: 'banco', t: 'Conexão Supabase', ic: ICN.config, href: 'banco.html', adminOnly: true },
-      { k: 'usuarios', t: 'Usuários', ic: ICN.config, href: 'usuarios.html', adminOnly: true },
-      { k: 'auditoria', t: 'Auditoria', ic: ICN.config, href: 'auditoria.html', adminOnly: true },
-      { k: 'dados', t: 'Dados do Sistema', ic: ICN.config, href: 'dados.html', adminOnly: true },
+      {
+        sec: 'DORMENTES DE CONCRETO',
+        group: 'concreto',
+        desc: 'Produção, cura, ensaios, liberação e reprovas'
+      },
+      { k: 'dashboard', t: 'Dashboard Concreto', ic: ICN.dashboard, href: 'index.html', group: 'concreto' },
+      { k: 'semanal', t: 'Indicador Semanal', ic: ICN.semanal, href: 'semanal.html', group: 'concreto' },
+      { k: 'painelSeries', t: 'Painel de Séries', ic: ICN.ensaios, href: 'ensaios.html', group: 'concreto' },
+      { k: 'fluxoLiberacao', t: 'Fluxo de Liberação', ic: ICN.trem, href: 'fluxo-liberacao.html', group: 'concreto' },
+      { k: 'producao', t: 'Produção de Dormentes', ic: ICN.producao, href: 'producao.html', group: 'concreto' },
+      { k: 'ensaiosLiberacao', t: 'Ensaios de Liberação', ic: ICN.check, href: 'ensaios-liberacao.html', group: 'concreto' },
+      { k: 'reprovados', t: 'Dormentes Reprovados', ic: ICN.reprova, href: 'reprovados.html', group: 'concreto' },
+
+      {
+        sec: 'SUBCOMPONENTES',
+        group: 'subcomponentes',
+        desc: 'Empresas, materiais, estoque e inspeções de fornecedores'
+      },
+      { k: 'sub-dashboard', t: 'Dashboard Subcomponentes', ic: ICN.dashboard, href: 'subcomponentes.html#dashboard', group: 'subcomponentes' },
+      { k: 'sub-cards', t: 'Cards por Subcomponente', ic: ICN.ensaios, href: 'subcomponentes.html#cards', group: 'subcomponentes' },
+      { k: 'sub-empresas', t: 'Empresas / Fornecedores', ic: ICN.config, href: 'subcomponentes.html#empresas', group: 'subcomponentes' },
+      { k: 'sub-materiais', t: 'Materiais Subcomponentes', ic: ICN.producao, href: 'subcomponentes.html#materiais', group: 'subcomponentes' },
+      { k: 'sub-estoque', t: 'Estoque Subcomponentes', ic: ICN.trem, href: 'subcomponentes.html#estoque', group: 'subcomponentes' },
+      { k: 'sub-inspecoes', t: 'Inspeções Subcomponentes', ic: ICN.check, href: 'subcomponentes.html#inspecoes', group: 'subcomponentes' },
+      { k: 'sub-dados', t: 'Dados Subcomponentes', ic: ICN.config, href: 'subcomponentes.html#dados', group: 'subcomponentes', adminOnly: true },
+
+      {
+        sec: 'ADMINISTRAÇÃO DO SISTEMA',
+        group: 'sistema',
+        desc: 'Usuários, auditoria, banco e dados gerais'
+      },
+      { k: 'banco', t: 'Conexão Supabase', ic: ICN.config, href: 'banco.html', group: 'sistema', adminOnly: true },
+      { k: 'usuarios', t: 'Usuários e Perfis', ic: ICN.config, href: 'usuarios.html', group: 'sistema', adminOnly: true },
+      { k: 'auditoria', t: 'Auditoria Geral', ic: ICN.config, href: 'auditoria.html', group: 'sistema', adminOnly: true },
+      { k: 'dados', t: 'Dados do Sistema', ic: ICN.config, href: 'dados.html', group: 'sistema', adminOnly: true },
     ];
   },
 
@@ -52,8 +65,14 @@ const App = {
   navHtml() {
     let nav = '';
     this.menuPermitido().forEach(m => {
-      if (m.sec) { nav += `<div class="nav-section-label">${m.sec}</div>`; return; }
-      nav += `<a href="${m.href}" class="${m.k === this.paginaAtiva ? 'ativo' : ''}" onclick="App.fecharMenu()">${m.ic}<span>${m.t}</span></a>`;
+      if (m.sec) {
+        const grupo = m.group ? ` nav-section-label--${m.group}` : '';
+        const desc = m.desc ? `<small>${m.desc}</small>` : '';
+        nav += `<div class="nav-section-label${grupo}" data-menu-grupo="${m.group || ''}"><span>${m.sec}</span>${desc}</div>`;
+        return;
+      }
+      const classes = [m.k === this.paginaAtiva ? 'ativo' : '', m.group ? `nav-link--${m.group}` : ''].filter(Boolean).join(' ');
+      nav += `<a href="${m.href}" class="${classes}" data-menu-grupo="${m.group || ''}" onclick="App.fecharMenu()">${m.ic}<span>${m.t}</span></a>`;
     });
     return nav;
   },
@@ -88,7 +107,7 @@ const App = {
           <div class="sub">Somos o Brasil em movimento</div>
         </div>
         <nav class="nav">${nav}</nav>
-        <div class="sidebar-rodape"><span>Qualidade ferroviária</span><strong>Controle de Dormentes</strong><small>Concreto · Supabase</small></div>
+        <div class="sidebar-rodape"><span>Qualidade ferroviária</span><strong>Concreto + Subcomponentes</strong><small>RLS · Auditoria · Supabase</small></div>
       </aside>
       <div class="backdrop-mobile" id="backdrop" onclick="App.fecharMenu()"></div>`;
 
