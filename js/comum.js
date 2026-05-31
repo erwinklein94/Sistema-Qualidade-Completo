@@ -242,6 +242,8 @@ const App = {
   confirmar(msg) { return window.confirm(msg); },
 };
 
+window.App = App;
+
 /* ---------- Utilitários ---------- */
 const U = {
   // monta <option> a partir de array

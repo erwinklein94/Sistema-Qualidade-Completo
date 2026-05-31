@@ -239,6 +239,11 @@ function groupCount(records, keyGetter) {
   return [...m].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
 }
 
+
+function appShell() {
+  return window.App || (typeof App !== 'undefined' ? App : null);
+}
+
 const SubcomponentesApp = {
   init() {
     this.activeFromHash();
@@ -267,9 +272,10 @@ const SubcomponentesApp = {
   },
   renderNav() {
     if ((state.active === 'auditoria' || state.active === 'usuarios') && !isAdmin()) state.active = 'dashboard';
-    if (window.App) {
-      window.App.paginaAtiva = `sub-${state.active}`;
-      window.App.atualizarMenuPorPermissoes?.();
+    const app = appShell();
+    if (app) {
+      app.paginaAtiva = `sub-${state.active}`;
+      app.atualizarMenuPorPermissoes?.();
     }
   },
   setHeader() {
@@ -282,7 +288,7 @@ const SubcomponentesApp = {
     // Usa o mesmo sistema de cabeçalho das páginas de Concreto:
     // App.acoesTopo injeta as ações da aba e mantém o grupo padrão Excel/PDF.
     const actions = topActions();
-    if (window.App?.acoesTopo) window.App.acoesTopo(actions);
+    if (appShell()?.acoesTopo) window.App.acoesTopo(actions);
     else {
       const alvo = document.getElementById('topoAcoes');
       if (alvo) alvo.innerHTML = actions;
@@ -307,10 +313,10 @@ const SubcomponentesApp = {
     document.getElementById('topRefreshUsers')?.addEventListener('click', async () => { await DB.loadUsers(); render(); });
     document.getElementById('topNewUserProfile')?.addEventListener('click', () => openModal('usuario'));
   },
-  toggleMenu() { window.App?.alternarMenu?.(); },
-  closeMenu() { window.App?.fecharMenu?.(); },
-  toggleTheme() { window.App?.alternarTema?.(); },
-  applyTheme(theme, persist = true) { window.App?.aplicarTema?.(theme, persist); },
+  toggleMenu() { appShell()?.alternarMenu?.(); },
+  closeMenu() { appShell()?.fecharMenu?.(); },
+  toggleTheme() { appShell()?.alternarTema?.(); },
+  applyTheme(theme, persist = true) { appShell()?.aplicarTema?.(theme, persist); },
   async refreshData() {
     const btn = $('#refreshBtn');
     const original = btn?.innerHTML;
@@ -802,7 +808,7 @@ function topActions() {
   const add = window.ICN?.add || '＋';
   const check = window.ICN?.check || '✓';
   const actions = [];
-  const readonly = !canWrite() ? (window.App?.avisoModoConsulta?.() || '<span class="badge badge-amarelo">Modo consulta</span>') : '';
+  const readonly = !canWrite() ? (appShell()?.avisoModoConsulta?.() || '<span class="badge badge-amarelo">Modo consulta</span>') : '';
 
   if (state.active === 'dashboard') {
     actions.push(`<button class="btn btn-secundario btn-sm" type="button" data-sub-nav="cards">Cards por subcomponente</button>`);
@@ -1866,8 +1872,9 @@ async function bootstrap() {
     const autorizado = await window.Auth.exigirLogin();
     if (!autorizado) return;
   }
-  if (window.App?.montarLayout && !document.querySelector('.sidebar')) {
-    window.App.montarLayout('sub-dashboard', 'Subcomponentes', 'Controle de materiais, empresas, estoque e inspeções.');
+  const app = appShell();
+  if (app?.montarLayout && !document.querySelector('.sidebar')) {
+    app.montarLayout('sub-dashboard', 'Subcomponentes', 'Controle de materiais, empresas, estoque e inspeções.');
   }
   SubcomponentesApp.init();
   await DB.init();
