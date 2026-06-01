@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Medidas e Tolerâncias · Subcomponentes · Rumo</title>
   <link rel="icon" type="image/png" href="assets/brand/favicon-rumo.png">
-  <link rel="stylesheet" href="css/style.css?v=20260531-topo-limpo-v1">
+  <link rel="stylesheet" href="css/style.css?v=20260601-subcomponentes-medidas">
 </head>
 <body>
   <div class="app" id="app">
@@ -13,14 +13,14 @@
       <div class="pagina">
 
         <div class="aviso-info">
-          Tabela de <strong>referência (somente consulta)</strong> com as medidas e tolerâncias de cada subcomponente.
+          Tabela de <strong>referência (somente consulta)</strong> com subcomponentes, desenhos/normas de referência e medidas/tolerâncias pré-preenchidas.
           Edição e exclusão são exclusivas do perfil <strong>Admin</strong>. Esta aba ainda não cruza dados com Inspeções ou Estoque.
         </div>
 
         <div class="barra-filtros">
           <div class="busca-rapida campo">
-            <label>Buscar (subcomponente, característica, observação...)</label>
-            <input type="text" id="busca" placeholder="Digite para filtrar...">
+            <label>Buscar (subcomponente, referência, medida, tolerância...)</label>
+            <input type="text" id="busca" placeholder="Digite para filtrar por subcomponente, referência ou medida...">
           </div>
           <div class="campo"><label>Subcomponente</label><select id="fSubcomponente"><option value="">Todos</option></select></div>
         </div>
@@ -48,31 +48,22 @@
           <input type="hidden" id="id">
           <div class="form-grid">
             <div class="form-secao">Identificação</div>
-            <div class="campo"><label>Subcomponente <span class="obrig">*</span></label>
-              <input id="subcomponente" type="text" list="listaSubcomponentes" placeholder="Ex.: Fast Clip" autocomplete="off">
-              <datalist id="listaSubcomponentes">
-                <option value="Fast Clip"></option>
-                <option value="E-Clip"></option>
-                <option value="Contra Trilho"></option>
-                <option value="Chumbador"></option>
-                <option value="Ombreira"></option>
-                <option value="Palmilha"></option>
-                <option value="Isolador"></option>
-                <option value="Mola"></option>
-              </datalist>
+            <div class="campo full"><label>Subcomponente <span class="obrig">*</span></label>
+              <input id="subcomponente" type="text" list="listaSubcomponentes" placeholder="Ex.: Palmilha Branca TR68 FAST-CLIP" autocomplete="off">
+              <datalist id="listaSubcomponentes"></datalist>
             </div>
-            <div class="campo full"><label>Característica / cota <span class="obrig">*</span></label><input id="caracteristica" type="text" placeholder="Ex.: Largura da base, Comprimento, Diâmetro..."></div>
+            <div class="campo full"><label>Referência <span class="obrig">*</span></label><input id="referencia" type="text" placeholder="Ex.: ENG-DVP-D183 / INF-FX-0003"></div>
 
-            <div class="form-secao">Medida e tolerância</div>
-            <div class="campo"><label>Unidade</label><input id="unidade" type="text" placeholder="mm, °, kgf..."></div>
-            <div class="campo"><label>Valor nominal</label><input id="valor_nominal" type="text" placeholder="Ex.: 100,0"></div>
-            <div class="campo"><label>Tolerância inferior</label><input id="tolerancia_inferior" type="text" placeholder="Ex.: -0,5"></div>
-            <div class="campo"><label>Tolerância superior</label><input id="tolerancia_superior" type="text" placeholder="Ex.: +0,5"></div>
+            <div class="form-secao">Medidas e tolerâncias</div>
+            <div class="campo full"><label>Medidas / tolerâncias <span class="obrig">*</span></label>
+              <textarea id="medidas_tolerancias" rows="5" placeholder="Ex.: M1: 187,5 a 191,5 mm; M2: 151 a 155 mm"></textarea>
+            </div>
 
             <div class="form-secao">Observações</div>
             <div class="campo full"><label>Observação</label><textarea id="observacao" rows="3" placeholder="Norma de referência, método de medição, instrumento, etc."></textarea></div>
           </div>
           <div class="form-acoes">
+            <button type="button" class="btn btn-secundario" onclick="aplicarPadraoSubcomponente(true)">Pré-preencher pelo subcomponente</button>
             <button type="button" class="btn btn-secundario" onclick="fecharModal()">Cancelar</button>
             <button type="button" class="btn btn-primario" onclick="salvar()">Salvar medida</button>
           </div>
@@ -89,6 +80,6 @@
   <script src="js/config.js?v=20260531-topo-limpo-v1"></script>
   <script src="js/store-supabase.js?v=20260531-especificacoes"></script>
   <script src="js/comum.js?v=20260531-topo-limpo-v1"></script>
-  <script src="js/especificacoes-subcomponentes.js?v=20260531-especificacoes"></script>
+  <script src="js/especificacoes-subcomponentes.js?v=20260601-subcomponentes-medidas"></script>
 </body>
 </html>

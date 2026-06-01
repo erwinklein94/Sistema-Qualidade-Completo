@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Especificações e Limites · Dormentes · Rumo</title>
   <link rel="icon" type="image/png" href="assets/brand/favicon-rumo.png">
-  <link rel="stylesheet" href="css/style.css?v=20260531-topo-limpo-v1">
+  <link rel="stylesheet" href="css/style.css?v=20260601-dormentes-preenchidos">
 </head>
 <body>
   <div class="app" id="app">
@@ -14,6 +14,7 @@
 
         <div class="aviso-info">
           Tabela de <strong>referência (somente consulta)</strong> com os requisitos de aceitação por projeto/bitola.
+          Os projetos FMT, FERRO NORTE, MALHA PAULISTA BITOLA LARGA e MALHA PAULISTA BITOLA MISTA aparecem como modelos pré-preenchidos.
           Edição e exclusão são exclusivas do perfil <strong>Admin</strong>. Esta aba ainda não cruza dados com Produção ou Ensaios.
         </div>
 
@@ -47,30 +48,14 @@
       <div class="modal-corpo">
         <form id="form" onsubmit="return false">
           <input type="hidden" id="id">
-          <div class="form-grid">
-            <div class="form-secao">Identificação</div>
-            <div class="campo"><label>Projeto <span class="obrig">*</span></label><select id="projeto" required></select></div>
-            <div class="campo"><label>Bitola <span class="obrig">*</span></label><select id="bitola" required></select></div>
-            <div class="campo"><label>Tipo de dormente <span class="dica">(opcional)</span></label><input id="tipo_dormente" type="text" placeholder="Ex.: Monobloco protendido"></div>
-
-            <div class="form-secao">Resistência do concreto</div>
-            <div class="campo"><label>Compressão mínima <span class="dica">(MPa)</span></label><input id="compressao_minima" type="text" placeholder="Ex.: 55,0"></div>
-            <div class="campo"><label>Tração mínima <span class="dica">(MPa)</span></label><input id="tracao_minima" type="text" placeholder="Ex.: 4,0"></div>
-
-            <div class="form-secao">Momentos do ensaio estático <span class="dica">(kN·m)</span></div>
-            <div class="campo"><label>Momento positivo — apoio do trilho</label><input id="momento_positivo_apoio_trilho" type="text" placeholder="Ex.: 25,0"></div>
-            <div class="campo"><label>Momento negativo — apoio do trilho</label><input id="momento_negativo_apoio_trilho" type="text" placeholder="Ex.: 14,0"></div>
-            <div class="campo"><label>Momento positivo — centro do dormente</label><input id="momento_positivo_centro" type="text" placeholder="Ex.: 16,0"></div>
-            <div class="campo"><label>Momento negativo — centro do dormente</label><input id="momento_negativo_centro" type="text" placeholder="Ex.: 20,0"></div>
-
-            <div class="form-secao">Fixação e temperatura</div>
-            <div class="campo"><label>Torque <span class="dica">(N·m)</span></label><input id="torque" type="text" placeholder="Ex.: 250"></div>
-            <div class="campo"><label>Arrancamento <span class="dica">(kN)</span></label><input id="arrancamento" type="text" placeholder="Ex.: 60"></div>
-            <div class="campo"><label>Temperatura máxima <span class="dica">(°C)</span></label><input id="temperatura_maxima" type="text" placeholder="Ex.: 65"></div>
-
-            <div class="form-secao">Observações</div>
-            <div class="campo full"><label>Observação</label><textarea id="observacao" rows="3" placeholder="Norma de referência, condições do ensaio, etc."></textarea></div>
+          <div class="aviso-info" style="margin-bottom:14px;">
+            Ao selecionar um projeto, o formulário carrega automaticamente os padrões de cargas, medidas e tolerâncias informados.
+            O botão abaixo reaplica o padrão do projeto selecionado sobre os campos ainda não salvos.
           </div>
+          <div class="form-acoes" style="justify-content:flex-start;margin-bottom:14px;">
+            <button type="button" class="btn btn-secundario" onclick="aplicarPadraoProjeto(true)">Pré-preencher pelo projeto</button>
+          </div>
+          <div class="form-grid" id="camposDinamicos"></div>
           <div class="form-acoes">
             <button type="button" class="btn btn-secundario" onclick="fecharModal()">Cancelar</button>
             <button type="button" class="btn btn-primario" onclick="salvar()">Salvar especificação</button>
@@ -88,6 +73,6 @@
   <script src="js/config.js?v=20260531-topo-limpo-v1"></script>
   <script src="js/store-supabase.js?v=20260531-especificacoes"></script>
   <script src="js/comum.js?v=20260531-topo-limpo-v1"></script>
-  <script src="js/especificacoes-dormentes.js?v=20260531-especificacoes"></script>
+  <script src="js/especificacoes-dormentes.js?v=20260601-dormentes-preenchidos"></script>
 </body>
 </html>

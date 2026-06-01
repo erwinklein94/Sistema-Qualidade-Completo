@@ -6363,3 +6363,29 @@ body[data-pagina="data-books"] .vazio.compacto {
     justify-content: flex-start;
   }
 }
+
+/* Dormentes — modelos pré-preenchidos */
+.especificacao-card {
+  margin: 16px 0 0;
+  box-shadow: none;
+  border: 1px solid var(--cinza-borda);
+  background: rgba(255,255,255,.62);
+}
+.especificacao-card:first-child { margin-top: 0; }
+.especificacao-card .card-titulo { align-items: flex-start; }
+.especificacao-card .detalhe-secao { margin-top: 18px; }
+.especificacao-card .detalhe-grid { grid-template-columns: repeat(auto-fill, minmax(235px, 1fr)); }
+body[data-tema="escuro"] .especificacao-card { background: rgba(255,255,255,.04); }
+
+/* Medidas e Tolerâncias — Subcomponentes */
+.medidas-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 760px;
+  white-space: normal;
+}
+.medidas-lista .badge {
+  line-height: 1.35;
+  white-space: normal;
+}

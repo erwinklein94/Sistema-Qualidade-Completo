@@ -498,3 +498,101 @@ for each row execute function public.registrar_auditoria_alteracao();
    Depois de rodar este SQL, publique o projeto e acesse:
    subcomponentes.html#dashboard
 */
+
+/* ---------------------------------------------------------------------
+   8) Medidas e Tolerâncias — Subcomponentes
+   --------------------------------------------------------------------- */
+create table if not exists public.especificacoes_subcomponentes (
+  id uuid primary key default gen_random_uuid(),
+  subcomponente text not null,
+  referencia text,
+  medidas_tolerancias text,
+  caracteristica text,
+  unidade text,
+  valor_nominal text,
+  tolerancia_inferior text,
+  tolerancia_superior text,
+  observacao text,
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now(),
+  criado_por uuid references auth.users(id) on delete set null,
+  atualizado_por uuid references auth.users(id) on delete set null
+);
+
+alter table public.especificacoes_subcomponentes
+  add column if not exists referencia text,
+  add column if not exists medidas_tolerancias text;
+
+alter table public.especificacoes_subcomponentes
+  alter column caracteristica drop not null;
+
+create index if not exists idx_espec_sub_subcomponente on public.especificacoes_subcomponentes (subcomponente);
+create index if not exists idx_espec_sub_referencia on public.especificacoes_subcomponentes (referencia);
+
+alter table public.especificacoes_subcomponentes enable row level security;
+revoke all on table public.especificacoes_subcomponentes from anon;
+grant select, insert, update, delete on table public.especificacoes_subcomponentes to authenticated;
+
+drop policy if exists "espec_sub_select_usuarios_ativos" on public.especificacoes_subcomponentes;
+create policy "espec_sub_select_usuarios_ativos"
+on public.especificacoes_subcomponentes
+for select to authenticated
+using (public.usuario_ativo());
+
+drop policy if exists "espec_sub_insert_admin" on public.especificacoes_subcomponentes;
+create policy "espec_sub_insert_admin"
+on public.especificacoes_subcomponentes
+for insert to authenticated
+with check (public.eh_admin());
+
+drop policy if exists "espec_sub_update_admin" on public.especificacoes_subcomponentes;
+create policy "espec_sub_update_admin"
+on public.especificacoes_subcomponentes
+for update to authenticated
+using (public.eh_admin())
+with check (public.eh_admin());
+
+drop policy if exists "espec_sub_delete_admin" on public.especificacoes_subcomponentes;
+create policy "espec_sub_delete_admin"
+on public.especificacoes_subcomponentes
+for delete to authenticated
+using (public.eh_admin());
+
+drop trigger if exists trg_espec_sub_preencher_auditoria on public.especificacoes_subcomponentes;
+create trigger trg_espec_sub_preencher_auditoria
+before insert or update on public.especificacoes_subcomponentes
+for each row execute function public.preencher_campos_auditoria();
+
+drop trigger if exists trg_espec_sub_registrar_auditoria on public.especificacoes_subcomponentes;
+create trigger trg_espec_sub_registrar_auditoria
+after insert or update or delete on public.especificacoes_subcomponentes
+for each row execute function public.registrar_auditoria_alteracao();
+
+-- Modelos pré-preenchidos para Medidas e Tolerâncias — Subcomponentes.
+with modelos(subcomponente, referencia, medidas_tolerancias, caracteristica, unidade, observacao) as (
+values
+  ('Palmilha Branca TR68 FAST-CLIP', 'ENG-DVP-D183 / INF-FX-0003', 'M1: 187,5 a 191,5 mm; M2: 151 a 155 mm; M3: 111,5 a 114,5 mm; M4: 5,5 a 7,5 mm', 'Medidas / tolerâncias', 'mm', 'Padrão pré-preenchido conforme tabela de medidas e tolerâncias de subcomponentes.'),
+  ('Palmilha Verde UIC60', 'ENG-DVP-D135 / INF-FX-0003', 'M1: 148,5 a 150 mm; M2: 113 a 114 mm; M3: 7,05 a 7,55 mm', 'Medidas / tolerâncias', 'mm', 'Padrão pré-preenchido conforme tabela de medidas e tolerâncias de subcomponentes.'),
+  ('Isolador Lateral Verde 3510W', 'ENG-DVP-D136', 'M1: 61,5 a 63 mm; M2: 9,6 a 10,2 mm; M3: 7,4 a 8 mm', 'Medidas / tolerâncias', 'mm', 'Padrão pré-preenchido conforme tabela de medidas e tolerâncias de subcomponentes.'),
+  ('Isolador Lateral Amarelo 3510W', 'ENG-DVP-D136', 'M1: 61,5 a 63 mm; M2: 9,6 a 10,2 mm; M3: 7,4 a 8 mm', 'Medidas / tolerâncias', 'mm', 'Padrão pré-preenchido conforme tabela de medidas e tolerâncias de subcomponentes.'),
+  ('Isolador Lateral Preto 3502W', 'ENG-DVP-D084', 'M1: 61,5 a 63 mm; M2: 7,6 a 8,2 mm; M3: 7,4 a 8 mm', 'Medidas / tolerâncias', 'mm', 'Padrão pré-preenchido conforme tabela de medidas e tolerâncias de subcomponentes.'),
+  ('Isolador Lateral Branco 8mm PANDROL', 'ENG-DVP-D084', 'M1: 61,5 a 63 mm; M2: 7,6 a 8,2 mm; M3: 7,4 a 8 mm', 'Medidas / tolerâncias', 'mm', 'Padrão pré-preenchido conforme tabela de medidas e tolerâncias de subcomponentes.'),
+  ('Isolador Lateral Branco 3502W', 'ENG-DVP-D084', 'M1: 61,5 a 63 mm; M2: 7,6 a 8,2 mm; M3: 7,4 a 8 mm', 'Medidas / tolerâncias', 'mm', 'Padrão pré-preenchido conforme tabela de medidas e tolerâncias de subcomponentes.'),
+  ('UNDER SLEEPER PAD — USP GETZNER', 'ENG-DVP-D131', 'Comprimento: 1360 a 1390 mm; Largura: 225 a 245 mm; Espessura: 7 a 11 mm', 'Medidas / tolerâncias', 'mm', 'Padrão pré-preenchido conforme tabela de medidas e tolerâncias de subcomponentes.'),
+  ('Grampo W c/ isolador Capa Branca', 'ENG-DVP-T040', 'M1: 106,5 a 111 mm; M2: 15,75 a 16,25 mm; M3: 74,5 a 79 mm', 'Medidas / tolerâncias', 'mm', 'Padrão pré-preenchido conforme tabela de medidas e tolerâncias de subcomponentes.'),
+  ('Grampo W c/ isolador frontal', 'ENG-DVP-T040', 'M1: 106,5 a 111 mm; M2: 15,75 a 16,25 mm; M3: 74,5 a 79 mm', 'Medidas / tolerâncias', 'mm', 'Padrão pré-preenchido conforme tabela de medidas e tolerâncias de subcomponentes.'),
+  ('Ombreira E-CLIP HFOB02', 'ENG-DVP-D139', 'M1: 73,5 a 76,5 mm; M2: mínimo 24 mm', 'Medidas / tolerâncias', 'mm', 'Padrão pré-preenchido conforme tabela de medidas e tolerâncias de subcomponentes.'),
+  ('Ombreira FAST-CLIP HFOB08', 'ENG-DVP-D074', 'M1: 99,75 a 102,25 mm; M2: 58,7 a 60,7 mm; M3: 95,9 a 98,1 mm; M4: 70,3 a 72,5 mm; M5: 34,9 a 36,7 mm', 'Medidas / tolerâncias', 'mm', 'Padrão pré-preenchido conforme tabela de medidas e tolerâncias de subcomponentes.'),
+  ('Palmilha Verde Almofada 6980', 'ENG-DVP-D135', 'M1: 148,5 a 150 mm; M2: 113 a 114 mm; M3: 7,05 a 7,55 mm', 'Medidas / tolerâncias', 'mm', 'Padrão pré-preenchido conforme tabela de medidas e tolerâncias de subcomponentes.'),
+  ('Palmilha Branca Almofada 7552', 'ENG-DVP-D183', 'M1: 187,5 a 191,5 mm; M2: 151 a 155 mm; M3: 111,5 a 114,5 mm; M4: 5,5 a 7,5 mm', 'Medidas / tolerâncias', 'mm', 'Padrão pré-preenchido conforme tabela de medidas e tolerâncias de subcomponentes.')
+)
+insert into public.especificacoes_subcomponentes (subcomponente, referencia, medidas_tolerancias, caracteristica, unidade, observacao)
+select m.subcomponente, m.referencia, m.medidas_tolerancias, m.caracteristica, m.unidade, m.observacao
+from modelos m
+where not exists (
+  select 1
+  from public.especificacoes_subcomponentes e
+  where upper(coalesce(e.subcomponente, '')) = upper(coalesce(m.subcomponente, ''))
+    and upper(coalesce(e.referencia, '')) = upper(coalesce(m.referencia, ''))
+);
+

@@ -8,7 +8,7 @@ let EQUIP_REGISTROS = [];
 let EQUIP_CARREGANDO = false;
 let EQUIP_ERRO = '';
 
-const TIPOS_EQUIPAMENTO = ['Trena', 'Fissurômetro', 'Termômetro', 'Outro'];
+const TIPOS_EQUIPAMENTO = ['Trena', 'Fissurômetro', 'Termômetro', 'Paquímetro', 'Outro'];
 const ALERTA_DIAS = 30;
 
 const CAMPOS = [
