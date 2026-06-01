@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medidas e Tolerâncias · Subcomponentes · Rumo</title>
+  <link rel="icon" type="image/png" href="assets/brand/favicon-rumo.png">
+  <link rel="stylesheet" href="css/style.css?v=20260531-topo-limpo-v1">
+</head>
+<body>
+  <div class="app" id="app">
+    <main class="conteudo" id="conteudo">
+      <div class="pagina">
+
+        <div class="aviso-info">
+          Tabela de <strong>referência (somente consulta)</strong> com as medidas e tolerâncias de cada subcomponente.
+          Edição e exclusão são exclusivas do perfil <strong>Admin</strong>. Esta aba ainda não cruza dados com Inspeções ou Estoque.
+        </div>
+
+        <div class="barra-filtros">
+          <div class="busca-rapida campo">
+            <label>Buscar (subcomponente, característica, observação...)</label>
+            <input type="text" id="busca" placeholder="Digite para filtrar...">
+          </div>
+          <div class="campo"><label>Subcomponente</label><select id="fSubcomponente"><option value="">Todos</option></select></div>
+        </div>
+
+        <div class="card">
+          <div class="card-titulo">
+            <span class="acento">Medidas e tolerâncias — Subcomponentes</span>
+            <span class="txt-mini txt-cinza" id="contador">0 registros</span>
+          </div>
+          <div id="lista"></div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-cab">
+        <h2 id="modalTitulo">Nova medida</h2>
+        <button class="fechar-modal" onclick="fecharModal()">⨯</button>
+      </div>
+      <div class="modal-corpo">
+        <form id="form" onsubmit="return false">
+          <input type="hidden" id="id">
+          <div class="form-grid">
+            <div class="form-secao">Identificação</div>
+            <div class="campo"><label>Subcomponente <span class="obrig">*</span></label>
+              <input id="subcomponente" type="text" list="listaSubcomponentes" placeholder="Ex.: Fast Clip" autocomplete="off">
+              <datalist id="listaSubcomponentes">
+                <option value="Fast Clip"></option>
+                <option value="E-Clip"></option>
+                <option value="Contra Trilho"></option>
+                <option value="Chumbador"></option>
+                <option value="Ombreira"></option>
+                <option value="Palmilha"></option>
+                <option value="Isolador"></option>
+                <option value="Mola"></option>
+              </datalist>
+            </div>
+            <div class="campo full"><label>Característica / cota <span class="obrig">*</span></label><input id="caracteristica" type="text" placeholder="Ex.: Largura da base, Comprimento, Diâmetro..."></div>
+
+            <div class="form-secao">Medida e tolerância</div>
+            <div class="campo"><label>Unidade</label><input id="unidade" type="text" placeholder="mm, °, kgf..."></div>
+            <div class="campo"><label>Valor nominal</label><input id="valor_nominal" type="text" placeholder="Ex.: 100,0"></div>
+            <div class="campo"><label>Tolerância inferior</label><input id="tolerancia_inferior" type="text" placeholder="Ex.: -0,5"></div>
+            <div class="campo"><label>Tolerância superior</label><input id="tolerancia_superior" type="text" placeholder="Ex.: +0,5"></div>
+
+            <div class="form-secao">Observações</div>
+            <div class="campo full"><label>Observação</label><textarea id="observacao" rows="3" placeholder="Norma de referência, método de medição, instrumento, etc."></textarea></div>
+          </div>
+          <div class="form-acoes">
+            <button type="button" class="btn btn-secundario" onclick="fecharModal()">Cancelar</button>
+            <button type="button" class="btn btn-primario" onclick="salvar()">Salvar medida</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');}</script>
+  <script src="js/supabase-config.js?v=20260531-topo-limpo-v1"></script>
+  <script src="js/auth.js?v=20260531-topo-limpo-v1"></script>
+  <script>Auth.exigirLogin();</script>
+  <script src="js/config.js?v=20260531-topo-limpo-v1"></script>
+  <script src="js/store-supabase.js?v=20260531-especificacoes"></script>
+  <script src="js/comum.js?v=20260531-topo-limpo-v1"></script>
+  <script src="js/especificacoes-subcomponentes.js?v=20260531-especificacoes"></script>
+</body>
+</html>

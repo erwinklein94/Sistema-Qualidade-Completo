@@ -280,6 +280,74 @@ const StoreSupabase = (() => {
     return data || [];
   }
 
+  /* ===================================================================
+     Especificações / Limites / Equipamentos — tabelas consultivas.
+     Leitura: qualquer usuário ativo. Escrita/exclusão: somente admin.
+     =================================================================== */
+  function gravarAdmin(tabela, registro) {
+    exigirAdmin(registro?.id ? 'editar especificações/equipamentos' : 'criar especificações/equipamentos');
+    return (async () => {
+      const user = await usuarioAtual();
+      const payload = { ...registro, atualizado_por: user?.id || null };
+      const id = payload.id;
+      let query;
+      if (id) {
+        delete payload.id;
+        query = db().from(tabela).update(payload).eq('id', id);
+      } else {
+        delete payload.id;
+        payload.criado_por = user?.id || null;
+        query = db().from(tabela).insert(payload);
+      }
+      const { data, error } = await query.select().single();
+      if (error) throw error;
+      return data;
+    })();
+  }
+
+  async function removerAdmin(tabela, id) {
+    exigirAdmin('excluir especificações/equipamentos');
+    const { error } = await db().from(tabela).delete().eq('id', id);
+    if (error) throw error;
+    return true;
+  }
+
+  async function listarEspecDormentes() {
+    const { data, error } = await db()
+      .from('especificacoes_dormentes')
+      .select('*')
+      .order('projeto', { ascending: true, nullsFirst: false })
+      .order('bitola', { ascending: true, nullsFirst: false });
+    if (error) throw error;
+    return data || [];
+  }
+  const salvarEspecDormente = (registro) => gravarAdmin('especificacoes_dormentes', registro);
+  const removerEspecDormente = (id) => removerAdmin('especificacoes_dormentes', id);
+
+  async function listarEspecSubcomponentes() {
+    const { data, error } = await db()
+      .from('especificacoes_subcomponentes')
+      .select('*')
+      .order('subcomponente', { ascending: true, nullsFirst: false })
+      .order('caracteristica', { ascending: true, nullsFirst: false });
+    if (error) throw error;
+    return data || [];
+  }
+  const salvarEspecSubcomponente = (registro) => gravarAdmin('especificacoes_subcomponentes', registro);
+  const removerEspecSubcomponente = (id) => removerAdmin('especificacoes_subcomponentes', id);
+
+  async function listarEquipamentos() {
+    const { data, error } = await db()
+      .from('equipamentos_medicao')
+      .select('*')
+      .order('data_vencimento', { ascending: true, nullsFirst: false })
+      .order('tipo', { ascending: true, nullsFirst: false });
+    if (error) throw error;
+    return data || [];
+  }
+  const salvarEquipamento = (registro) => gravarAdmin('equipamentos_medicao', registro);
+  const removerEquipamento = (id) => removerAdmin('equipamentos_medicao', id);
+
   return {
     perfil,
     usuarioAtual,
@@ -298,6 +366,15 @@ const StoreSupabase = (() => {
     salvarUsuarioApp,
     listarAuditoria,
     listarConfiguracoes,
+    listarEspecDormentes,
+    salvarEspecDormente,
+    removerEspecDormente,
+    listarEspecSubcomponentes,
+    salvarEspecSubcomponente,
+    removerEspecSubcomponente,
+    listarEquipamentos,
+    salvarEquipamento,
+    removerEquipamento,
   };
 })();
 

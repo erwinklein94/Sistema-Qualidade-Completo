@@ -18,6 +18,7 @@ const App = {
       { k: 'producao', t: 'Produção de Dormentes', ic: ICN.producao, href: 'producao.html', group: 'concreto' },
       { k: 'ensaiosLiberacao', t: 'Ensaios de Liberação', ic: ICN.check, href: 'ensaios-liberacao.html', group: 'concreto' },
       { k: 'reprovados', t: 'Dormentes Reprovados', ic: ICN.reprova, href: 'reprovados.html', group: 'concreto' },
+      { k: 'especDormentes', t: 'Especificações e Limites', ic: ICN.ensaios, href: 'especificacoes-dormentes.html', group: 'concreto' },
 
       {
         sec: 'SUBCOMPONENTES',
@@ -30,6 +31,7 @@ const App = {
       { k: 'sub-materiais', t: 'Materiais Subcomponentes', ic: ICN.producao, href: 'subcomponentes.html#materiais', group: 'subcomponentes' },
       { k: 'sub-estoque', t: 'Estoque Subcomponentes', ic: ICN.trem, href: 'subcomponentes.html#estoque', group: 'subcomponentes' },
       { k: 'sub-inspecoes', t: 'Inspeções Subcomponentes', ic: ICN.check, href: 'subcomponentes.html#inspecoes', group: 'subcomponentes' },
+      { k: 'especSubcomponentes', t: 'Medidas e Tolerâncias', ic: ICN.ensaios, href: 'especificacoes-subcomponentes.html', group: 'subcomponentes' },
       { k: 'sub-dados', t: 'Dados Subcomponentes', ic: ICN.config, href: 'subcomponentes.html#dados', group: 'subcomponentes', adminOnly: true },
 
       {
@@ -40,6 +42,7 @@ const App = {
       { k: 'ferramenta-iauditor', t: 'Leitor de Iauditor', ic: ICN.olho, href: 'leitor-iauditor.html', group: 'ferramentas' },
       { k: 'ferramenta-databooks', t: 'Data books', ic: ICN.download, href: 'data-books.html', group: 'ferramentas', adminOnly: true },
       { k: 'ferramenta-flashcards', t: 'Flash-Cards', ic: ICN.ensaios, href: 'flash-cards.html', group: 'ferramentas' },
+      { k: 'ferramenta-equipamentos', t: 'Controle de Equipamentos', ic: ICN.config, href: 'controle-equipamentos.html', group: 'ferramentas' },
       { k: 'ferramenta-guia-inspetor', t: 'Guia do Inspetor Padrão', ic: ICN.alerta, href: 'https://www.guiadoinspetorpadrao.com.br', group: 'ferramentas', external: true },
 
       {

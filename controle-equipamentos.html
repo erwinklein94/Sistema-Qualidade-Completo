@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Equipamentos · Calibração · Rumo</title>
+  <link rel="icon" type="image/png" href="assets/brand/favicon-rumo.png">
+  <link rel="stylesheet" href="css/style.css?v=20260531-topo-limpo-v1">
+</head>
+<body>
+  <div class="app" id="app">
+    <main class="conteudo" id="conteudo">
+      <div class="pagina">
+
+        <div class="aviso-info">
+          Controle de calibração dos equipamentos de medição (trena, fissurômetro, termômetro e outros), com
+          <strong>data de calibração, vencimento, certificado e fiscal responsável</strong>. O sistema sinaliza itens
+          <strong>vencidos</strong> e a vencer. Edição e exclusão são exclusivas do perfil <strong>Admin</strong>.
+        </div>
+
+        <div id="alertaVencidos"></div>
+        <div id="resumo"></div>
+
+        <div class="barra-filtros">
+          <div class="busca-rapida campo">
+            <label>Buscar (identificação, modelo, fiscal, certificado...)</label>
+            <input type="text" id="busca" placeholder="Digite para filtrar...">
+          </div>
+          <div class="campo"><label>Tipo</label><select id="fTipo"></select></div>
+          <div class="campo"><label>Situação</label>
+            <select id="fSituacao">
+              <option value="">Todas</option>
+              <option value="Vencido">Vencido</option>
+              <option value="Vence em breve">Vence em breve (≤30 dias)</option>
+              <option value="Vigente">Vigente</option>
+              <option value="Sem vencimento">Sem vencimento</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-titulo">
+            <span class="acento">Equipamentos de medição</span>
+            <span class="txt-mini txt-cinza" id="contador">0 registros</span>
+          </div>
+          <div id="lista"></div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-cab">
+        <h2 id="modalTitulo">Novo equipamento</h2>
+        <button class="fechar-modal" onclick="fecharModal()">⨯</button>
+      </div>
+      <div class="modal-corpo">
+        <form id="form" onsubmit="return false">
+          <input type="hidden" id="id">
+          <div class="form-grid">
+            <div class="form-secao">Identificação do equipamento</div>
+            <div class="campo"><label>Tipo <span class="obrig">*</span></label><select id="tipo" required></select></div>
+            <div class="campo"><label>Identificação <span class="dica">(nº série / patrimônio / TAG)</span></label><input id="identificacao" type="text" placeholder="Ex.: TR-014"></div>
+            <div class="campo full"><label>Modelo / fabricante / descrição</label><input id="modelo" type="text" placeholder="Ex.: Trena 5 m — fabricante X"></div>
+            <div class="campo full"><label>Fiscal responsável <span class="dica">(com quem o item está)</span></label><input id="fiscal_responsavel" type="text" placeholder="Nome do fiscal"></div>
+
+            <div class="form-secao">Calibração</div>
+            <div class="campo"><label>Data de calibração</label><input id="data_calibracao" type="date"></div>
+            <div class="campo"><label>Vencimento da calibração</label><input id="data_vencimento" type="date"></div>
+            <div class="campo full"><label>Certificado <span class="dica">(nº ou link)</span></label><input id="certificado" type="text" placeholder="Nº do certificado ou https://..."></div>
+
+            <div class="form-secao">Observações</div>
+            <div class="campo full"><label>Observação</label><textarea id="observacao" rows="3" placeholder="Laboratório, faixa de uso, restrições, etc."></textarea></div>
+          </div>
+          <div class="form-acoes">
+            <button type="button" class="btn btn-secundario" onclick="fecharModal()">Cancelar</button>
+            <button type="button" class="btn btn-primario" onclick="salvar()">Salvar equipamento</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');}</script>
+  <script src="js/supabase-config.js?v=20260531-topo-limpo-v1"></script>
+  <script src="js/auth.js?v=20260531-topo-limpo-v1"></script>
+  <script>Auth.exigirLogin();</script>
+  <script src="js/config.js?v=20260531-topo-limpo-v1"></script>
+  <script src="js/store-supabase.js?v=20260531-especificacoes"></script>
+  <script src="js/comum.js?v=20260531-topo-limpo-v1"></script>
+  <script src="js/controle-equipamentos.js?v=20260531-especificacoes"></script>
+</body>
+</html>
